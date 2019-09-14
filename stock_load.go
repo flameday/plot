@@ -9,12 +9,15 @@ import (
 )
 
 type Stock struct {
-	data         []float64
-	avg30        []float64
-	avg150       []float64
-	dataMinMax   []int
-	avg30MinMax  []int
-	avg150MinMax []int
+	data      []float64
+	avg30     []float64
+	avg150    []float64
+	avgMiddle []float64
+
+	dataMinMax      []int
+	avg30MinMax     []int
+	avg150MinMax    []int
+	avgMiddleMinMax []int
 
 	cleanPosMinMax []int
 }
@@ -85,11 +88,14 @@ func (stock *Stock) LoadData() []float64 {
 
 	//计算平均值
 	for i := 0; i < len(stock.data); i++ {
-		val := get_avg(stock.data, i, 30)
+		val := get_pre_avg(stock.data, i, 30)
 		stock.avg30 = append(stock.avg30, val)
 
-		val = get_avg(stock.data, i, 150)
+		val = get_pre_avg(stock.data, i, 150)
 		stock.avg150 = append(stock.avg150, val)
+
+		val = get_middle_avg(stock.data, i, 30)
+		stock.avgMiddle = append(stock.avgMiddle, val)
 	}
 	//
 	log.Infof("data size:%d", len(stock.data))
@@ -98,6 +104,7 @@ func (stock *Stock) LoadData() []float64 {
 	caculateMinMax(stock.data, &stock.dataMinMax, 5)
 	caculateMinMax(stock.avg30, &stock.avg30MinMax, 5)
 	caculateMinMax(stock.avg150, &stock.avg150MinMax, 5)
+	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 5)
 
 	return stock.data
 }

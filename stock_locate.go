@@ -73,7 +73,7 @@ func isMin(value_list []float64, index int, length int) bool {
 }
 
 // 获取平均值
-func get_avg(value_list []float64, index int, length int) float64 {
+func get_pre_avg(value_list []float64, index int, length int) float64 {
 	var total float64
 	var count int
 	total = 0.0
@@ -81,6 +81,30 @@ func get_avg(value_list []float64, index int, length int) float64 {
 	for i := 0; i < length; i++ {
 		pos := index - i
 		if pos < 0 {
+			break
+		}
+		total += value_list[pos]
+		count += 1
+	}
+	return total / float64(count)
+}
+
+func get_middle_avg(value_list []float64, index int, length int) float64 {
+	var total float64
+	var count int
+	total = 0.0
+	count = 0
+	for i := 0; i < length/2; i++ {
+		pos := index - i
+		if pos < 0 {
+			break
+		}
+		total += value_list[pos]
+		count += 1
+	}
+	for i := 0; i < length/2; i++ {
+		pos := index + i
+		if pos < 0 || pos >= len(value_list) {
 			break
 		}
 		total += value_list[pos]

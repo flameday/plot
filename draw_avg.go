@@ -7,9 +7,9 @@ import (
 	"image/color"
 )
 
-func drawAvg30(p *plot.Plot) {
+func drawData(p *plot.Plot, data []float64, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
-	for i, val := range stock.avg30 {
+	for i, val := range data {
 		var x float64
 		x = float64(i)
 		var elem = plotter.XY{
@@ -22,30 +22,54 @@ func drawAvg30(p *plot.Plot) {
 	if err != nil {
 		panic(err)
 	}
-	l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Width = vg.Points(1)
+	l.LineStyle.Width = vg.Points(width)
 	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
-	l.LineStyle.Color = color.RGBA{R: 255, B: 255, A: 255}
+	l.LineStyle.Color = clr
+	//l.LineStyle.Color = color.RGBA{R: 255, B: 255, A: 255}
 
 	p.Add(l)
 }
-func drawAvg150(p *plot.Plot) {
-	points := make(plotter.XYs, 0)
-	for i, val := range stock.avg150 {
-		var x float64
-		x = float64(i)
-		var elem = plotter.XY{
-			x, val,
-		}
-		points = append(points, elem)
-	}
-	// Make a line plotter and set its style.
-	l, err := plotter.NewLine(points)
-	if err != nil {
-		panic(err)
-	}
-	l.LineStyle.Width = vg.Points(1)
-	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
-	l.LineStyle.Color = color.RGBA{R: 255, A: 255}
 
-	p.Add(l)
-}
+//func drawAvg30(p *plot.Plot) {
+//	points := make(plotter.XYs, 0)
+//	for i, val := range stock.avg30 {
+//		var x float64
+//		x = float64(i)
+//		var elem = plotter.XY{
+//			x, val,
+//		}
+//		points = append(points, elem)
+//	}
+//	// Make a line plotter and set its style.
+//	l, err := plotter.NewLine(points)
+//	if err != nil {
+//		panic(err)
+//	}
+//	l.LineStyle.Width = vg.Points(1)
+//	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+//	l.LineStyle.Color = color.RGBA{R: 255, B: 255, A: 255}
+//
+//	p.Add(l)
+//}
+//func drawAvg150(p *plot.Plot) {
+//	points := make(plotter.XYs, 0)
+//	for i, val := range stock.avg150 {
+//		var x float64
+//		x = float64(i)
+//		var elem = plotter.XY{
+//			x, val,
+//		}
+//		points = append(points, elem)
+//	}
+//	// Make a line plotter and set its style.
+//	l, err := plotter.NewLine(points)
+//	if err != nil {
+//		panic(err)
+//	}
+//	l.LineStyle.Width = vg.Points(1)
+//	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+//	l.LineStyle.Color = color.RGBA{R: 255, A: 255}
+//
+//	p.Add(l)
+//}

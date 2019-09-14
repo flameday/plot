@@ -8,11 +8,22 @@ import (
 )
 
 var (
-	white     color.Color = color.RGBA{255, 255, 255, 255}
-	blue      color.Color = color.RGBA{0, 0, 255, 255}
-	red       color.Color = color.RGBA{255, 0, 0, 255}
-	picwidth  float64     = 512 * 1
-	picheight float64     = 384 * 1
+	white    color.Color = color.RGBA{255, 255, 255, 255}
+	blue     color.Color = color.RGBA{0, 0, 255, 255}
+	red      color.Color = color.RGBA{255, 0, 0, 255}
+	dark_red color.Color = color.RGBA{139, 0, 0, 255}
+	green    color.Color = color.RGBA{0, 255, 0, 255}
+	pink     color.Color = color.RGBA{255, 192, 203, 255}
+	orange   color.Color = color.RGBA{255, 165, 0, 255}
+	black    color.Color = color.RGBA{0, 0, 0, 255}
+	gold     color.Color = color.RGBA{255, 215, 0, 255}
+	yellow   color.Color = color.RGBA{255, 255, 0, 255}
+	purple   color.Color = color.RGBA{128, 0, 128, 255}
+	magenta  color.Color = color.RGBA{255, 0, 255, 255}
+	olive    color.Color = color.RGBA{128, 128, 0, 255}
+
+	picwidth  float64 = 512 * 1
+	picheight float64 = 384 * 1
 	stock     Stock
 )
 
@@ -33,11 +44,11 @@ func main() {
 	//画平均线
 	//drawAvg150(p)
 	//drawAvg30(p)
-	drawData(p, stock.data, 1, blue)
-	drawData(p, stock.avgMiddle, 1, color.RGBA{R: 255, G: 128, B: 255, A: 255})
-	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, color.RGBA{R: 128, G: 128, B: 255, A: 255})
-	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 1, color.RGBA{R: 128, G: 128, B: 255, A: 255})
-	drawData(p, stock.avg30, 1, color.RGBA{R: 0, G: 0, B: 0, A: 255})
+	drawData(p, stock.data, 1, red)
+	drawData(p, stock.avgMiddle, 1, yellow)
+	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
+	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 1, dark_red)
+	drawData(p, stock.avg30, 1, green)
 	//drawAvg30Max(p)
 	//drawMax(p)
 	//drawMin(p)

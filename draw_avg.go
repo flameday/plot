@@ -1,0 +1,51 @@
+package main
+
+import (
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"image/color"
+)
+
+func drawAvg30(p *plot.Plot) {
+	points := make(plotter.XYs, 0)
+	for i, val := range stock.avg30 {
+		var x float64
+		x = float64(i)
+		var elem = plotter.XY{
+			x, val,
+		}
+		points = append(points, elem)
+	}
+	// Make a line plotter and set its style.
+	l, err := plotter.NewLine(points)
+	if err != nil {
+		panic(err)
+	}
+	l.LineStyle.Width = vg.Points(1)
+	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+	l.LineStyle.Color = color.RGBA{R: 255, B: 255, A: 255}
+
+	p.Add(l)
+}
+func drawAvg150(p *plot.Plot) {
+	points := make(plotter.XYs, 0)
+	for i, val := range stock.avg150 {
+		var x float64
+		x = float64(i)
+		var elem = plotter.XY{
+			x, val,
+		}
+		points = append(points, elem)
+	}
+	// Make a line plotter and set its style.
+	l, err := plotter.NewLine(points)
+	if err != nil {
+		panic(err)
+	}
+	l.LineStyle.Width = vg.Points(1)
+	l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+	l.LineStyle.Color = color.RGBA{R: 255, A: 255}
+
+	p.Add(l)
+}

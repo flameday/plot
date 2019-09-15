@@ -51,8 +51,8 @@ func (stock *Stock) LoadData() []float64 {
 			log.Error("ParseFloat elems[3]:%s err:%v", elems[3], err)
 		}
 		//
-		//if i > 3500 && i < 4500 {
-		if i < 500 {
+		if i > 2500 && i < 3500 {
+			//if i < 500 {
 			stock.data = append(stock.data, val)
 		}
 	}

@@ -42,11 +42,12 @@ func main() {
 	p.Y.Label.Text = "Price"
 
 	drawData(p, stock.data, 2, red)
-	drawData(p, stock.avgMiddle, 2, dark_red)
-	//drawData(p, stock.avg30, 1, purple)
+	//drawData(p, stock.avgMiddle, 2, dark_red)
+	//drawData(p, stock.avg6, 1, green)
+	drawData(p, stock.avg30, 1, purple)
 	drawData(p, stock.avg150, 5, yellow)
-	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
-	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
+	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
+	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
 	drawMinMax(p, stock.data, stock.resetMinMax, 1, 2, black)
 	drawMinMax(p, stock.data, stock.resetMinMax, -1, 2, black)
 

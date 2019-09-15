@@ -10,6 +10,7 @@ import (
 
 type Stock struct {
 	data      []float64
+	avg6      []float64
 	avg30     []float64
 	avg150    []float64
 	avgMiddle []float64
@@ -90,7 +91,10 @@ func (stock *Stock) LoadData() []float64 {
 
 	//计算平均值
 	for i := 0; i < len(stock.data); i++ {
-		val := get_pre_avg(stock.data, i, 30)
+		val := get_pre_avg(stock.data, i, 6)
+		stock.avg6 = append(stock.avg6, val)
+
+		val = get_pre_avg(stock.data, i, 30)
 		stock.avg30 = append(stock.avg30, val)
 
 		val = get_pre_avg(stock.data, i, 150)

@@ -22,9 +22,11 @@ var (
 	magenta  color.Color = color.RGBA{255, 0, 255, 255}
 	olive    color.Color = color.RGBA{128, 128, 0, 255}
 
-	picwidth  float64 = 512 * 1
-	picheight float64 = 384 * 1
-	stock     Stock
+	picwidth       float64 = 512 * 2
+	picheight      float64 = 384 * 2
+	stock          Stock
+	MAX_VALUE_FLAG = 1
+	MIN_VALUE_FLAG = -1
 )
 
 // 大家可以查看这个网址看看这个image包的使用方法 http://golang.org/doc/articles/image_draw.html
@@ -39,23 +41,14 @@ func main() {
 	p.X.Label.Text = "Quantity Demand"
 	p.Y.Label.Text = "Price"
 
-	//画圈圈
-	//drawCircle(p)
-	//画平均线
-	//drawAvg150(p)
-	//drawAvg30(p)
-	drawData(p, stock.data, 1, red)
-	drawData(p, stock.avgMiddle, 1, yellow)
+	drawData(p, stock.data, 2, red)
+	drawData(p, stock.avgMiddle, 2, dark_red)
+	//drawData(p, stock.avg30, 1, purple)
+	drawData(p, stock.avg150, 5, yellow)
 	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
-	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 1, dark_red)
-	drawData(p, stock.avg30, 1, green)
-	//drawAvg30Max(p)
-	//drawMax(p)
-	//drawMin(p)
-	//drawAvg30Max(p)
-	//drawCleanMin(p)
-	//p.Add(s, l, lpLine, lpPoints)
-	//plotutil.AddLinePoints(p, points)
+	drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
+	drawMinMax(p, stock.data, stock.resetMinMax, 1, 2, black)
+	drawMinMax(p, stock.data, stock.resetMinMax, -1, 2, black)
 
 	p.Save(vg.Length(picwidth), vg.Length(picheight), "/Users/xinmei365/price.png")
 

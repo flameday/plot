@@ -1,5 +1,7 @@
 package main
 
+import "github.com/prometheus/common/log"
+
 func findNextIndex(arr []int, posStart int, value int) int {
 	for i := posStart; i < len(arr); i++ {
 		if arr[i] == value {
@@ -72,7 +74,7 @@ func isMin(value_list []float64, index int, length int) bool {
 	return true
 }
 
-// 获取平均值
+// 根据前面的 length 个值，获取平均值
 func get_pre_avg(value_list []float64, index int, length int) float64 {
 	var total float64
 	var count int
@@ -89,6 +91,7 @@ func get_pre_avg(value_list []float64, index int, length int) float64 {
 	return total / float64(count)
 }
 
+//根据前后 length 个值，获取平均值
 func get_middle_avg(value_list []float64, index int, length int) float64 {
 	var total float64
 	var count int
@@ -111,4 +114,84 @@ func get_middle_avg(value_list []float64, index int, length int) float64 {
 		count += 1
 	}
 	return total / float64(count)
+}
+
+// 向前向后length找最大值
+func locateMax(data []float64, posArr []int, length int) {
+	//for max
+	for i := 0; i < len(posArr); i++ {
+		log.Infof("[%d] data:%f", i, data[i])
+		if posArr[i] == MAX_VALUE_FLAG {
+			//max
+			maxValue := data[i]
+			maxPos := i
+			//right to left
+			for j := length / 2; j >= -1*length/2; j-- {
+				pos := i + j
+				if pos >= len(posArr) || pos < 0 {
+					continue
+				}
+				if maxValue < data[pos] {
+					log.Infof("[%d] pos data:%f", pos, data[pos])
+
+					posArr[maxPos] = 0
+					posArr[pos] = MAX_VALUE_FLAG
+
+					maxValue = data[pos]
+					maxPos = pos
+				} else if maxValue == data[pos] {
+					if pos > maxPos {
+						//取前面的
+						posArr[maxPos] = MAX_VALUE_FLAG
+						posArr[pos] = 0
+					} else {
+						posArr[maxPos] = 0
+
+						posArr[pos] = MAX_VALUE_FLAG
+						maxPos = pos
+					}
+				}
+			}
+		}
+	}
+}
+
+// 向前向后length找最小值
+func locateMin(data []float64, posArr []int, length int) {
+	//for max
+	for i := 0; i < len(posArr); i++ {
+		log.Infof("[%d] data:%f", i, data[i])
+		if posArr[i] == MIN_VALUE_FLAG {
+			//max
+			minValue := data[i]
+			minPos := i
+			//right to left
+			for j := length / 2; j >= -1*length/2; j-- {
+				pos := i + j
+				if pos >= len(posArr) || pos < 0 {
+					continue
+				}
+				if minValue > data[pos] {
+					log.Infof("[%d] pos data:%f", pos, data[pos])
+
+					posArr[minPos] = 0
+					posArr[pos] = MIN_VALUE_FLAG
+
+					minValue = data[pos]
+					minPos = pos
+				} else if minValue == data[pos] {
+					if pos > minPos {
+						//取前面的
+						posArr[minPos] = MIN_VALUE_FLAG
+						posArr[pos] = 0
+					} else {
+						posArr[minPos] = 0
+
+						posArr[pos] = MIN_VALUE_FLAG
+						minPos = pos
+					}
+				}
+			}
+		}
+	}
 }

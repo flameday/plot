@@ -19,6 +19,8 @@ type Stock struct {
 	avg150MinMax    []int
 	avgMiddleMinMax []int
 
+	resetMinMax []int
+
 	cleanPosMinMax []int
 }
 
@@ -59,32 +61,32 @@ func (stock *Stock) LoadData() []float64 {
 	}
 
 	// 构造数据
-	stock.data = make([]float64, 0)
-
-	for i := 1; i <= 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 1; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 1; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 1; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 1; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 3; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 3; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 10; i < 3; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
+	//stock.data = make([]float64, 0)
+	//
+	//for i := 1; i <= 20; i++ {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 20; i > 1; i-- {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 1; i < 20; i++ {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 20; i > 1; i-- {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 1; i < 20; i++ {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 20; i > 3; i-- {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 3; i < 20; i++ {
+	//	stock.data = append(stock.data, float64(i))
+	//}
+	//for i := 10; i < 3; i-- {
+	//	stock.data = append(stock.data, float64(i))
+	//}
 
 	//计算平均值
 	for i := 0; i < len(stock.data); i++ {
@@ -101,10 +103,14 @@ func (stock *Stock) LoadData() []float64 {
 	log.Infof("data size:%d", len(stock.data))
 	log.Infof("avg size:%d", len(stock.avg150))
 	//局部最大值
-	caculateMinMax(stock.data, &stock.dataMinMax, 5)
-	caculateMinMax(stock.avg30, &stock.avg30MinMax, 5)
-	caculateMinMax(stock.avg150, &stock.avg150MinMax, 5)
-	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 5)
+	caculateMinMax(stock.data, &stock.dataMinMax, 30)
+	caculateMinMax(stock.avg30, &stock.avg30MinMax, 30)
+	caculateMinMax(stock.avg150, &stock.avg150MinMax, 150)
+	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 30)
+	//先使用平均值的minMax，后调整
+	caculateMinMax(stock.avgMiddle, &stock.resetMinMax, 30)
+	locateMax(stock.data, stock.resetMinMax, 61)
+	locateMin(stock.data, stock.resetMinMax, 61)
 
 	return stock.data
 }

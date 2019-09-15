@@ -2,14 +2,6 @@ package main
 
 import "github.com/prometheus/common/log"
 
-func findNextIndex(arr []int, posStart int, value int) int {
-	for i := posStart; i < len(arr); i++ {
-		if arr[i] == value {
-			return i
-		}
-	}
-	return -1
-}
 func findMinIndex(arr []int, posStart int, posEnd int) int {
 	if posStart >= posEnd {
 		return -1

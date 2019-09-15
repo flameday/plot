@@ -111,6 +111,8 @@ func (stock *Stock) LoadData() []float64 {
 	caculateMinMax(stock.avgMiddle, &stock.resetMinMax, 30)
 	locateMax(stock.data, stock.resetMinMax, 61)
 	locateMin(stock.data, stock.resetMinMax, 61)
+	filter_max(stock.data, stock.resetMinMax)
+	filter_min(stock.data, stock.resetMinMax)
 
 	return stock.data
 }

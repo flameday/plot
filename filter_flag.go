@@ -10,6 +10,15 @@ func findNextIndex(flagArr []int, posStart int, flagValue int) int {
 	return -1
 }
 
+func findPreIndex(flagArr []int, posStart int, flagValue int) int {
+	for i := posStart; i >= 0; i-- {
+		if flagArr[i] == flagValue {
+			return i
+		}
+	}
+	return -1
+}
+
 // 2个低点之间，只能有1个高点
 func filter_max(data []float64, flagArr []int) {
 	for i := 0; i < len(flagArr); i++ {

@@ -21,6 +21,8 @@ type Stock struct {
 	avgMiddleMinMax []int
 
 	resetMinMax []int
+	//flagArea    []int
+	relateCntArray []int
 
 	cleanPosMinMax []int
 }
@@ -62,32 +64,32 @@ func (stock *Stock) LoadData() []float64 {
 	}
 
 	// 构造数据
-	//stock.data = make([]float64, 0)
-	//
-	//for i := 1; i <= 20; i++ {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 20; i > 1; i-- {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 1; i < 20; i++ {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 20; i > 1; i-- {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 1; i < 20; i++ {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 20; i > 3; i-- {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 3; i < 20; i++ {
-	//	stock.data = append(stock.data, float64(i))
-	//}
-	//for i := 10; i < 3; i-- {
-	//	stock.data = append(stock.data, float64(i))
-	//}
+	stock.data = make([]float64, 0)
+
+	for i := 1; i <= 20; i++ {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 20; i > 1; i-- {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 1; i < 20; i++ {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 20; i > 1; i-- {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 1; i < 20; i++ {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 20; i > 3; i-- {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 3; i < 20; i++ {
+		stock.data = append(stock.data, float64(i))
+	}
+	for i := 10; i < 3; i-- {
+		stock.data = append(stock.data, float64(i))
+	}
 
 	//计算平均值
 	for i := 0; i < len(stock.data); i++ {
@@ -113,10 +115,18 @@ func (stock *Stock) LoadData() []float64 {
 	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 30)
 	//先使用平均值的minMax，后调整
 	caculateMinMax(stock.avgMiddle, &stock.resetMinMax, 30)
+	//根据平均值的大小值，往前后找真实的大小值
 	locateMax(stock.data, stock.resetMinMax, 61)
 	locateMin(stock.data, stock.resetMinMax, 61)
+	//根据1：1的关系，过滤掉多余的大小值
 	filter_max(stock.data, stock.resetMinMax)
 	filter_min(stock.data, stock.resetMinMax)
+	////初始化area分布
+	//for i:= 0; i < len(stock.data); i++{
+	//	stock.flagArea = append(stock.flagArea, 0)
+	//}
+	//获取区间（层次）
+	locate_realate(stock.data, &stock.relateCntArray)
 
 	return stock.data
 }

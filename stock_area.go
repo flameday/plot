@@ -11,8 +11,9 @@ type lowHigh struct {
 	High float64
 }
 
-var lowHighArray [10000][10000]lowHigh
-var candleSpaceArray [10000][10000]float64
+var lowHighArray [1000][1000]lowHigh
+var candleSpaceArray [1000][1000]float64
+var puzzleAreaArray [1000][1000]float64
 
 //func get_area_rate(dataClose []float64, index int, length int) float64 {
 //	if index < 0 || index+length > len(dataClose) {
@@ -20,17 +21,17 @@ var candleSpaceArray [10000][10000]float64
 //	}
 
 func get_full_low_high_diagonal() {
-	for i := 1; i < len(stock.dataOpen); i++ {
-		for j := 0; j < len(stock.dataOpen)-i; j++ {
+	for x := 1; x < len(stock.dataOpen); x++ {
+		for y := 0; y < len(stock.dataOpen)-x; y++ {
 
-			left := lowHighArray[j+i-1][j]
-			right := lowHighArray[j+i][j+1]
+			left := lowHighArray[y+x-1][y]
+			right := lowHighArray[y+x][y+1]
 			val := lowHigh{
 				Low:  math.Min(left.Low, right.Low),
 				High: math.Max(left.High, right.High),
 			}
-			lowHighArray[j+i][j] = val
-			log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", j+i, j, val, left, right)
+			lowHighArray[y+x][y] = val
+			log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", y+x, y, val, left, right)
 		}
 	}
 }
@@ -44,6 +45,15 @@ func get_full_candle_space() {
 			candleSpaceArray[j+i][j] = val
 			log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", j+i, j, val, left, right)
 		}
+	}
+}
+func show_low_high_diagonal() {
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf(" %d,%d", int(lowHighArray[x][y].Low), int(lowHighArray[x][y].High))
+		}
+		log.Infof("candle:[%d] %s", y, res)
 	}
 }
 func show_candle_space() {
@@ -85,9 +95,13 @@ func get_area_rate() float64 {
 			//maxValue := math.Max(maxValue, stock.dataClose[second])
 		}
 	}
-	init_diagonal()
-	get_full_candle_space()
-	show_candle_space()
+	//init_diagonal()
+	//get_full_candle_space()
+	//show_candle_space()
+
+	init_low_high_diagonal()
+	get_full_low_high_diagonal()
+	show_low_high_diagonal()
 
 	return -1
 }

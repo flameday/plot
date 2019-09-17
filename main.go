@@ -41,7 +41,7 @@ func main() {
 	p.X.Label.Text = "Quantity Demand"
 	p.Y.Label.Text = "Price"
 
-	drawData(p, stock.data, 2, red)
+	drawData(p, stock.dataClose, 2, red)
 	//drawData(p, stock.avgMiddle, 2, dark_red)
 	//drawData(p, stock.avg6, 1, green)
 	drawData(p, stock.avg30, 1, purple)
@@ -49,15 +49,15 @@ func main() {
 
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
-	drawMinMax(p, stock.data, stock.resetMinMax, 1, 2, black)
-	drawMinMax(p, stock.data, stock.resetMinMax, -1, 2, black)
+	drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, black)
+	drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, black)
 
-	//drawMinMax(p, stock.data, stock.flagArea, -1, 3, green)
-	drawData2(p, stock.relateCntArray, 2, green)
+	//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
+	drawData(p, stock.relateCntArray, 2, green)
 
 	p.Save(vg.Length(picwidth), vg.Length(picheight), "/Users/xinmei365/price.png")
 
-	//stock.LoadData("/Users/xinmei365/stock_data_history/day/data/000002.csv")
+	//stock.LoadData("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
 	//http.HandleFunc("/", RrawPicture)
 	//http.ListenAndServe(":999", nil)
 }

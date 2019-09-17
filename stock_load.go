@@ -9,11 +9,13 @@ import (
 )
 
 type Stock struct {
-	data      []float64
-	avg6      []float64
-	avg30     []float64
-	avg150    []float64
-	avgMiddle []float64
+	dataClose      []float64
+	dataOpen       []float64
+	avg6           []float64
+	avg30          []float64
+	avg150         []float64
+	avgMiddle      []float64
+	relateCntArray []float64
 
 	dataMinMax      []int
 	avg30MinMax     []int
@@ -22,14 +24,13 @@ type Stock struct {
 
 	resetMinMax []int
 	//flagArea    []int
-	relateCntArray []int
 
 	cleanPosMinMax []int
 }
 
 func (stock *Stock) LoadData() []float64 {
 	// 读文本数据
-	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/data/000002.csv")
+	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -56,87 +57,87 @@ func (stock *Stock) LoadData() []float64 {
 		//
 		if i > 2500 && i < 3500 {
 			//if i < 500 {
-			stock.data = append(stock.data, val)
+			stock.dataClose = append(stock.dataClose, val)
 		}
 	}
 	for i := 0; i < 10; i++ {
-		log.Infof("[%d] %f", i, stock.data[i])
+		log.Infof("[%d] %f", i, stock.dataClose[i])
 	}
 
 	// 构造数据
-	stock.data = make([]float64, 0)
-
-	for i := 1; i <= 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 1; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 1; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 1; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 1; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 20; i > 3; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 3; i < 20; i++ {
-		stock.data = append(stock.data, float64(i))
-	}
-	for i := 10; i < 3; i-- {
-		stock.data = append(stock.data, float64(i))
-	}
+	//stock.dataClose = make([]float64, 0)
+	//
+	//for i := 1; i <= 20; i++ {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 20; i > 1; i-- {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 1; i < 20; i++ {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 20; i > 1; i-- {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 1; i < 20; i++ {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 20; i > 3; i-- {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 3; i < 20; i++ {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 10; i < 3; i-- {
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
 
 	//计算平均值
-	for i := 0; i < len(stock.data); i++ {
-		val := get_pre_avg(stock.data, i, 6)
+	for i := 0; i < len(stock.dataClose); i++ {
+		val := get_pre_avg(stock.dataClose, i, 6)
 		stock.avg6 = append(stock.avg6, val)
 
-		val = get_pre_avg(stock.data, i, 30)
+		val = get_pre_avg(stock.dataClose, i, 30)
 		stock.avg30 = append(stock.avg30, val)
 
-		val = get_pre_avg(stock.data, i, 150)
+		val = get_pre_avg(stock.dataClose, i, 150)
 		stock.avg150 = append(stock.avg150, val)
 
-		val = get_middle_avg(stock.data, i, 30)
+		val = get_middle_avg(stock.dataClose, i, 30)
 		stock.avgMiddle = append(stock.avgMiddle, val)
 	}
 	//
-	log.Infof("data size:%d", len(stock.data))
+	log.Infof("dataClose size:%d", len(stock.dataClose))
 	log.Infof("avg size:%d", len(stock.avg150))
 	//局部最大值
-	caculateMinMax(stock.data, &stock.dataMinMax, 30)
+	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
 	caculateMinMax(stock.avg30, &stock.avg30MinMax, 30)
 	caculateMinMax(stock.avg150, &stock.avg150MinMax, 150)
 	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 30)
 	//先使用平均值的minMax，后调整
 	caculateMinMax(stock.avgMiddle, &stock.resetMinMax, 30)
 	//根据平均值的大小值，往前后找真实的大小值
-	locateMax(stock.data, stock.resetMinMax, 61)
-	locateMin(stock.data, stock.resetMinMax, 61)
+	locateMax(stock.dataClose, stock.resetMinMax, 61)
+	locateMin(stock.dataClose, stock.resetMinMax, 61)
 	//根据1：1的关系，过滤掉多余的大小值
-	filter_max(stock.data, stock.resetMinMax)
-	filter_min(stock.data, stock.resetMinMax)
+	filter_max(stock.dataClose, stock.resetMinMax)
+	filter_min(stock.dataClose, stock.resetMinMax)
 	////初始化area分布
-	//for i:= 0; i < len(stock.data); i++{
+	//for i:= 0; i < len(stock.dataClose); i++{
 	//	stock.flagArea = append(stock.flagArea, 0)
 	//}
 	//获取区间（层次）
-	locate_realate(stock.data, &stock.relateCntArray)
+	locate_realate(stock.dataClose, &stock.relateCntArray)
 
-	return stock.data
+	return stock.dataClose
 }
 
-func caculateMinMax(data []float64, minMax *[]int, length int) {
-	for i := 0; i < len(data); i++ {
+func caculateMinMax(dataClose []float64, minMax *[]int, length int) {
+	for i := 0; i < len(dataClose); i++ {
 		flag := 0
-		if isMax(data, i, length) {
+		if isMax(dataClose, i, length) {
 			flag = 1
-		} else if isMin(data, i, length) {
+		} else if isMin(dataClose, i, length) {
 			flag = -1
 		}
 		*minMax = append(*minMax, flag)

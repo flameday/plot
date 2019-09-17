@@ -7,12 +7,12 @@ func findMinIndex(arr []int, posStart int, posEnd int) int {
 		return -1
 	}
 	minIndex := posStart
-	minValue := stock.data[minIndex]
+	minValue := stock.dataClose[minIndex]
 	for i := posStart + 1; i < posEnd; i++ {
 		//small
 		if stock.dataMinMax[i] == -1 {
-			if stock.data[i] < minValue {
-				minValue = stock.data[i]
+			if stock.dataClose[i] < minValue {
+				minValue = stock.dataClose[i]
 				minIndex = i
 			}
 		}
@@ -109,13 +109,13 @@ func get_middle_avg(value_list []float64, index int, length int) float64 {
 }
 
 // 向前向后length找最大值
-func locateMax(data []float64, posArr []int, length int) {
+func locateMax(dataClose []float64, posArr []int, length int) {
 	//for max
 	for i := 0; i < len(posArr); i++ {
-		log.Infof("[%d] data:%f", i, data[i])
+		log.Infof("[%d] dataClose:%f", i, dataClose[i])
 		if posArr[i] == MAX_VALUE_FLAG {
 			//max
-			maxValue := data[i]
+			maxValue := dataClose[i]
 			maxPos := i
 			//right to left
 			for j := length / 2; j >= -1*length/2; j-- {
@@ -123,15 +123,15 @@ func locateMax(data []float64, posArr []int, length int) {
 				if pos >= len(posArr) || pos < 0 {
 					continue
 				}
-				if maxValue < data[pos] {
-					log.Infof("[%d] pos data:%f", pos, data[pos])
+				if maxValue < dataClose[pos] {
+					log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
 
 					posArr[maxPos] = 0
 					posArr[pos] = MAX_VALUE_FLAG
 
-					maxValue = data[pos]
+					maxValue = dataClose[pos]
 					maxPos = pos
-				} else if maxValue == data[pos] {
+				} else if maxValue == dataClose[pos] {
 					if pos > maxPos {
 						//取前面的
 						posArr[maxPos] = MAX_VALUE_FLAG
@@ -149,13 +149,13 @@ func locateMax(data []float64, posArr []int, length int) {
 }
 
 // 向前向后length找最小值
-func locateMin(data []float64, posArr []int, length int) {
+func locateMin(dataClose []float64, posArr []int, length int) {
 	//for max
 	for i := 0; i < len(posArr); i++ {
-		log.Infof("[%d] data:%f", i, data[i])
+		log.Infof("[%d] dataClose:%f", i, dataClose[i])
 		if posArr[i] == MIN_VALUE_FLAG {
 			//max
-			minValue := data[i]
+			minValue := dataClose[i]
 			minPos := i
 			//right to left
 			for j := length / 2; j >= -1*length/2; j-- {
@@ -163,15 +163,15 @@ func locateMin(data []float64, posArr []int, length int) {
 				if pos >= len(posArr) || pos < 0 {
 					continue
 				}
-				if minValue > data[pos] {
-					log.Infof("[%d] pos data:%f", pos, data[pos])
+				if minValue > dataClose[pos] {
+					log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
 
 					posArr[minPos] = 0
 					posArr[pos] = MIN_VALUE_FLAG
 
-					minValue = data[pos]
+					minValue = dataClose[pos]
 					minPos = pos
-				} else if minValue == data[pos] {
+				} else if minValue == dataClose[pos] {
 					if pos > minPos {
 						//取前面的
 						posArr[minPos] = MIN_VALUE_FLAG

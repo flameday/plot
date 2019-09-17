@@ -8,9 +8,9 @@ import (
 	"image/color"
 )
 
-func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width float64, clr color.Color) {
+func drawMinMax(p *plot.Plot, dataClose []float64, posArr []int, minMax int, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
-	for i, val := range data {
+	for i, val := range dataClose {
 		var x float64
 		x = float64(i)
 		if posArr[i] == minMax {

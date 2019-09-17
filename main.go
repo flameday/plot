@@ -6,6 +6,7 @@ import (
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/vg"
 	"image/color"
+	"runtime/debug"
 	"time"
 )
 
@@ -33,6 +34,14 @@ var (
 
 // 大家可以查看这个网址看看这个image包的使用方法 http://golang.org/doc/articles/image_draw.html
 func main() {
+	defer func() {
+		if err := recover(); err != nil {
+
+			defer log.Flush()
+
+			debug.PrintStack()
+		}
+	}()
 	logger, err := log.LoggerFromConfigAsFile("/Users/xinmei365/go/src/plot/conf/log.xml")
 	if err != nil {
 		fmt.Printf("parse config.xml error")

@@ -14,6 +14,6 @@
     </outputs>
     <formats>
 <!--        <format id="main" format="%Date(2006-01-02 15:04:05.000000000) [%File:%Line::%Func] [%LEV] %Msg%n"/>-->
-        <format id="main" format="%Date(2006-01-02) [%File:%Line] %Msg%n"/>
+        <format id="main" format="%Date(15:04) [%File:%Line] %Msg%n"/>
     </formats>
 </seelog>

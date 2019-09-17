@@ -37,7 +37,7 @@ func get_full_puzzle_area_diagonal() {
 	for x := 1; x < len(stock.dataOpen); x++ {
 		for y := 0; y < len(stock.dataOpen)-x; y++ {
 			left := puzzleAreaArray[y+x-1][y]
-			right := puzzleAreaArray[y+x][y+1]
+			right := puzzleAreaArray[y][y]
 			val := left + right
 			puzzleAreaArray[y+x][y] = val
 			//log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", y+x, y, val, left, right)
@@ -79,7 +79,7 @@ func show_puzzle_bound_diagonal() {
 		for x := 0; x < len(stock.dataOpen); x++ {
 			res += fmt.Sprintf("%6d", int(puzzleBoundArray[x][y]))
 		}
-		log.Infof("puzzle bound:[%d] %s", y, res)
+		log.Infof("puzzle bound:[%2d] %s", y, res)
 	}
 }
 func show_puzzle_area_diagonal() {
@@ -87,9 +87,9 @@ func show_puzzle_area_diagonal() {
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
-			res += fmt.Sprintf("%6d", int(puzzleAreaArray[x][y]))
+			res += fmt.Sprintf("%4d ", int(puzzleAreaArray[x][y]))
 		}
-		log.Infof("puzzle area:[%d] %s", y, res)
+		log.Infof("puzzle area:[%2d] %s", y, res)
 	}
 }
 func show_low_high_diagonal() {
@@ -97,9 +97,9 @@ func show_low_high_diagonal() {
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
-			res += fmt.Sprintf(" %d,%d", int(lowHighArray[x][y].Low), int(lowHighArray[x][y].High))
+			res += fmt.Sprintf("%2d/%-2d ", int(lowHighArray[x][y].Low), int(lowHighArray[x][y].High))
 		}
-		log.Infof("lowHigh:[%d] %s", y, res)
+		log.Infof("lowHigh:[%2d] %s", y, res)
 	}
 }
 func show_candle_space() {
@@ -109,7 +109,7 @@ func show_candle_space() {
 		for i := 0; i < len(stock.dataOpen); i++ {
 			res += fmt.Sprintf(" %.2f", candleSpaceArray[i][j])
 		}
-		log.Infof("candle:[%d] %s", j, res)
+		log.Infof("candle:[%2d] %s", j, res)
 	}
 }
 

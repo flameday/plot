@@ -39,6 +39,7 @@ func main() {
 		log.Errorf("parse config.xml error")
 	}
 	log.ReplaceLogger(logger)
+	defer log.Flush()
 
 	stock.LoadData()
 

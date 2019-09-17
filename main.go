@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/vg"
 	"image/color"
@@ -31,6 +33,13 @@ var (
 
 // 大家可以查看这个网址看看这个image包的使用方法 http://golang.org/doc/articles/image_draw.html
 func main() {
+	logger, err := log.LoggerFromConfigAsFile("/Users/xinmei365/go/src/plot/conf/log.xml")
+	if err != nil {
+		fmt.Printf("parse config.xml error")
+		log.Errorf("parse config.xml error")
+	}
+	log.ReplaceLogger(logger)
+
 	stock.LoadData()
 
 	//创建 plog

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/prometheus/common/log"
+import log "github.com/cihub/seelog"
 
 func findMinIndex(arr []int, posStart int, posEnd int) int {
 	if posStart >= posEnd {

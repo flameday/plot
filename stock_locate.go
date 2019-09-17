@@ -112,7 +112,7 @@ func get_middle_avg(value_list []float64, index int, length int) float64 {
 func locateMax(dataClose []float64, posArr []int, length int) {
 	//for max
 	for i := 0; i < len(posArr); i++ {
-		log.Infof("[%d] dataClose:%f", i, dataClose[i])
+		//log.Infof("[%d] dataClose:%f", i, dataClose[i])
 		if posArr[i] == MAX_VALUE_FLAG {
 			//max
 			maxValue := dataClose[i]
@@ -152,7 +152,7 @@ func locateMax(dataClose []float64, posArr []int, length int) {
 func locateMin(dataClose []float64, posArr []int, length int) {
 	//for max
 	for i := 0; i < len(posArr); i++ {
-		log.Infof("[%d] dataClose:%f", i, dataClose[i])
+		//log.Infof("[%d] dataClose:%f", i, dataClose[i])
 		if posArr[i] == MIN_VALUE_FLAG {
 			//max
 			minValue := dataClose[i]

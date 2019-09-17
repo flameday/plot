@@ -65,9 +65,9 @@ func (stock *Stock) LoadData() []float64 {
 			stock.dataClose = append(stock.dataClose, valueClose)
 		}
 	}
-	for i := 0; i < 10; i++ {
-		log.Infof("[%d] %f", i, stock.dataClose[i])
-	}
+	//for i := 0; i < 10; i++ {
+	//	log.Infof("[%d] %f", i, stock.dataClose[i])
+	//}
 
 	// 构造数据
 	stock.dataOpen = make([]float64, 0)

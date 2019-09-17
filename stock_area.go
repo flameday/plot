@@ -14,12 +14,36 @@ type lowHigh struct {
 var lowHighArray [1000][1000]lowHigh
 var candleSpaceArray [1000][1000]float64
 var puzzleAreaArray [1000][1000]float64
+var puzzleBoundArray [1000][1000]float64
 
 //func get_area_rate(dataClose []float64, index int, length int) float64 {
 //	if index < 0 || index+length > len(dataClose) {
 //		return -1
 //	}
 
+func get_full_puzzle_bound_diagonal() {
+	for x := 0; x < len(stock.dataOpen); x++ {
+		for y := 0; y < len(stock.dataOpen)-x; y++ {
+			diff := math.Abs(float64(x-y)) + 1
+			low := lowHighArray[x][y].Low
+			high := lowHighArray[x][y].High
+			bound := math.Abs(high-low) + 0.01
+
+			puzzleBoundArray[x][y] = diff * bound
+		}
+	}
+}
+func get_full_puzzle_area_diagonal() {
+	for x := 1; x < len(stock.dataOpen); x++ {
+		for y := 0; y < len(stock.dataOpen)-x; y++ {
+			left := puzzleAreaArray[y+x-1][y]
+			right := puzzleAreaArray[y+x][y+1]
+			val := left + right
+			puzzleAreaArray[y+x][y] = val
+			//log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", y+x, y, val, left, right)
+		}
+	}
+}
 func get_full_low_high_diagonal() {
 	for x := 1; x < len(stock.dataOpen); x++ {
 		for y := 0; y < len(stock.dataOpen)-x; y++ {
@@ -31,7 +55,7 @@ func get_full_low_high_diagonal() {
 				High: math.Max(left.High, right.High),
 			}
 			lowHighArray[y+x][y] = val
-			log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", y+x, y, val, left, right)
+			//log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", y+x, y, val, left, right)
 		}
 	}
 }
@@ -43,20 +67,43 @@ func get_full_candle_space() {
 			right := candleSpaceArray[j+i][j+1]
 			val := left + right
 			candleSpaceArray[j+i][j] = val
-			log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", j+i, j, val, left, right)
+			//log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", j+i, j, val, left, right)
 		}
 	}
 }
+
+func show_puzzle_bound_diagonal() {
+	log.Infof("-----------------------")
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf("%6d", int(puzzleBoundArray[x][y]))
+		}
+		log.Infof("puzzle bound:[%d] %s", y, res)
+	}
+}
+func show_puzzle_area_diagonal() {
+	log.Infof("-----------------------")
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf("%6d", int(puzzleAreaArray[x][y]))
+		}
+		log.Infof("puzzle area:[%d] %s", y, res)
+	}
+}
 func show_low_high_diagonal() {
+	log.Infof("-----------------------")
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
 			res += fmt.Sprintf(" %d,%d", int(lowHighArray[x][y].Low), int(lowHighArray[x][y].High))
 		}
-		log.Infof("candle:[%d] %s", y, res)
+		log.Infof("lowHigh:[%d] %s", y, res)
 	}
 }
 func show_candle_space() {
+	log.Infof("-----------------------")
 	for j := 0; j < len(stock.dataOpen); j++ {
 		res := ""
 		for i := 0; i < len(stock.dataOpen); i++ {
@@ -65,6 +112,13 @@ func show_candle_space() {
 		log.Infof("candle:[%d] %s", j, res)
 	}
 }
+
+func init_puzzle_area_diagonal() {
+	for i := 0; i < len(stock.dataOpen); i++ {
+		puzzleAreaArray[i][i] = math.Abs(lowHighArray[i][i].High - lowHighArray[i][i].Low)
+	}
+}
+
 func init_low_high_diagonal() {
 	for i := 0; i < len(stock.dataOpen); i++ {
 		minValue := math.Min(stock.dataOpen[i], stock.dataClose[i])
@@ -103,6 +157,13 @@ func get_area_rate() float64 {
 	get_full_low_high_diagonal()
 	show_low_high_diagonal()
 
+	init_puzzle_area_diagonal()
+	get_full_puzzle_area_diagonal()
+	show_puzzle_area_diagonal()
+
+	get_full_puzzle_bound_diagonal()
+	show_puzzle_bound_diagonal()
+
 	return -1
 }
 
@@ -119,7 +180,7 @@ func get_relate_cnt(data []float64, index int, length int, xrate float64, yrate 
 		deltaY := (data[i] - data[index])
 		deltaX := i - index
 		absValue := deltaY*deltaY*xrate + float64(deltaX*deltaX)*yrate
-		log.Infof("        [%d] absValue:%f", i, absValue)
+		//log.Infof("        [%d] absValue:%f", i, absValue)
 		if absValue < 30 {
 			cnt += 1
 		}
@@ -130,7 +191,7 @@ func get_relate_cnt(data []float64, index int, length int, xrate float64, yrate 
 func locate_realate(data []float64, dstArray *[]float64) {
 	for i := 0; i < len(data); i++ {
 		cnt := get_relate_cnt(data, i, 20, 100, 1)
-		log.Infof("[%d] cnt:%f", i, cnt)
+		//log.Infof("[%d] cnt:%f", i, cnt)
 
 		*dstArray = append(*dstArray, cnt/10)
 	}

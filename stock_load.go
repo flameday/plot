@@ -30,7 +30,7 @@ type Stock struct {
 
 func (stock *Stock) LoadData() []float64 {
 	// 读文本数据
-	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
+	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/data/000002.csv")
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -50,14 +50,19 @@ func (stock *Stock) LoadData() []float64 {
 		}
 
 		// 解析数值
-		val, err := strconv.ParseFloat(elems[3], 32)
+		valueOpen, err := strconv.ParseFloat(elems[1], 32)
+		if err != nil {
+			log.Error("ParseFloat elems[1]:%s err:%v", elems[1], err)
+		}
+		valueClose, err := strconv.ParseFloat(elems[3], 32)
 		if err != nil {
 			log.Error("ParseFloat elems[3]:%s err:%v", elems[3], err)
 		}
 		//
 		if i > 2500 && i < 3500 {
 			//if i < 500 {
-			stock.dataClose = append(stock.dataClose, val)
+			stock.dataOpen = append(stock.dataOpen, valueOpen)
+			stock.dataClose = append(stock.dataClose, valueClose)
 		}
 	}
 	for i := 0; i < 10; i++ {
@@ -65,32 +70,42 @@ func (stock *Stock) LoadData() []float64 {
 	}
 
 	// 构造数据
-	//stock.dataClose = make([]float64, 0)
-	//
-	//for i := 1; i <= 20; i++ {
-	//	stock.dataClose = append(stock.dataClose, float64(i))
-	//}
+	stock.dataOpen = make([]float64, 0)
+	stock.dataClose = make([]float64, 0)
+
+	for i := 1; i <= 20; i++ {
+		stock.dataOpen = append(stock.dataOpen, float64(i+1))
+		stock.dataClose = append(stock.dataClose, float64(i))
+	}
 	//for i := 20; i > 1; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 1; i < 20; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 20; i > 1; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 1; i < 20; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 20; i > 3; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 3; i < 20; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//for i := 10; i < 3; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
+	get_area_rate()
 
 	//计算平均值
 	for i := 0; i < len(stock.dataClose); i++ {

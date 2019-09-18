@@ -8,9 +8,44 @@ import (
 	"image/color"
 )
 
-func drawData(p *plot.Plot, dataClose []float64, width float64, clr color.Color) {
+func drawData2(p *plot.Plot, data []int, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
-	for i, val := range dataClose {
+	for i, val := range data {
+		var x float64
+		x = float64(i)
+		var elem = plotter.XY{
+			x, float64(val),
+		}
+		points = append(points, elem)
+	}
+	// Make a line plotter and set its style.
+	//l, err := plotter.NewLine(points)
+	//if err != nil {
+	//	panic(err)
+	//}
+	////l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Width = vg.Points(width)
+	//l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+	//l.LineStyle.Color = clr
+	//l.LineStyle.Color = color.RGBA{R: 255, B: 255, A: 255}
+
+	//p.Add(l)
+
+	lpLine, lpPoints, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine.Color = clr
+	lpPoints.Shape = draw.CircleGlyph{}
+	lpPoints.Radius = vg.Length(width)
+	lpPoints.Color = clr
+
+	p.Add(lpLine, lpPoints)
+}
+
+func drawData(p *plot.Plot, data []float64, width float64, clr color.Color) {
+	points := make(plotter.XYs, 0)
+	for i, val := range data {
 		var x float64
 		x = float64(i)
 		var elem = plotter.XY{
@@ -41,8 +76,6 @@ func drawData(p *plot.Plot, dataClose []float64, width float64, clr color.Color)
 	lpPoints.Color = clr
 
 	p.Add(lpLine, lpPoints)
-	//grid
-
 }
 
 //func drawAvg30(p *plot.Plot) {

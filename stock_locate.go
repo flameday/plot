@@ -1,7 +1,5 @@
 package main
 
-import log "github.com/cihub/seelog"
-
 func findMinIndex(arr []int, posStart int, posEnd int) int {
 	if posStart >= posEnd {
 		return -1
@@ -124,7 +122,7 @@ func locateMax(dataClose []float64, posArr []int, length int) {
 					continue
 				}
 				if maxValue < dataClose[pos] {
-					log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
+					//log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
 
 					posArr[maxPos] = 0
 					posArr[pos] = MAX_VALUE_FLAG
@@ -164,7 +162,7 @@ func locateMin(dataClose []float64, posArr []int, length int) {
 					continue
 				}
 				if minValue > dataClose[pos] {
-					log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
+					//log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
 
 					posArr[minPos] = 0
 					posArr[pos] = MIN_VALUE_FLAG

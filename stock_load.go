@@ -70,25 +70,27 @@ func (stock *Stock) LoadData() []float64 {
 	//}
 
 	// 构造数据
-	stock.dataOpen = make([]float64, 0)
-	stock.dataClose = make([]float64, 0)
+	//stock.dataOpen = make([]float64, 0)
+	//stock.dataClose = make([]float64, 0)
+	//
+	//for i := 1; i <= 15; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 15; i > 10; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 10; i > 15; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 15; i > 1; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//////
 
-	for i := 1; i <= 15; i++ {
-		stock.dataOpen = append(stock.dataOpen, float64(i+1))
-		stock.dataClose = append(stock.dataClose, float64(i))
-	}
-	for i := 15; i > 10; i-- {
-		stock.dataOpen = append(stock.dataOpen, float64(i+1))
-		stock.dataClose = append(stock.dataClose, float64(i))
-	}
-	for i := 10; i > 15; i++ {
-		stock.dataOpen = append(stock.dataOpen, float64(i+1))
-		stock.dataClose = append(stock.dataClose, float64(i))
-	}
-	for i := 15; i > 1; i-- {
-		stock.dataOpen = append(stock.dataOpen, float64(i+1))
-		stock.dataClose = append(stock.dataClose, float64(i))
-	}
 	//for i := 1; i < 20; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))

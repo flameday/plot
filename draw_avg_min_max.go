@@ -9,9 +9,9 @@ import (
 	"image/color"
 )
 
-func drawMinMax(p *plot.Plot, dataClose []float64, posArr []int, minMax int, width float64, clr color.Color) {
+func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
-	for i, val := range dataClose {
+	for i, val := range data {
 		var x float64
 		x = float64(i)
 		if posArr[i] == minMax {
@@ -41,18 +41,6 @@ func drawMinMax(p *plot.Plot, dataClose []float64, posArr []int, minMax int, wid
 	lpPoints.Color = clr
 
 	p.Add(lpLine, lpPoints)
-
-	//grid
-	minValueX := 0
-	maxValueX := len(stock.dataClose)
-	maxValueY := maximum(stock.dataOpen)
-	minValueY := 0.0
-	for i := 0; i <= len(stock.dataClose); i++ {
-		drawLine(p, float64(i), minValueY, float64(i), maxValueY)
-	}
-	for i := minValueY; i <= maxValueY; i++ {
-		drawLine(p, float64(minValueX), i, float64(maxValueX), i)
-	}
 }
 
 func drawLine(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {

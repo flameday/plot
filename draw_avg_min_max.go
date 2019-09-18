@@ -3,6 +3,7 @@ package main
 import (
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"image/color"
@@ -40,6 +41,32 @@ func drawMinMax(p *plot.Plot, dataClose []float64, posArr []int, minMax int, wid
 	lpPoints.Color = clr
 
 	p.Add(lpLine, lpPoints)
+
+	//grid
+	minValueX := 0
+	maxValueX := len(stock.dataClose)
+	maxValueY := maximum(stock.dataOpen)
+	minValueY := 0.0
+	for i := 0; i <= len(stock.dataClose); i++ {
+		drawLine(p, float64(i), minValueY, float64(i), maxValueY)
+	}
+	for i := minValueY; i <= maxValueY; i++ {
+		drawLine(p, float64(minValueX), i, float64(maxValueX), i)
+	}
+}
+
+func drawLine(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
+	points := plotter.XYs{
+		{x1, y1},
+		{x2, y2},
+	}
+	plotutil.AddLinePoints(p, points)
+	lpLine2, _, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine2.Color = gray
+	p.Add(lpLine2)
 }
 
 //func drawAvg30Min(p *plot.Plot) {

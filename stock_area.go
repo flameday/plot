@@ -18,52 +18,71 @@ var puzzleBoundArray [1000][1000]float64
 var puzzelRateArray [1000][1000]float64
 var maxTraceArray [1000][1000]float64
 var posTraceArray [1000][1000]int
+var cntTraceArray [1000][1000]int
 
 //func get_area_rate(dataClose []float64, index int, length int) float64 {
 //	if index < 0 || index+length > len(dataClose) {
 //		return -1
 //	}
 
-func get_final_trace() {
+func get_max_trace() {
+	//初始化分片个数的对角线
+	for i := 0; i < len(stock.dataOpen); i++ {
+		cntTraceArray[i][i] = 1
+	}
+
+	show_puzzle_rate_diagonal()
+	//根据公式,统计计算所有值
 	for m := 1; m < len(stock.dataOpen); m++ {
-		for k := 0; k < len(stock.dataOpen); k++ {
+		for k := 0; k < len(stock.dataOpen)-m; k++ {
 			x := m + k
 			y := k
-			//area := puzzleAreaArray[x][y]
-			//bound := puzzleBoundArray[x][y]
-			//puzzelRateArray[x][y] = area / bound
-			//f(0,N) = max{f(0,M) + f(M+1,N) + g(M,M+1)}
-			maxValue := 0.0
-			maxPos := 0
+			//f(0,N) = max{f(0,M)-K*0.1 + f(M+1,N)-J*0.1 + g(M,M+1)}
+
+			//当做一个整体初始化
+			maxValue := puzzelRateArray[x][y]
+			cntTraceArray[x][y] = 1
+
 			for index := x - 1; index >= y; index-- {
-				//(x,index)
-				tmpValue1 := maxTraceArray[x-1][index] + maxTraceArray[x][index+1]
-				//(index+1,y)
-				tmpValue2 := maxTraceArray[index][y] + maxTraceArray[index+1][y+1]
-				//方差
-				left := puzzelRateArray[index][0]
-				right := puzzelRateArray[index+1][0]
+				//(x,index) 左边计算得到的值
+				tmpValue1 := maxTraceArray[x-1][index]
+
+				//(index+1,y) 右边计算得到的值
+				tmpValue2 := maxTraceArray[index+1][y]
+
+				//相邻2个位置的方差
+				left := puzzelRateArray[index][index]
+				right := puzzelRateArray[index+1][index+1]
 				avg := (left + right) / 2
 				size := (left - avg) * (left - avg)
 				size += (right - avg) * (right - avg)
 				val := math.Sqrt(size) / 2
-				val += tmpValue1
-				val += tmpValue2
+				//val += tmpValue1
+				//val += tmpValue2
+				//减去一个值
+				//val -= float64(cntTraceArray[x-1][index]) * 1
+				//val -= float64(cntTraceArray[index+1][y]) * 1
+
+				// 分为几个块
+				tmpCnt := cntTraceArray[x-1][index] + cntTraceArray[index+1][y]
 
 				if val > maxValue {
 					maxValue = val
-					maxPos = index
+					cntTraceArray[x][y] = tmpCnt
 
-					log.Infof("=>[%d, %d] index:%d tmp:(%.2f %.2f) left:%.2f right:%.2f val:%.2f",
-						x, y, index, tmpValue1, tmpValue2, left, right, val)
+					log.Infof("=>[%d, %d] index:%d tmp:(%.2f %.2f) left:%.2f right:%.2f val:%.2f maxValue:%.2f",
+						x, y, index, tmpValue1, tmpValue2, left, right, val, maxValue)
 				}
 			}
 			maxTraceArray[x][y] = maxValue
-			posTraceArray[x][y] = maxPos
 		}
 	}
 }
-
+func reset_puzzle_diagonal() {
+	for i := 0; i < len(stock.dataOpen); i++ {
+		puzzelRateArray[i][i] = 0
+	}
+}
 func get_full_puzzle_rate_diagnoal() {
 	for m := 0; m < len(stock.dataOpen); m++ {
 		for k := 0; k < len(stock.dataOpen); k++ {
@@ -71,7 +90,12 @@ func get_full_puzzle_rate_diagnoal() {
 			y := k
 			area := puzzleAreaArray[x][y]
 			bound := puzzleBoundArray[x][y]
-			puzzelRateArray[x][y] = area / bound
+			if x == y {
+				//puzzelRateArray[x][y] = 0
+				puzzelRateArray[x][y] = area / bound
+			} else {
+				puzzelRateArray[x][y] = area / bound
+			}
 		}
 	}
 }
@@ -83,7 +107,10 @@ func get_full_puzzle_bound_diagonal() {
 			diff := math.Abs(float64(x-y)) + 1
 			low := lowHighArray[x][y].Low
 			high := lowHighArray[x][y].High
-			bound := math.Abs(high-low) + 0.01
+			bound := math.Abs(high - low)
+			if bound == 0 {
+				bound = 0.0001
+			}
 			//log.Infof("bound===>(%2d %2d) %f", x, y, diff*bound)
 
 			//if x == 8 && y == 2 {
@@ -145,6 +172,12 @@ func get_full_candle_space() {
 }
 func show_trace() {
 	log.Infof("-----------------------")
+	tmp := "max trace:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("[%2d] ", i)
+	}
+	log.Infof(tmp)
+
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -153,6 +186,26 @@ func show_trace() {
 		log.Infof("max trace:[%2d] %s", y, res)
 	}
 	log.Infof("-----------------------")
+	tmp = "cnt trace:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("%2d-", i)
+	}
+	log.Infof(tmp)
+
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf("%2d ", cntTraceArray[x][y])
+		}
+		log.Infof("cnt trace:[%2d] %s", y, res)
+	}
+	log.Infof("-----------------------")
+	tmp = "pos trace:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("%2d-", i)
+	}
+	log.Infof(tmp)
+
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -161,7 +214,7 @@ func show_trace() {
 		log.Infof("pos trace:[%2d] %s", y, res)
 	}
 	//找到路径
-	detect_trace(0, len(stock.dataOpen)-1)
+	//detect_trace(0, len(stock.dataOpen)-1)
 }
 
 func detect_trace(x int, y int) {
@@ -175,6 +228,12 @@ func detect_trace(x int, y int) {
 }
 func show_puzzle_rate_diagonal() {
 	log.Infof("-----------------------")
+	tmp := "puzzle rate:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("[%2d] ", i)
+	}
+	log.Infof(tmp)
+
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -185,6 +244,12 @@ func show_puzzle_rate_diagonal() {
 }
 func show_puzzle_bound_diagonal() {
 	log.Infof("-----------------------")
+	tmp := "puzzle bound:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("[%4d]", i)
+	}
+	log.Infof(tmp)
+
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -195,6 +260,12 @@ func show_puzzle_bound_diagonal() {
 }
 func show_puzzle_area_diagonal() {
 	log.Infof("-----------------------")
+	tmp := "puzzle area:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("[%2d] ", i)
+	}
+	log.Infof(tmp)
+
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -205,6 +276,11 @@ func show_puzzle_area_diagonal() {
 }
 func show_low_high_diagonal() {
 	log.Infof("-----------------------")
+	tmp := "lowHigh:     "
+	for i := 0; i < len(stock.dataOpen); i++ {
+		tmp += fmt.Sprintf("[%3d] ", i)
+	}
+	log.Infof(tmp)
 	for y := 0; y < len(stock.dataOpen); y++ {
 		res := ""
 		for x := 0; x < len(stock.dataOpen); x++ {
@@ -278,7 +354,9 @@ func get_area_rate() float64 {
 	get_full_puzzle_rate_diagnoal()
 	show_puzzle_rate_diagonal()
 
-	get_final_trace()
+	reset_puzzle_diagonal()
+
+	get_max_trace()
 	show_trace()
 
 	return -1

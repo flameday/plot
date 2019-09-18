@@ -24,6 +24,7 @@ var (
 	purple   color.Color = color.RGBA{128, 0, 128, 255}
 	magenta  color.Color = color.RGBA{255, 0, 255, 255}
 	olive    color.Color = color.RGBA{128, 128, 0, 255}
+	gray     color.Color = color.RGBA{64, 64, 64, 1}
 
 	picwidth       float64 = 512 * 2
 	picheight      float64 = 384 * 2
@@ -61,6 +62,7 @@ func main() {
 	p.Y.Label.Text = "Price"
 
 	drawData(p, stock.dataClose, 2, red)
+	drawData(p, stock.dataOpen, 2, red)
 	//drawData(p, stock.avgMiddle, 2, dark_red)
 	//drawData(p, stock.avg6, 1, green)
 	drawData(p, stock.avg30, 1, purple)

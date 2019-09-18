@@ -145,8 +145,8 @@ func (stock *Stock) LoadData() []float64 {
 	locateMax(stock.dataClose, stock.resetMinMax, 61)
 	locateMin(stock.dataClose, stock.resetMinMax, 61)
 	//根据1：1的关系，过滤掉多余的大小值
-	filter_max(stock.dataClose, stock.resetMinMax)
-	filter_min(stock.dataClose, stock.resetMinMax)
+	//filter_max(stock.dataClose, stock.resetMinMax)
+	//filter_min(stock.dataClose, stock.resetMinMax)
 	////初始化area分布
 	//for i:= 0; i < len(stock.dataClose); i++{
 	//	stock.flagArea = append(stock.flagArea, 0)

@@ -77,10 +77,10 @@ func (stock *Stock) LoadData() []float64 {
 		stock.dataOpen = append(stock.dataOpen, float64(i+1))
 		stock.dataClose = append(stock.dataClose, float64(i))
 	}
-	//for i := 20; i > 1; i-- {
-	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
-	//	stock.dataClose = append(stock.dataClose, float64(i))
-	//}
+	for i := 20; i > 1; i-- {
+		stock.dataOpen = append(stock.dataOpen, float64(i+1))
+		stock.dataClose = append(stock.dataClose, float64(i))
+	}
 	//for i := 1; i < 20; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))

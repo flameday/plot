@@ -16,11 +16,53 @@ var candleSpaceArray [1000][1000]float64
 var puzzleAreaArray [1000][1000]float64
 var puzzleBoundArray [1000][1000]float64
 var puzzelRateArray [1000][1000]float64
+var maxTraceArray [1000][1000]float64
+var posTraceArray [1000][1000]int
 
 //func get_area_rate(dataClose []float64, index int, length int) float64 {
 //	if index < 0 || index+length > len(dataClose) {
 //		return -1
 //	}
+
+func get_final_trace() {
+	for m := 1; m < len(stock.dataOpen); m++ {
+		for k := 0; k < len(stock.dataOpen); k++ {
+			x := m + k
+			y := k
+			//area := puzzleAreaArray[x][y]
+			//bound := puzzleBoundArray[x][y]
+			//puzzelRateArray[x][y] = area / bound
+			//f(0,N) = max{f(0,M) + f(M+1,N) + g(M,M+1)}
+			maxValue := 0.0
+			maxPos := 0
+			for index := x - 1; index >= y; index-- {
+				//(x,index)
+				tmpValue1 := maxTraceArray[x-1][index] + maxTraceArray[x][index+1]
+				//(index+1,y)
+				tmpValue2 := maxTraceArray[index][y] + maxTraceArray[index+1][y+1]
+				//方差
+				left := puzzelRateArray[index][0]
+				right := puzzelRateArray[index+1][0]
+				avg := (left + right) / 2
+				size := (left - avg) * (left - avg)
+				size += (right - avg) * (right - avg)
+				val := math.Sqrt(size) / 2
+				val += tmpValue1
+				val += tmpValue2
+
+				if val > maxValue {
+					maxValue = val
+					maxPos = index
+
+					log.Infof("=>[%d, %d] index:%d tmp:(%.2f %.2f) left:%.2f right:%.2f val:%.2f",
+						x, y, index, tmpValue1, tmpValue2, left, right, val)
+				}
+			}
+			maxTraceArray[x][y] = maxValue
+			posTraceArray[x][y] = maxPos
+		}
+	}
+}
 
 func get_full_puzzle_rate_diagnoal() {
 	for m := 0; m < len(stock.dataOpen); m++ {
@@ -99,6 +141,36 @@ func get_full_candle_space() {
 			candleSpaceArray[x][y] = val
 			//log.Infof("===[%d][%d] val:%.2f left:%f right:%.2f", j+i, j, val, left, right)
 		}
+	}
+}
+func show_trace() {
+	log.Infof("-----------------------")
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf("%3.2f ", maxTraceArray[x][y])
+		}
+		log.Infof("max trace:[%2d] %s", y, res)
+	}
+	log.Infof("-----------------------")
+	for y := 0; y < len(stock.dataOpen); y++ {
+		res := ""
+		for x := 0; x < len(stock.dataOpen); x++ {
+			res += fmt.Sprintf("%2d ", posTraceArray[x][y])
+		}
+		log.Infof("pos trace:[%2d] %s", y, res)
+	}
+	//找到路径
+	detect_trace(0, len(stock.dataOpen)-1)
+}
+
+func detect_trace(x int, y int) {
+	for x < y {
+		pos := posTraceArray[x][y]
+		log.Infof("trace:[%2d %2d] %d", x, y, pos)
+
+		detect_trace(x, x+pos-1)
+		detect_trace(x+pos, y)
 	}
 }
 func show_puzzle_rate_diagonal() {
@@ -205,6 +277,9 @@ func get_area_rate() float64 {
 
 	get_full_puzzle_rate_diagnoal()
 	show_puzzle_rate_diagonal()
+
+	get_final_trace()
+	show_trace()
 
 	return -1
 }

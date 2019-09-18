@@ -73,19 +73,19 @@ func (stock *Stock) LoadData() []float64 {
 	stock.dataOpen = make([]float64, 0)
 	stock.dataClose = make([]float64, 0)
 
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 15; i++ {
 		stock.dataOpen = append(stock.dataOpen, float64(i+1))
 		stock.dataClose = append(stock.dataClose, float64(i))
 	}
-	for i := 5; i > 2; i-- {
+	for i := 15; i > 10; i-- {
 		stock.dataOpen = append(stock.dataOpen, float64(i+1))
 		stock.dataClose = append(stock.dataClose, float64(i))
 	}
-	for i := 2; i > 5; i++ {
+	for i := 10; i > 15; i++ {
 		stock.dataOpen = append(stock.dataOpen, float64(i+1))
 		stock.dataClose = append(stock.dataClose, float64(i))
 	}
-	for i := 5; i > 1; i-- {
+	for i := 15; i > 1; i-- {
 		stock.dataOpen = append(stock.dataOpen, float64(i+1))
 		stock.dataClose = append(stock.dataClose, float64(i))
 	}
@@ -113,7 +113,7 @@ func (stock *Stock) LoadData() []float64 {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	get_area_rate()
+	//get_area_rate()
 
 	//计算平均值
 	for i := 0; i < len(stock.dataClose); i++ {
@@ -150,7 +150,8 @@ func (stock *Stock) LoadData() []float64 {
 	//	stock.flagArea = append(stock.flagArea, 0)
 	//}
 	//获取区间（层次）
-	locate_realate(stock.dataClose, &stock.relateCntArray)
+	//locate_realate(stock.dataClose, &stock.relateCntArray)
+	run_all_caculate()
 
 	return stock.dataClose
 }

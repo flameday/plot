@@ -28,7 +28,7 @@ type Stock struct {
 	cleanPosMinMax []int
 }
 
-func (stock *Stock) LoadData(left int, right int) bool {
+func (stock *Stock) LoadData(left int, right int) (bool, int, int) {
 	// 读文本数据
 	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/data/000002.csv")
 	if err != nil {
@@ -40,14 +40,14 @@ func (stock *Stock) LoadData(left int, right int) bool {
 	// 解析文本数据
 	lines := strings.Split(str, "\n")
 	if left >= len(lines) {
-		return false
+		return false, 0, 0
 	}
 	if left < 0 {
 		left = 0
 	}
-	//if right < len(lines) {
-	//	right = len(lines)
-	//}
+	if right > len(lines) {
+		right = len(lines)
+	}
 
 	for i, line := range lines {
 		if i == 0 {
@@ -165,7 +165,7 @@ func (stock *Stock) LoadData(left int, right int) bool {
 	//locate_realate(stock.dataClose, &stock.relateCntArray)
 	run_all_caculate()
 
-	return true
+	return true, left, right
 }
 
 func caculateMinMax(dataClose []float64, minMax *[]int, length int) {

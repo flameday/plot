@@ -134,7 +134,7 @@ func locateMax(dataClose []float64, posArr []int, length int) {
 				if pos >= len(posArr) || pos < 0 {
 					continue
 				}
-				log.Infof("maxValue:%.2f len:%d pos:%d dataClose[pos]:%f", maxValue, len(dataClose), pos, dataClose[pos])
+				//log.Infof("maxValue:%.2f len:%d pos:%d dataClose[pos]:%f", maxValue, len(dataClose), pos, dataClose[pos])
 				if maxValue < dataClose[pos] {
 
 					posArr[maxPos] = 0

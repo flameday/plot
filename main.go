@@ -32,6 +32,47 @@ var (
 	MIN_VALUE_FLAG         = -1
 )
 
+func work(stock *Stock, left int, right int) {
+	ok, left, right := stock.LoadData(left, right)
+	if !ok {
+		return
+	}
+
+	//创建 plog
+	p, _ := plot.New()
+	t := time.Now()
+
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = "Quantity Demand"
+	p.Y.Label.Text = "Price"
+
+	drawData(p, stock.dataClose, 3, red)
+	//drawData(p, stock.dataOpen, 2, red)
+	//drawData(p, stock.avgMiddle, 2, dark_red)
+	//drawData(p, stock.avg6, 1, green)
+	drawData(p, stock.avg30, 1, blue)
+	drawData(p, stock.avg150, 3, green)
+
+	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
+	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
+	//drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, black)
+	//drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, black)
+
+	//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
+	drawData(p, stock.relateCntArray, 2, green)
+
+	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d.png", left, right)
+	if left == 0 && right >= 5000 {
+		name = fmt.Sprintf("/Users/xinmei365/stock/price_all.png")
+	}
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), name)
+
+	//stock.LoadData("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
+	//http.HandleFunc("/", RrawPicture)
+	//http.ListenAndServe(":999", nil)
+}
+
 // 大家可以查看这个网址看看这个image包的使用方法 http://golang.org/doc/articles/image_draw.html
 func main() {
 	defer func() {
@@ -52,39 +93,11 @@ func main() {
 
 	for i := 0; i < 100; i++ {
 		stock := Stock{}
-
-		ok := stock.LoadData(i*500-200, (i+1)*500+200)
-		if !ok {
-			return
-		}
-
-		//创建 plog
-		p, _ := plot.New()
-		t := time.Now()
-
-		p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-		p.X.Label.Text = "Quantity Demand"
-		p.Y.Label.Text = "Price"
-
-		drawData(p, stock.dataClose, 2, red)
-		drawData(p, stock.dataOpen, 2, red)
-		//drawData(p, stock.avgMiddle, 2, dark_red)
-		//drawData(p, stock.avg6, 1, green)
-		drawData(p, stock.avg30, 1, purple)
-		drawData(p, stock.avg150, 5, yellow)
-
-		//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
-		//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
-		drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, black)
-		drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, black)
-
-		//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
-		drawData(p, stock.relateCntArray, 2, green)
-
-		p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/price_%03d.png", i))
-
-		//stock.LoadData("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
-		//http.HandleFunc("/", RrawPicture)
-		//http.ListenAndServe(":999", nil)
+		left := i*1000 - 200
+		right := (i+1)*1000 + 200
+		work(&stock, left, right)
 	}
+
+	stock := Stock{}
+	work(&stock, 0, 10000)
 }

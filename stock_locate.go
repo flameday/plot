@@ -1,16 +1,21 @@
 package main
 
-func findMinIndex(arr []int, posStart int, posEnd int) int {
+import (
+	log "github.com/cihub/seelog"
+	"runtime/debug"
+)
+
+func findMinIndex(data []float64, flagArr []int, posStart int, posEnd int) int {
 	if posStart >= posEnd {
 		return -1
 	}
 	minIndex := posStart
-	minValue := stock.dataClose[minIndex]
+	minValue := data[minIndex]
 	for i := posStart + 1; i < posEnd; i++ {
 		//small
-		if stock.dataMinMax[i] == -1 {
-			if stock.dataClose[i] < minValue {
-				minValue = stock.dataClose[i]
+		if flagArr[i] == -1 {
+			if data[i] < minValue {
+				minValue = data[i]
 				minIndex = i
 			}
 		}
@@ -108,6 +113,14 @@ func get_middle_avg(value_list []float64, index int, length int) float64 {
 
 // 向前向后length找最大值
 func locateMax(dataClose []float64, posArr []int, length int) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Infof("error")
+			defer log.Flush()
+			debug.PrintStack()
+		}
+	}()
+
 	//for max
 	for i := 0; i < len(posArr); i++ {
 		//log.Infof("[%d] dataClose:%f", i, dataClose[i])
@@ -121,8 +134,8 @@ func locateMax(dataClose []float64, posArr []int, length int) {
 				if pos >= len(posArr) || pos < 0 {
 					continue
 				}
+				log.Infof("maxValue:%.2f len:%d pos:%d dataClose[pos]:%f", maxValue, len(dataClose), pos, dataClose[pos])
 				if maxValue < dataClose[pos] {
-					//log.Infof("[%d] pos dataClose:%f", pos, dataClose[pos])
 
 					posArr[maxPos] = 0
 					posArr[pos] = MAX_VALUE_FLAG
@@ -149,6 +162,10 @@ func locateMax(dataClose []float64, posArr []int, length int) {
 // 向前向后length找最小值
 func locateMin(dataClose []float64, posArr []int, length int) {
 	//for max
+	if len(posArr) != len(dataClose) {
+		log.Errorf("not equal")
+	}
+
 	for i := 0; i < len(posArr); i++ {
 		//log.Infof("[%d] dataClose:%f", i, dataClose[i])
 		if posArr[i] == MIN_VALUE_FLAG {

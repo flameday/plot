@@ -150,20 +150,20 @@ func (stock *Stock) LoadData(left int, right int) (bool, int, int) {
 	caculateMinMax(stock.avg150, &stock.avg150MinMax, 150)
 	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 30)
 	//先使用平均值的minMax，后调整
-	caculateMinMax(stock.avgMiddle, &stock.resetMinMax, 30)
+	caculateMinMax(stock.avg30, &stock.resetMinMax, 30)
 	//根据平均值的大小值，往前后找真实的大小值
 	locateMax(stock.dataClose, stock.resetMinMax, 61)
 	locateMin(stock.dataClose, stock.resetMinMax, 61)
 	//根据1：1的关系，过滤掉多余的大小值
-	//filter_max(stock.dataClose, stock.resetMinMax)
-	//filter_min(stock.dataClose, stock.resetMinMax)
+	filter_max(stock.dataClose, stock.resetMinMax)
+	filter_min(stock.dataClose, stock.resetMinMax)
 	////初始化area分布
 	//for i:= 0; i < len(stock.dataClose); i++{
 	//	stock.flagArea = append(stock.flagArea, 0)
 	//}
 	//获取区间（层次）
 	//locate_realate(stock.dataClose, &stock.relateCntArray)
-	run_all_caculate()
+	//run_all_caculate()
 
 	return true, left, right
 }

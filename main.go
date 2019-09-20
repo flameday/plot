@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+//简单的逻辑
+const (
+	STATE_WAIT_FLAG = 0
+	STATE_BUY_FLAG  = 1
+	STATE_SELL_FLAG = 2
+)
+
 var (
 	white    color.Color = color.RGBA{255, 255, 255, 255}
 	blue     color.Color = color.RGBA{0, 0, 255, 255}
@@ -24,12 +31,15 @@ var (
 	purple   color.Color = color.RGBA{128, 0, 128, 255}
 	magenta  color.Color = color.RGBA{255, 0, 255, 255}
 	olive    color.Color = color.RGBA{128, 128, 0, 255}
-	gray     color.Color = color.RGBA{64, 64, 64, 1}
+	gray     color.Color = color.RGBA{172, 172, 172, 255}
 
 	picwidth       float64 = 512 * 2
 	picheight      float64 = 384 * 2
 	MAX_VALUE_FLAG         = 1
 	MIN_VALUE_FLAG         = -1
+
+	buy_stop  float64
+	sell_stop float64
 )
 
 func work(stock *Stock, left int, right int) {
@@ -55,8 +65,13 @@ func work(stock *Stock, left int, right int) {
 
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
-	//drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, black)
-	//drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, black)
+	drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, gray)
+	drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, gray)
+
+	aimArr := make([]int, 0)
+	aimArr = append(aimArr, 1)
+	aimArr = append(aimArr, -1)
+	drawMinMax2(p, stock.dataClose, stock.resetMinMax, aimArr, 2, black)
 
 	//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
 	drawData(p, stock.relateCntArray, 2, green)

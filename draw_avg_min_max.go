@@ -43,6 +43,43 @@ func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width fl
 	p.Add(lpLine, lpPoints)
 }
 
+func drawMinMax2(p *plot.Plot, data []float64, posArr []int, aimArr []int, width float64, clr color.Color) {
+	points := make(plotter.XYs, 0)
+	for i, val := range data {
+		var x float64
+		x = float64(i)
+		for j := 0; j < len(aimArr); j++ {
+			if posArr[i] == aimArr[j] {
+				var elem = plotter.XY{
+					x, val,
+				}
+				points = append(points, elem)
+			}
+		}
+	}
+	// Make a line plotter and set its style.
+	//l, err := plotter.NewLine(points)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+	//l.LineStyle.Color = clr
+
+	lpLine, lpPoints, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine.Color = clr
+	lpPoints.Shape = draw.CircleGlyph{}
+	lpPoints.Radius = vg.Length(width)
+	lpPoints.Color = clr
+	lpLine.LineStyle.Width = vg.Points(2)
+
+	p.Add(lpLine, lpPoints)
+}
+
 func drawLine(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
 	points := plotter.XYs{
 		{x1, y1},

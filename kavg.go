@@ -4,31 +4,39 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-func getLastHigh(data []float64, minMax []int, pos int) (bool, float64) {
+// sequence start from 0,1,2...
+func getLastHigh(data []float64, minMax []int, pos int, sequence int) (bool, float64) {
 	i := pos
 	for i = pos - 1; i >= 0; i-- {
 		if minMax[i] == MAX_VALUE_FLAG {
 			//compare
-			return true, data[i]
+			sequence--
+			if sequence <= 0 {
+				return true, data[i]
+			}
 		}
 	}
 	return false, -1
 }
 
-func getLastLow(data []float64, minMax []int, pos int) (bool, float64) {
+// sequence start from 0,1,2...
+func getLastLow(data []float64, minMax []int, pos int, sequence int) (bool, float64) {
 	i := pos
 	for i = pos - 1; i >= 0; i-- {
 		if minMax[i] == MIN_VALUE_FLAG {
 			//compare
-			return true, data[i]
+			sequence--
+			if sequence <= 0 {
+				return true, data[i]
+			}
 		}
 	}
 	return false, -1
 }
 
-func isHigherThanLast(data []float64, minMax []int, pos int) bool {
+func isHigherThanLast(data []float64, minMax []int, pos int, sequence int) bool {
 	curVal := data[pos]
-	ok, high := getLastHigh(data, minMax, pos)
+	ok, high := getLastHigh(data, minMax, pos, sequence)
 	if ok && curVal > high {
 		return true
 	}
@@ -36,9 +44,9 @@ func isHigherThanLast(data []float64, minMax []int, pos int) bool {
 	return false
 }
 
-func isLowerThanLast(data []float64, minMax []int, pos int) bool {
+func isLowerThanLast(data []float64, minMax []int, pos int, sequence int) bool {
 	curVal := data[pos]
-	ok, low := getLastLow(data, minMax, pos)
+	ok, low := getLastLow(data, minMax, pos, sequence)
 	if ok && curVal < low {
 		return true
 	}
@@ -50,40 +58,91 @@ func moveBuyStop(lastLow float64) {
 func moveSellStop(lastHigh float64) {
 	sell_stop = lastHigh
 }
-func actionBuy() {
+func actionBuy(state *int) {
 	log.Infof("buy...")
+	*state = STATE_BUY_FLAG
 }
-func actionClose() {
+func actionClose(state *int) {
 	log.Infof("close...")
+	*state = STATE_WAIT_FLAG
 }
-func actionSell() {
+func actionSell(state *int) {
 	log.Infof("sell...")
+	*state = STATE_SELL_FLAG
 }
-func changeAction(state int, data []float64, minMax []int, pos int) {
-	flagHigherLast := isHigherThanLast(data, minMax, pos)
-	flagLowerLast := isLowerThanLast(data, minMax, pos)
 
-	//lastHigh := getLastHigh(data, minMax, pos)
-	//lastLow := getLastLow(data, minMax, pos)
-	if state == STATE_WAIT_FLAG {
-		if flagHigherLast {
-			actionBuy()
-		} else if flagLowerLast {
-			actionSell()
+func runBuyTrend(state *int, data []float64, minMax []int, pos int) {
+	ok1, firstHigh := getLastHigh(data, minMax, pos, 0)
+	ok2, firstLow := getLastLow(data, minMax, pos, 0)
+	ok3, secondHigh := getLastHigh(data, minMax, pos, 1)
+	ok4, secondLow := getLastLow(data, minMax, pos, 1)
+	if !ok1 || !ok2 {
+		return
+	}
+	//   .    .
+	//  / \  / \
+	// /   .    ?
+	//  移动
+	if firstHigh > secondHigh {
+		if !ok3 {
+			return
 		}
-	} else if state == STATE_BUY_FLAG {
-		if flagHigherLast {
-			//keep
-		} else if flagLowerLast {
-			actionClose()
-			actionSell()
+		buy_stop = firstLow
+	}
+
+	// \   .    ?
+	//  \ /  \ /
+	//   .    .
+	if data[pos] < firstLow {
+		if !ok4 {
+			return
 		}
-	} else if state == STATE_SELL_FLAG {
-		if flagHigherLast {
-			actionClose()
-			actionBuy()
-		} else if flagLowerLast {
-			//actionSell()
+		actionClose(state)
+		actionSell(state)
+	}
+}
+func runSellTrend(state *int, data []float64, minMax []int, pos int) {
+
+}
+func startTrend(state *int, data []float64, minMax []int, pos int) {
+	ok1, firstHigh := getLastHigh(data, minMax, pos, 0)
+	ok2, firstLow := getLastLow(data, minMax, pos, 0)
+	ok3, secondHigh := getLastHigh(data, minMax, pos, 1)
+	ok4, secondLow := getLastLow(data, minMax, pos, 1)
+	if !ok1 || !ok2 {
+		return
+	}
+	//   .    .
+	//  / \  / \
+	// /   .    ?
+	if firstHigh > firstLow {
+		if !ok3 {
+			return
 		}
+		if firstHigh <= secondHigh && data[pos] < firstLow {
+			actionSell(state)
+		}
+	}
+
+	// \   .    ?
+	//  \ /  \ /
+	//   .    .
+	if firstLow > firstHigh {
+		if !ok4 {
+			return
+		}
+		if firstLow <= secondLow && data[pos] > firstHigh {
+			actionBuy(state)
+		}
+	}
+}
+
+func changeAction(state *int, data []float64, minMax []int, pos int) {
+	if *state == STATE_WAIT_FLAG {
+		startTrend(state, data, minMax, pos)
+	} else if *state == STATE_BUY_FLAG {
+		runBuyTrend(state, data, minMax, pos)
+	} else if *state == STATE_SELL_FLAG {
+		runSellTrend(state, data, minMax, pos)
 	}
 }

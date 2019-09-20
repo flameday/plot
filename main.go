@@ -77,7 +77,7 @@ func work(stock *Stock, left int, right int) {
 	drawData(p, stock.relateCntArray, 2, green)
 
 	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d.png", left, right)
-	if left == 0 && right >= 5000 {
+	if right >= len(stock.dataClose) {
 		name = fmt.Sprintf("/Users/xinmei365/stock/price_all.png")
 	}
 
@@ -106,13 +106,24 @@ func main() {
 	log.ReplaceLogger(logger)
 	defer log.Flush()
 
-	for i := 0; i < 100; i++ {
+	//// 绘图
+	//for i := 0; i < 100; i++ {
+	//	stock := Stock{}
+	//	left := i*1000 - 200
+	//	right := (i+1)*1000 + 200
+	//	work(&stock, left, right)
+	//}
+	//// 最后加一个完整的图
+	//stock := Stock{}
+	//work(&stock, 0, 10000)
+	// 遍历模拟
+	action_state := STATE_WAIT_FLAG
+	for i := 1; i < 10000; i++ {
 		stock := Stock{}
-		left := i*1000 - 200
-		right := (i+1)*1000 + 200
-		work(&stock, left, right)
+		ok, _, _ := stock.LoadData(0, i)
+		if !ok {
+			return
+		}
+		changeAction(&action_state, stock.dataClose, stock.resetMinMax, i)
 	}
-
-	stock := Stock{}
-	work(&stock, 0, 10000)
 }

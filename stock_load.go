@@ -39,7 +39,7 @@ func (stock *Stock) LoadData(left int, right int) (bool, int, int) {
 
 	// 解析文本数据
 	lines := strings.Split(str, "\n")
-	if left >= len(lines) {
+	if left >= len(lines) || right >= len(lines) {
 		return false, 0, 0
 	}
 	if left < 0 {

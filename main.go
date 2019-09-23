@@ -12,9 +12,19 @@ import (
 
 //简单的逻辑
 const (
-	STATE_WAIT_FLAG = 0
-	STATE_BUY_FLAG  = 1
-	STATE_SELL_FLAG = 2
+	ACTION_WAIT_FLAG = 0
+	ACTION_BUY_FLAG  = 1
+	ACTION_SELL_FLAG = 2
+
+	// 上涨
+	MODEL_RISING_
+	//fall
+	MODEL_NOT_NEW_HIGH_NEW_LOW_FLAG = 0
+	//rise
+	MODEL_NOT_NEW_LOW_NEW_HIGH_FLAG = 1
+
+	MODEL_NEW_HIGH_NEW_LOW = 2
+	MODEL_NEW_LOW_NEW_HIGH = 3
 )
 
 var (
@@ -61,20 +71,31 @@ func work(stock *Stock, left int, right int) {
 	//drawData(p, stock.avgMiddle, 2, dark_red)
 	//drawData(p, stock.avg6, 1, green)
 	drawData(p, stock.avg30, 1, blue)
-	drawData(p, stock.avg150, 3, green)
+	//drawData(p, stock.avg150, 3, green)
 
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
 	drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, gray)
 	drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, gray)
 
-	aimArr := make([]int, 0)
-	aimArr = append(aimArr, 1)
-	aimArr = append(aimArr, -1)
-	drawMinMax2(p, stock.dataClose, stock.resetMinMax, aimArr, 2, black)
+	for i := 0; i < len(stock.dataClose); {
+		pos := findBump(stock.dataClose, i)
+		if pos != -1 {
+			i = pos
+			drawPoint(p, float64(i), stock.dataClose[i], 3)
+			log.Infof("findBump pos: %d", pos)
+		} else {
+			i++
+		}
+	}
+
+	//aimArr := make([]int, 0)
+	//aimArr = append(aimArr, 1)
+	//aimArr = append(aimArr, -1)
+	//drawMinMax2(p, stock.dataClose, stock.resetMinMax, aimArr, 2, black)
 
 	//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
-	drawData(p, stock.relateCntArray, 2, green)
+	//drawData(p, stock.relateCntArray, 2, green)
 
 	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d.png", left, right)
 	if right >= len(stock.dataClose) {
@@ -86,6 +107,29 @@ func work(stock *Stock, left int, right int) {
 	//stock.LoadData("/Users/xinmei365/stock_data_history/day/dataClose/000002.csv")
 	//http.HandleFunc("/", RrawPicture)
 	//http.ListenAndServe(":999", nil)
+}
+
+func findBump(data []float64, pos int) int {
+	if pos < 0 {
+		return -1
+	}
+	if pos+3 >= len(data) {
+		return -1
+	}
+
+	slope0 := data[pos+1] - data[pos+0]
+	slope1 := data[pos+2] - data[pos+1]
+	flag := slope1 - slope0
+
+	preSlope := slope1
+	for i := pos + 3; i < len(data); i++ {
+		curSlope := data[i] - data[i-1]
+		if (curSlope-preSlope)*flag < 0 {
+			return i
+		}
+		preSlope = curSlope
+	}
+	return -1
 }
 
 // 大家可以查看这个网址看看这个image包的使用方法 http://golang.org/doc/articles/image_draw.html
@@ -106,24 +150,24 @@ func main() {
 	log.ReplaceLogger(logger)
 	defer log.Flush()
 
-	//// 绘图
-	//for i := 0; i < 100; i++ {
-	//	stock := Stock{}
-	//	left := i*1000 - 200
-	//	right := (i+1)*1000 + 200
-	//	work(&stock, left, right)
-	//}
+	// 绘图
+	for i := 7; i < 8; i++ {
+		stock := Stock{}
+		left := i * 300
+		right := (i + 1) * 300
+		work(&stock, left, right)
+	}
 	//// 最后加一个完整的图
 	//stock := Stock{}
 	//work(&stock, 0, 10000)
 	// 遍历模拟
-	action_state := STATE_WAIT_FLAG
-	for i := 1; i < 10000; i++ {
-		stock := Stock{}
-		ok, _, _ := stock.LoadData(0, i)
-		if !ok {
-			return
-		}
-		changeAction(&action_state, stock.dataClose, stock.resetMinMax, i)
-	}
+	//action_state := ACTION_WAIT_FLAG
+	//for i := 1; i < 10000; i++ {
+	//	stock := Stock{}
+	//	ok, _, _ := stock.LoadData(0, i)
+	//	if !ok {
+	//		return
+	//	}
+	//	changeAction(&action_state, stock.dataClose, stock.resetMinMax, i)
+	//}
 }

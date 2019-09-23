@@ -79,7 +79,19 @@ func drawMinMax2(p *plot.Plot, data []float64, posArr []int, aimArr []int, width
 
 	p.Add(lpLine, lpPoints)
 }
-
+func drawPoint(p *plot.Plot, x1 float64, y1 float64, radius int) {
+	points := plotter.XYs{
+		{x1, y1},
+	}
+	plotutil.AddLinePoints(p, points)
+	_, lpPoint, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpPoint.Radius = vg.Length(radius)
+	lpPoint.Color = blue
+	p.Add(lpPoint)
+}
 func drawLine(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
 	points := plotter.XYs{
 		{x1, y1},

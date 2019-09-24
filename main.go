@@ -28,31 +28,45 @@ const (
 )
 
 var (
-	white    color.Color = color.RGBA{255, 255, 255, 255}
-	blue     color.Color = color.RGBA{0, 0, 255, 255}
-	red      color.Color = color.RGBA{255, 0, 0, 255}
-	dark_red color.Color = color.RGBA{139, 0, 0, 255}
-	green    color.Color = color.RGBA{0, 255, 0, 255}
-	pink     color.Color = color.RGBA{255, 192, 203, 255}
-	orange   color.Color = color.RGBA{255, 165, 0, 255}
-	black    color.Color = color.RGBA{0, 0, 0, 255}
-	gold     color.Color = color.RGBA{255, 215, 0, 255}
-	yellow   color.Color = color.RGBA{255, 255, 0, 255}
-	purple   color.Color = color.RGBA{128, 0, 128, 255}
-	magenta  color.Color = color.RGBA{255, 0, 255, 255}
-	olive    color.Color = color.RGBA{128, 128, 0, 255}
-	gray     color.Color = color.RGBA{172, 172, 172, 255}
-
-	picwidth       float64 = 512 * 2
-	picheight      float64 = 384 * 2
-	MAX_VALUE_FLAG         = 1
-	MIN_VALUE_FLAG         = -1
+	white          color.Color = color.RGBA{255, 255, 255, 255}
+	blue           color.Color = color.RGBA{0, 0, 255, 255}
+	red            color.Color = color.RGBA{255, 0, 0, 255}
+	dark_red       color.Color = color.RGBA{139, 0, 0, 255}
+	green          color.Color = color.RGBA{0, 255, 0, 255}
+	pink           color.Color = color.RGBA{255, 192, 203, 255}
+	orange         color.Color = color.RGBA{255, 165, 0, 255}
+	black          color.Color = color.RGBA{0, 0, 0, 255}
+	gold           color.Color = color.RGBA{255, 215, 0, 255}
+	yellow         color.Color = color.RGBA{255, 255, 0, 255}
+	purple         color.Color = color.RGBA{128, 0, 128, 255}
+	magenta        color.Color = color.RGBA{255, 0, 255, 255}
+	olive          color.Color = color.RGBA{128, 128, 0, 255}
+	gray           color.Color = color.RGBA{172, 172, 172, 255}
+	colorArray                 = []color.Color{red, blue, black, yellow, orange, gold, purple, magenta, olive, gray}
+	picwidth       float64     = 512 * 2
+	picheight      float64     = 384 * 2
+	MAX_VALUE_FLAG             = 1
+	MIN_VALUE_FLAG             = -1
 
 	buy_stop  float64
 	sell_stop float64
 )
 
+func getRectangle(data []float64, posLeft int, posMiddle int, posRight int) (int, int) {
+	var01 := getVariance(data, posLeft, posMiddle+1)
+	var02 := getVariance(data, posMiddle, posRight+1)
+	if var01 >= var02 {
+		return posLeft, posMiddle
+	}
+	return posMiddle, posRight
+}
+
 func work(stock *Stock, left int, right int) {
+	flagOver := false
+	if right >= 10000 {
+		flagOver = true
+	}
+
 	ok, left, right := stock.LoadData(left, right)
 	if !ok {
 		return
@@ -70,24 +84,46 @@ func work(stock *Stock, left int, right int) {
 	//drawData(p, stock.dataOpen, 2, red)
 	//drawData(p, stock.avgMiddle, 2, dark_red)
 	//drawData(p, stock.avg6, 1, green)
-	drawData(p, stock.avg30, 1, blue)
+	//drawData(p, stock.avg30, 1, blue)
 	//drawData(p, stock.avg150, 3, green)
 
+	//drawMinMax(p, stock.dataClose, stock.dataMinMax, 1, 3, blue)
+	//drawMinMax(p, stock.dataClose, stock.dataMinMax, -1, 3, blue)
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, 1, 3, blue)
 	//drawMinMax(p, stock.avgMiddle, stock.avgMiddleMinMax, -1, 2, purple)
-	drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, gray)
-	drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, gray)
+	//drawMinMax(p, stock.dataClose, stock.resetMinMax, 1, 2, gray)
+	//drawMinMax(p, stock.dataClose, stock.resetMinMax, -1, 2, gray)
 
-	for i := 0; i < len(stock.dataClose); {
-		pos := findBump(stock.dataClose, i)
-		if pos != -1 {
-			i = pos
-			drawPoint(p, float64(i), stock.dataClose[i], 3)
-			log.Infof("findBump pos: %d", pos)
-		} else {
-			i++
+	//rectangle
+	for i := 1; i < len(stock.dataMinMax)-1; i++ {
+		if stock.dataMinMax[i] == 1 {
+			preMin := findPreIndex(stock.dataMinMax, i, -1)
+			postMin := findNextIndex(stock.dataMinMax, i, -1)
+			if preMin != -1 && postMin != -1 {
+				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
+				drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+			}
+		}
+		if stock.dataMinMax[i] == -1 {
+			preMax := findPreIndex(stock.dataMinMax, i, 1)
+			postMax := findNextIndex(stock.dataMinMax, i, 1)
+			if preMax != -1 && postMax != -1 {
+				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
+				drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+			}
 		}
 	}
+
+	//for i := 0; i < len(stock.dataClose); {
+	//	pos := findBump(stock.dataClose, i)
+	//	if pos != -1 {
+	//		i = pos
+	//		drawPoint(p, float64(i), stock.dataClose[i], 3)
+	//		log.Infof("findBump pos: %d", pos)
+	//	} else {
+	//		i++
+	//	}
+	//}
 
 	//aimArr := make([]int, 0)
 	//aimArr = append(aimArr, 1)
@@ -98,7 +134,7 @@ func work(stock *Stock, left int, right int) {
 	//drawData(p, stock.relateCntArray, 2, green)
 
 	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d.png", left, right)
-	if right >= len(stock.dataClose) {
+	if flagOver {
 		name = fmt.Sprintf("/Users/xinmei365/stock/price_all.png")
 	}
 
@@ -151,15 +187,15 @@ func main() {
 	defer log.Flush()
 
 	// 绘图
-	for i := 7; i < 8; i++ {
+	for i := 0; i < 10; i++ {
 		stock := Stock{}
-		left := i * 300
-		right := (i + 1) * 300
+		left := i*500 - 100
+		right := (i + 1) * 500
 		work(&stock, left, right)
 	}
 	//// 最后加一个完整的图
-	//stock := Stock{}
-	//work(&stock, 0, 10000)
+	stock := Stock{}
+	work(&stock, 0, 10000)
 	// 遍历模拟
 	//action_state := ACTION_WAIT_FLAG
 	//for i := 1; i < 10000; i++ {

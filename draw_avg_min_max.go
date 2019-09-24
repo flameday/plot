@@ -7,6 +7,7 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"image/color"
+	"math/rand"
 )
 
 func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width float64, clr color.Color) {
@@ -78,6 +79,25 @@ func drawMinMax2(p *plot.Plot, data []float64, posArr []int, aimArr []int, width
 	lpLine.LineStyle.Width = vg.Points(2)
 
 	p.Add(lpLine, lpPoints)
+}
+func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
+	points := plotter.XYs{
+		{x1, y1},
+		{x1, y2},
+		{x2, y2},
+		{x2, y1},
+		{x1, y1},
+	}
+	plotutil.AddLinePoints(p, points)
+	lpLine, _, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine.LineStyle.Width = vg.Points(1)
+
+	i := rand.Intn(len(colorArray))
+	lpLine.LineStyle.Color = colorArray[i]
+	p.Add(lpLine)
 }
 func drawPoint(p *plot.Plot, x1 float64, y1 float64, radius int) {
 	points := plotter.XYs{

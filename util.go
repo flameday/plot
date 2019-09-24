@@ -1,8 +1,51 @@
 package main
 
 import (
+	"github.com/prometheus/common/log"
 	"math"
 )
+
+func getVariance(data []float64, start int, end int) float64 {
+	if start >= end {
+		log.Errorf("error!")
+		return -1
+	}
+	avg := getAvg(data, start, end)
+	variance := 0.0
+	for i := start; i < end; i++ {
+		tmp := (data[i] - avg)
+		tmp02 := tmp * tmp
+		variance += tmp02
+	}
+	cnt := float64(end - start)
+	variance /= cnt
+	return variance
+}
+
+func getSum(data []float64, start int, end int) float64 {
+	if start >= end {
+		log.Errorf("error!")
+		return -1
+	}
+	total := 0.0
+	for i := start; i < end; i++ {
+		total += data[i]
+	}
+	return total
+}
+
+func getAvg(data []float64, start int, end int) float64 {
+	if start >= end {
+		log.Errorf("error!")
+		return -1
+	}
+	total := 0.0
+	for i := start; i < end; i++ {
+		total += data[i]
+	}
+	cnt := end - start
+	return total / float64(cnt)
+}
 
 func minimum(data []float64) float64 {
 	if data == nil {

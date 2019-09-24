@@ -28,9 +28,9 @@ type Stock struct {
 	cleanPosMinMax []int
 }
 
-func (stock *Stock) LoadData(left int, right int) (bool, int, int) {
+func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, int) {
 	// 读文本数据
-	b, err := ioutil.ReadFile("/Users/xinmei365/stock_data_history/day/data/000002.csv")
+	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Print(err)
 	}

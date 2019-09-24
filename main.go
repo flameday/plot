@@ -80,13 +80,13 @@ func getRectangle2(data []float64, posLeft int, posMiddle int, posRight int) (in
 	return posMiddle, posRight
 }
 
-func work(stock *Stock, left int, right int) {
+func work(filename string, stock *Stock, index int, left int, right int) {
 	flagOver := false
 	if right >= 10000 {
 		flagOver = true
 	}
 
-	ok, left, right := stock.LoadData(left, right)
+	ok, left, right := stock.LoadData(filename, left, right)
 	if !ok {
 		return
 	}
@@ -152,9 +152,9 @@ func work(stock *Stock, left int, right int) {
 	//drawMinMax(p, stock.dataClose, stock.flagArea, -1, 3, green)
 	//drawData(p, stock.relateCntArray, 2, green)
 
-	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d.png", left, right)
+	name := fmt.Sprintf("/Users/xinmei365/stock/price_%d_%d_%d.png", index, left, right)
 	if flagOver {
-		name = fmt.Sprintf("/Users/xinmei365/stock/price_all.png")
+		name = fmt.Sprintf("/Users/xinmei365/stock/price_%d_all.png", index)
 	}
 
 	p.Save(vg.Length(picwidth), vg.Length(picheight), name)
@@ -206,15 +206,26 @@ func main() {
 	defer log.Flush()
 
 	// 绘图
-	for i := 0; i < 10; i++ {
+	fileArray := make([]string, 0)
+	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
+	//filename := "/Users/xinmei365/stock_data_history/day/data/000002.csv"
+	for index := 0; index < len(dstArray); index++ {
+		//if index > 3 {
+		//	break
+		//}
+
+		filename := dstArray[index]
+		for i := 0; i < 10; i++ {
+			stock := Stock{}
+			left := i*500 - 100
+			right := (i + 1) * 500
+			work(filename, &stock, index, left, right)
+		}
+		//// 最后加一个完整的图
 		stock := Stock{}
-		left := i*500 - 100
-		right := (i + 1) * 500
-		work(&stock, left, right)
+		work(filename, &stock, index, 0, 10000)
 	}
-	//// 最后加一个完整的图
-	stock := Stock{}
-	work(&stock, 0, 10000)
+
 	// 遍历模拟
 	//action_state := ACTION_WAIT_FLAG
 	//for i := 1; i < 10000; i++ {

@@ -1,9 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"github.com/prometheus/common/log"
+	"io/ioutil"
 	"math"
 )
+
+func GetAllFile(pathname string, s []string) ([]string, error) {
+	rd, err := ioutil.ReadDir(pathname)
+	if err != nil {
+		fmt.Println("read dir fail:", err)
+		return s, err
+	}
+	for _, fi := range rd {
+		if fi.IsDir() {
+			fullDir := pathname + "/" + fi.Name()
+			s, err = GetAllFile(fullDir, s)
+			if err != nil {
+				fmt.Println("read dir fail:", err)
+				return s, err
+			}
+		} else {
+			fullName := pathname + "/" + fi.Name()
+			s = append(s, fullName)
+		}
+	}
+	return s, nil
+}
 
 func getVariance(data []float64, start int, end int) float64 {
 	if start >= end {

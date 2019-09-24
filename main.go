@@ -6,6 +6,7 @@ import (
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/vg"
 	"image/color"
+	"math"
 	"runtime/debug"
 	"time"
 )
@@ -50,9 +51,27 @@ var (
 
 	buy_stop  float64
 	sell_stop float64
+	flag      int = 0
 )
 
+func getDense(data []float64, start int, end int) float64 {
+	diff := math.Abs(data[end] - data[start])
+	dense := diff / float64(end-start)
+	return dense
+}
 func getRectangle(data []float64, posLeft int, posMiddle int, posRight int) (int, int) {
+	var01 := getDense(data, posLeft, posMiddle)
+	var02 := getDense(data, posMiddle, posRight)
+	log.Infof("var01, var02:%f %f", var01, var02)
+	if var01 <= var02 {
+		log.Infof("posLeft, posMiddle:[%d, %d]", posLeft, posMiddle)
+		return posLeft, posMiddle
+	}
+	log.Infof("posMiddle, posRight:[%d, %d]", posMiddle, posRight)
+	return posMiddle, posRight
+}
+
+func getRectangle2(data []float64, posLeft int, posMiddle int, posRight int) (int, int) {
 	var01 := getVariance(data, posLeft, posMiddle+1)
 	var02 := getVariance(data, posMiddle, posRight+1)
 	if var01 >= var02 {

@@ -146,6 +146,10 @@ func (stock *Stock) LoadData(left int, right int) (bool, int, int) {
 	log.Infof("avg size:%d", len(stock.avg150))
 	//局部最大值
 	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
+	//根据1：1的关系，过滤掉多余的大小值
+	filter_max(stock.dataClose, stock.dataMinMax)
+	filter_min(stock.dataClose, stock.dataMinMax)
+
 	caculateMinMax(stock.avg30, &stock.avg30MinMax, 30)
 	caculateMinMax(stock.avg150, &stock.avg150MinMax, 150)
 	caculateMinMax(stock.avgMiddle, &stock.avgMiddleMinMax, 30)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,88 @@ type Stock struct {
 	//flagArea    []int
 
 	cleanPosMinMax []int
+}
+
+func (stock *Stock) LoadAllData(filename string) {
+	// 读文本数据
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Print(err)
+	}
+	str := string(b)
+	// 解析文本数据
+	lines := strings.Split(str, "\n")
+	for i, line := range lines {
+		if i == 0 {
+			continue
+		}
+		// log.Info("[%d] %s", i, line)
+		elems := strings.Split(line, ",")
+		if len(elems) < 4 {
+			continue
+		}
+
+		valueClose, err := strconv.ParseFloat(elems[3], 32)
+		if err != nil {
+			log.Error("ParseFloat elems[3]:%s err:%v", elems[3], err)
+		}
+		stock.dataClose = append(stock.dataClose, valueClose)
+	}
+	log.Infof("filename: %s", filename)
+	log.Infof("stock.dataClose size: %d", filename, len(stock.dataClose))
+}
+
+func getAllRect(data []float64) []Rect {
+	var stock = Stock{
+		dataClose: data,
+	}
+	// 局部最大值
+	caculateMinMax(stock.dataClose, &stock.dataMinMax, 8)
+	//根据1：1的关系，过滤掉多余的大小值
+	filter_max(stock.dataClose, stock.resetMinMax)
+	filter_min(stock.dataClose, stock.resetMinMax)
+
+	rectArray := make([]Rect, 0)
+	// 查找
+	for i := 1; i < len(stock.dataMinMax)-1; i++ {
+		if stock.dataMinMax[i] == 1 {
+			preMin := findPreIndex(stock.dataMinMax, i, -1)
+			postMin := findNextIndex(stock.dataMinMax, i, -1)
+			if preMin != -1 && postMin != -1 {
+				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
+				left := math.Min(float64(x1), float64(x2))
+				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
+				right := math.Max(float64(x1), float64(x2))
+				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
+				r := Rect{
+					left:   left,
+					top:    top,
+					right:  right,
+					bottom: bottom,
+				}
+				rectArray = append(rectArray, r)
+			}
+		}
+		if stock.dataMinMax[i] == -1 {
+			preMax := findPreIndex(stock.dataMinMax, i, 1)
+			postMax := findNextIndex(stock.dataMinMax, i, 1)
+			if preMax != -1 && postMax != -1 {
+				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
+				left := math.Min(float64(x1), float64(x2))
+				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
+				right := math.Max(float64(x1), float64(x2))
+				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
+				r := Rect{
+					left:   left,
+					top:    top,
+					right:  right,
+					bottom: bottom,
+				}
+				rectArray = append(rectArray, r)
+			}
+		}
+	}
+	return rectArray
 }
 
 func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, int) {
@@ -83,7 +166,15 @@ func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, i
 	//stock.dataOpen = make([]float64, 0)
 	//stock.dataClose = make([]float64, 0)
 	//
-	//for i := 1; i <= 15; i++ {
+	//for i := 1; i <= 10; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 10; i > 5; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 5; i > 15; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
@@ -91,37 +182,33 @@ func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, i
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 10; i > 15; i++ {
+	//for i := 10; i > 20; i-- {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 15; i > 1; i-- {
+	//for i := 20; i > 5; i-- {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
 	//////
-
-	//for i := 1; i < 20; i++ {
+	//
+	//for i := 15; i < 25; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 20; i > 1; i-- {
+	//for i := 25; i > 15; i-- {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 1; i < 20; i++ {
+	//for i := 15; i > 20; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 20; i > 3; i-- {
+	//for i := 20; i < 10; i-- {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}
-	//for i := 3; i < 20; i++ {
-	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
-	//	stock.dataClose = append(stock.dataClose, float64(i))
-	//}
-	//for i := 10; i < 3; i-- {
+	//for i := 10; i < 15; i++ {
 	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
 	//	stock.dataClose = append(stock.dataClose, float64(i))
 	//}

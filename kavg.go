@@ -2,9 +2,29 @@ package main
 
 //
 //import (
-//	"github.com/prometheus/common/log"
+//	log "github.com/cihub/seelog"
 //)
 //
+const (
+	STATE_INIT          = 0
+	STATE_RISING_RISING = 1
+)
+
+type Rect struct {
+	left   float64
+	top    float64
+	right  float64
+	bottom float64
+}
+
+//1, get all rect
+//2, get bench rect
+//3,
+func init_state(value float64) {
+	// 获得所有的矩形
+
+}
+
 //// sequence start from 0,1,2...
 //func getLastHigh(data []float64, minMax []int, pos int, sequence int) (bool, float64) {
 //	i := pos

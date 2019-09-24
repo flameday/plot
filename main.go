@@ -12,21 +12,7 @@ import (
 )
 
 //简单的逻辑
-const (
-	ACTION_WAIT_FLAG = 0
-	ACTION_BUY_FLAG  = 1
-	ACTION_SELL_FLAG = 2
-
-	// 上涨
-	MODEL_RISING_
-	//fall
-	MODEL_NOT_NEW_HIGH_NEW_LOW_FLAG = 0
-	//rise
-	MODEL_NOT_NEW_LOW_NEW_HIGH_FLAG = 1
-
-	MODEL_NEW_HIGH_NEW_LOW = 2
-	MODEL_NEW_LOW_NEW_HIGH = 3
-)
+const ()
 
 var (
 	white          color.Color = color.RGBA{255, 255, 255, 255}
@@ -78,6 +64,23 @@ func getRectangle2(data []float64, posLeft int, posMiddle int, posRight int) (in
 		return posLeft, posMiddle
 	}
 	return posMiddle, posRight
+}
+
+func drawWithRect(data []float64, arr []Rect, picname string) {
+	//创建 plog
+	p, _ := plot.New()
+	t := time.Now()
+
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = "drawWithRect"
+	p.Y.Label.Text = "Price"
+
+	drawData(p, data, 1, red)
+	for _, r := range arr {
+		drawRectangle(p, r.left, r.top, r.right, r.bottom)
+	}
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), picname)
 }
 
 func work(filename string, stock *Stock, index int, left int, right int) {
@@ -220,9 +223,15 @@ func main() {
 		filename := dstArray[index]
 		for i := 0; i < 10; i++ {
 			stock := Stock{}
-			left := i*500 - 100
-			right := (i + 1) * 500
-			work(filename, &stock, index, left, right)
+			//left := i*500 - 100
+			//right := (i + 1) * 500
+			//work(filename, &stock, index, left, right)
+			stock.LoadAllData(filename)
+			arr := getAllRect(stock.dataClose[0:500])
+			//draw
+			drawWithRect(stock.dataClose[0:500], arr, fmt.Sprintf("/Users/xinmei365/stock/%d.png", i))
+
+			break
 		}
 		//// 最后加一个完整的图
 		stock := Stock{}

@@ -210,9 +210,12 @@ func main() {
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	//filename := "/Users/xinmei365/stock_data_history/day/data/000002.csv"
 	for index := 0; index < len(dstArray); index++ {
-		//if index > 3 {
-		//	break
-		//}
+		if index < 10 {
+			continue
+		}
+		if index > 11 {
+			break
+		}
 
 		filename := dstArray[index]
 		for i := 0; i < 10; i++ {

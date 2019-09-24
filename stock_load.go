@@ -145,7 +145,7 @@ func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, i
 	log.Infof("dataClose size:%d", len(stock.dataClose))
 	log.Infof("avg size:%d", len(stock.avg150))
 	//局部最大值
-	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
+	caculateMinMax(stock.dataClose, &stock.dataMinMax, 8)
 	//根据1：1的关系，过滤掉多余的大小值
 	filter_max(stock.dataClose, stock.dataMinMax)
 	filter_min(stock.dataClose, stock.dataMinMax)

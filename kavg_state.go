@@ -45,6 +45,7 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) bool {
 		}
 	} else if curValue < ac.Buy_stop.bottom {
 		ac.State = STATE_NEW_HIGH + STATE_NEW_LOW
+		ac.SubState = ""
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = arr[size-1]
 		ac.Min_High_low = curValue
@@ -55,13 +56,31 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) bool {
 	return false
 }
 func action_High_Sell(ac *avgContext, arr []Rect, curValue float64) bool {
-
+	log.Errorf("action_High_Sell impossible...")
 	return false
 }
 func action_Low_Buy(ac *avgContext, arr []Rect, curValue float64) bool {
+	log.Errorf("action_Low_Buy impossible...")
 	return false
 }
 func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) bool {
+	size := len(arr)
+	// New Low
+	if curValue > ac.Sell_stop.top {
+		ac.State = STATE_NEW_LOW + STATE_NEW_HIGH
+		ac.Action = ACTION_BUY
+		ac.Sell_stop = arr[size-1]
+
+		return true
+	}
+
+	// 推进 Sell_stop
+	if (arr[size-1].top <= ac.Sell_stop.top) && arr[size-1].bottom < ac.Sell_stop.bottom {
+		ac.Sell_stop = arr[size-1]
+
+		return true
+	}
+
 	return false
 }
 func action_High_Low_Buy(ac *avgContext, arr []Rect, curValue float64) bool {
@@ -144,21 +163,7 @@ func forwardStateFromSell(ac *avgContext, data []float64) bool {
 	size := len(arr)
 
 	if ac.State == STATE_NEW_LOW {
-		// New Low
-		if curValue > ac.Sell_stop.top {
-			ac.State = STATE_NEW_LOW + STATE_NEW_HIGH
-			ac.Action = ACTION_BUY
-			ac.Sell_stop = arr[size-1]
 
-			return true
-		}
-
-		// 推进 Sell_stop
-		if (arr[size-1].top <= ac.Sell_stop.top) && arr[size-1].bottom < ac.Sell_stop.bottom {
-			ac.Sell_stop = arr[size-1]
-
-			return true
-		}
 	}
 	return false
 }

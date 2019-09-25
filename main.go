@@ -104,13 +104,16 @@ func main() {
 					//drawLine(p, r.left, r.bottom, r.right, r.top)
 				}
 				// 高低点
+				// 保存图片
+				filename := fmt.Sprintf("/Users/xinmei365/stock/%d_%d_%d.png", index, i, pos)
+
 				drawMinMax(p, st.dataClose[0:pos+1], st.dataMinMax[0:pos+1], 1, 3, gray)
 				if ok, state, action := isValidInit(st.dataClose[0:pos+1], pos); ok {
 					log.Infof("state: %s action: %d", state, action)
-					drawPoint(p, float64(pos), st.dataClose[pos], 3)
+					drawPoint(p, float64(pos), st.dataClose[pos], 8)
+
+					p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				}
-				// 保存图片
-				p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d_%d_%d.png", index, i, pos))
 			}
 
 			break

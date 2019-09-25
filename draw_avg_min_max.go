@@ -103,6 +103,19 @@ func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64)
 	flag = (flag + 1) % 2
 	p.Add(lpLine)
 }
+func drawPoint2(p *plot.Plot, x1 float64, y1 float64, radius int, clr color.Color) {
+	points := plotter.XYs{
+		{x1, y1},
+	}
+	plotutil.AddLinePoints(p, points)
+	_, lpPoint, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpPoint.Radius = vg.Length(radius)
+	lpPoint.Color = clr
+	p.Add(lpPoint)
+}
 func drawPoint(p *plot.Plot, x1 float64, y1 float64, radius int) {
 	points := plotter.XYs{
 		{x1, y1},

@@ -35,6 +35,15 @@ type Rect struct {
 	bottom float64
 }
 
+type avgContext struct {
+	State        int
+	SubState     string
+	Action       string
+	Sell_stop    Rect
+	Buy_stop     Rect
+	Min_High_low float64
+}
+
 func (stock *Stock) LoadAllData(filename string) {
 	// 读文本数据
 	b, err := ioutil.ReadFile(filename)

@@ -38,15 +38,32 @@ var (
 	sell_stop float64
 	flag      int = 0
 
-	STATE_INIT       = "STATE_INIT"
-	STATE_NEW_HEIGHT = "STATE_NEW_HEIGHT"
-	STATE_NEW_LOW    = "STATE_NEW_LOW"
+	STATE_UNKOWN   = 0
+	STATE_INIT     = 1
+	STATE_NEW_HIGH = 2
+	STATE_NEW_LOW  = 4
 
-	ACTION_NONE = 0
-	ACTION_BUY  = 1
-	ACTION_SELL = 2
+	ACTION_NONE = "ACTION_NONE"
+	ACTION_BUY  = "ACTION_BUY"
+	ACTION_SELL = "ACTION_SELL"
 )
 
+func getState(state int) string {
+	if state == 0 {
+		return "STATE_UNKOWN"
+	}
+	if state == 1 {
+		return "STATE_INIT"
+	}
+	if state == 2 {
+		return "STATE_NEW_HIGH"
+	}
+	if state == 4 {
+		return "STATE_NEW_LOW"
+	}
+	log.Errorf("getState error, state: %d", state)
+	return ""
+}
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -96,8 +113,11 @@ func main() {
 
 			drawData(p, stock.dataClose[0:500], 1, red)
 
+			ac := &avgContext{
+				State: STATE_UNKOWN,
+			}
 			for pos := 10; pos < 500; pos += 10 {
-				arr, st := getAllRect(stock.dataClose[0 : pos+1])
+				arr, st := getAllRect(stock.dataClose[0:pos])
 				for _, r := range arr {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom)
 					//drawLine(p, r.left, r.top, r.right, r.bottom)
@@ -107,12 +127,29 @@ func main() {
 				// 保存图片
 				filename := fmt.Sprintf("/Users/xinmei365/stock/%d_%d_%d.png", index, i, pos)
 
-				drawMinMax(p, st.dataClose[0:pos+1], st.dataMinMax[0:pos+1], 1, 3, gray)
-				if ok, state, action := isValidInit(st.dataClose[0:pos+1], pos); ok {
-					log.Infof("state: %s action: %d", state, action)
-					drawPoint(p, float64(pos), st.dataClose[pos], 8)
+				drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 3, gray)
 
-					p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				if ac.State == STATE_UNKOWN {
+					ok := isValidInit(ac, st.dataClose[0:pos])
+					if ok {
+						log.Infof("state: %s ac: %v", *ac)
+						drawPoint2(p, float64(pos), st.dataClose[pos-1], 12, red)
+						//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+
+						continue
+					}
+				}
+
+				if ac.State != STATE_UNKOWN {
+					ok := forwardState(ac, st.dataClose[0:pos])
+					if ok {
+						clr := red
+						if ac.State == STATE_NEW_HIGH+STATE_NEW_LOW {
+							clr = purple
+							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, clr)
+							p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+						}
+					}
 				}
 			}
 

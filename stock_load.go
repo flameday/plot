@@ -55,25 +55,33 @@ func (stock *Stock) LoadAllData(filename string) {
 		stock.dataClose = append(stock.dataClose, valueClose)
 	}
 	log.Infof("filename: %s", filename)
-	log.Infof("stock.dataClose size: %d", filename, len(stock.dataClose))
+	log.Infof("stock.dataClose size: %d", len(stock.dataClose))
 }
 
-func getAllRect(data []float64) []Rect {
+func getAllRect(data []float64) ([]Rect, *Stock) {
 	var stock = Stock{
 		dataClose: data,
 	}
 	// 局部最大值
 	caculateMinMax(stock.dataClose, &stock.dataMinMax, 8)
 	//根据1：1的关系，过滤掉多余的大小值
-	filter_max(stock.dataClose, stock.resetMinMax)
-	filter_min(stock.dataClose, stock.resetMinMax)
+	filter_max(stock.dataClose, stock.dataMinMax)
+	filter_min(stock.dataClose, stock.dataMinMax)
 
 	rectArray := make([]Rect, 0)
 	// 查找
 	for i := 1; i < len(stock.dataMinMax)-1; i++ {
 		if stock.dataMinMax[i] == 1 {
-			preMin := findPreIndex(stock.dataMinMax, i, -1)
-			postMin := findNextIndex(stock.dataMinMax, i, -1)
+			preMin := findPreIndex(stock.dataMinMax, i-1, -1)
+			postMin := findNextIndex(stock.dataMinMax, i-1, -1)
+			//preMax := findPreIndex(stock.dataMinMax, i-1, 1)
+			//postMax := findNextIndex(stock.dataMinMax, i-1, 1)
+			//if preMax > preMin {
+			//	continue
+			//}
+			//if postMax < postMin {
+			//	//continue
+			//}
 			if preMin != -1 && postMin != -1 {
 				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
 				left := math.Min(float64(x1), float64(x2))
@@ -90,8 +98,16 @@ func getAllRect(data []float64) []Rect {
 			}
 		}
 		if stock.dataMinMax[i] == -1 {
-			preMax := findPreIndex(stock.dataMinMax, i, 1)
-			postMax := findNextIndex(stock.dataMinMax, i, 1)
+			//preMin := findPreIndex(stock.dataMinMax, i-1, -1)
+			//postMin := findNextIndex(stock.dataMinMax, i-1, -1)
+			preMax := findPreIndex(stock.dataMinMax, i-1, 1)
+			postMax := findNextIndex(stock.dataMinMax, i-1, 1)
+			//if preMin > preMax {
+			//	continue
+			//}
+			//if postMin < postMax {
+			//	continue
+			//}
 			if preMax != -1 && postMax != -1 {
 				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
 				left := math.Min(float64(x1), float64(x2))
@@ -108,7 +124,7 @@ func getAllRect(data []float64) []Rect {
 			}
 		}
 	}
-	return rectArray
+	return rectArray, &stock
 }
 
 func (stock *Stock) LoadData(filename string, left int, right int) (bool, int, int) {

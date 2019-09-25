@@ -45,7 +45,60 @@ func getDense(data []float64, start int, end int) float64 {
 	dense := diff / float64(end-start)
 	return dense
 }
+func getDistanceArray(data []float64, startPos int, aimPos int) []float64 {
+	arr := make([]float64, 0)
+	if startPos < aimPos {
+		for i := aimPos - 1; i >= startPos; i-- {
+			val := data[i] - data[aimPos]
+			arr = append(arr, val*val)
+		}
+	}
+	if startPos > aimPos {
+		for i := aimPos + 1; i <= startPos; i++ {
+			val := data[i] - data[aimPos]
+			arr = append(arr, val*val)
+		}
+	}
+	return arr
+}
+
+func compareDistanceArray(leftArr []float64, rightArr []float64) int {
+	cnt := 0
+	for i := 0; i < 8; i++ {
+		if i >= len(leftArr) {
+			break
+		}
+		if i >= len(rightArr) {
+			break
+		}
+		if leftArr[i] < rightArr[i] {
+			cnt += 1
+		} else {
+			cnt -= 1
+		}
+	}
+	return cnt
+}
 func getRectangle(data []float64, posLeft int, posMiddle int, posRight int) (int, int) {
+	leftArr := getDistanceArray(data, posLeft, posMiddle)
+	rightArr := getDistanceArray(data, posMiddle, posRight)
+	val := compareDistanceArray(leftArr, rightArr)
+	if val > 0 {
+		return posLeft, posMiddle
+	}
+	return posMiddle, posRight
+
+	//var01 := getDense(data, posLeft, posMiddle)
+	//var02 := getDense(data, posMiddle, posRight)
+	//log.Infof("var01, var02:%f %f", var01, var02)
+	//if var01 <= var02 {
+	//	log.Infof("posLeft, posMiddle:[%d, %d]", posLeft, posMiddle)
+	//	return posLeft, posMiddle
+	//}
+	//log.Infof("posMiddle, posRight:[%d, %d]", posMiddle, posRight)
+	//return posMiddle, posRight
+}
+func getRectangle3(data []float64, posLeft int, posMiddle int, posRight int) (int, int) {
 	var01 := getDense(data, posLeft, posMiddle)
 	var02 := getDense(data, posMiddle, posRight)
 	log.Infof("var01, var02:%f %f", var01, var02)
@@ -66,7 +119,7 @@ func getRectangle2(data []float64, posLeft int, posMiddle int, posRight int) (in
 	return posMiddle, posRight
 }
 
-func drawWithRect(data []float64, arr []Rect, picname string) {
+func drawWithRect(data []float64, arr []Rect) *plot.Plot {
 	//创建 plog
 	p, _ := plot.New()
 	t := time.Now()
@@ -78,9 +131,12 @@ func drawWithRect(data []float64, arr []Rect, picname string) {
 	drawData(p, data, 1, red)
 	for _, r := range arr {
 		drawRectangle(p, r.left, r.top, r.right, r.bottom)
+		//drawLine(p, r.left, r.top, r.right, r.bottom)
+		//drawLine(p, r.left, r.bottom, r.right, r.top)
+
 	}
 
-	p.Save(vg.Length(picwidth), vg.Length(picheight), picname)
+	return p
 }
 
 func work(filename string, stock *Stock, index int, left int, right int) {
@@ -123,7 +179,8 @@ func work(filename string, stock *Stock, index int, left int, right int) {
 			postMin := findNextIndex(stock.dataMinMax, i, -1)
 			if preMin != -1 && postMin != -1 {
 				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
-				drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+				//drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+				drawLine(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
 			}
 		}
 		if stock.dataMinMax[i] == -1 {
@@ -131,7 +188,8 @@ func work(filename string, stock *Stock, index int, left int, right int) {
 			postMax := findNextIndex(stock.dataMinMax, i, 1)
 			if preMax != -1 && postMax != -1 {
 				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
-				drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+				//drawRectangle(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
+				drawLine(p, float64(x1), stock.dataClose[x1], float64(x2), stock.dataClose[x2])
 			}
 		}
 	}
@@ -227,9 +285,12 @@ func main() {
 			//right := (i + 1) * 500
 			//work(filename, &stock, index, left, right)
 			stock.LoadAllData(filename)
-			arr := getAllRect(stock.dataClose[0:500])
+			arr, st := getAllRect(stock.dataClose[0:500])
 			//draw
-			drawWithRect(stock.dataClose[0:500], arr, fmt.Sprintf("/Users/xinmei365/stock/%d.png", i))
+			p := drawWithRect(st.dataClose[0:500], arr)
+			drawMinMax(p, st.dataClose[0:500], st.dataMinMax[0:500], 1, 3, gray)
+
+			p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d.png", i))
 
 			break
 		}

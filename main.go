@@ -37,6 +37,14 @@ var (
 	buy_stop  float64
 	sell_stop float64
 	flag      int = 0
+
+	STATE_INIT       = "STATE_INIT"
+	STATE_NEW_HEIGHT = "STATE_NEW_HEIGHT"
+	STATE_NEW_LOW    = "STATE_NEW_LOW"
+
+	ACTION_NONE = 0
+	ACTION_BUY  = 1
+	ACTION_SELL = 2
 )
 
 func main() {
@@ -65,7 +73,7 @@ func main() {
 		if index < 10 {
 			continue
 		}
-		if index > 21 {
+		if index > 12 {
 			break
 		}
 
@@ -76,7 +84,6 @@ func main() {
 			//right := (i + 1) * 500
 			//work(filename, &stock, index, left, right)
 			stock.LoadAllData(filename)
-			arr, st := getAllRect(stock.dataClose[0:500])
 
 			// draw
 			// 创建 plog
@@ -88,17 +95,23 @@ func main() {
 			p.Y.Label.Text = "Price"
 
 			drawData(p, stock.dataClose[0:500], 1, red)
-			for _, r := range arr {
-				drawRectangle(p, r.left, r.top, r.right, r.bottom)
-				//drawLine(p, r.left, r.top, r.right, r.bottom)
-				//drawLine(p, r.left, r.bottom, r.right, r.top)
 
+			for pos := 10; pos < 500; pos += 10 {
+				arr, st := getAllRect(stock.dataClose[0 : pos+1])
+				for _, r := range arr {
+					drawRectangle(p, r.left, r.top, r.right, r.bottom)
+					//drawLine(p, r.left, r.top, r.right, r.bottom)
+					//drawLine(p, r.left, r.bottom, r.right, r.top)
+				}
+				// 高低点
+				drawMinMax(p, st.dataClose[0:pos+1], st.dataMinMax[0:pos+1], 1, 3, gray)
+				if ok, state, action := isValidInit(st.dataClose[0:pos+1], pos); ok {
+					log.Infof("state: %s action: %d", state, action)
+					drawPoint(p, float64(pos), st.dataClose[pos], 3)
+				}
+				// 保存图片
+				p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d_%d_%d.png", index, i, pos))
 			}
-			// 高低点
-			drawMinMax(p, st.dataClose[0:500], st.dataMinMax[0:500], 1, 3, gray)
-
-			// 保存图片
-			p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d_%d.png", index, i))
 
 			break
 		}

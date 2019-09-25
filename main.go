@@ -38,32 +38,19 @@ var (
 	sell_stop float64
 	flag      int = 0
 
-	STATE_UNKOWN   = 0
-	STATE_INIT     = 1
-	STATE_NEW_HIGH = 2
-	STATE_NEW_LOW  = 4
+	STATE_UNKOWN              = "STATE_UNKOWN"
+	STATE_NEW_HIGH            = "STATE_NEW_HIGH"
+	STATE_NEW_LOW             = "STATE_NEW_LOW"
+	STATE_NEW_LOW__NEW_HIGH_0 = "STATE_NEW_LOW__NEW_HIGH_0"
+	STATE_NEW_LOW__NEW_HIGH_1 = "STATE_NEW_LOW__NEW_HIGH_1"
+	STATE_NEW_HIGH__NEW_LOW_0 = "STATE_NEW_HIGH__NEW_LOW_0"
+	STATE_NEW_HIGH__NEW_LOW_1 = "STATE_NEW_HIGH__NEW_LOW_1"
 
 	ACTION_NONE = "ACTION_NONE"
 	ACTION_BUY  = "ACTION_BUY"
 	ACTION_SELL = "ACTION_SELL"
 )
 
-func getState(state int) string {
-	if state == 0 {
-		return "STATE_UNKOWN"
-	}
-	if state == 1 {
-		return "STATE_INIT"
-	}
-	if state == 2 {
-		return "STATE_NEW_HIGH"
-	}
-	if state == 4 {
-		return "STATE_NEW_LOW"
-	}
-	log.Errorf("getState error, state: %d", state)
-	return ""
-}
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -132,7 +119,7 @@ func main() {
 				if ac.State == STATE_UNKOWN {
 					ok := isValidInit(ac, st.dataClose[0:pos])
 					if ok {
-						log.Infof("state: %s ac: %v", *ac)
+						log.Infof("ac: %s", ac.Show())
 						drawPoint2(p, float64(pos), st.dataClose[pos-1], 12, red)
 						//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
@@ -143,6 +130,8 @@ func main() {
 				if ac.State != STATE_UNKOWN {
 					ok := forwardState(ac, st.dataClose[0:pos])
 					if ok {
+						log.Infof("ac: %s", ac.Show())
+
 						clr := red
 						if ac.State == STATE_NEW_HIGH+STATE_NEW_LOW {
 							clr = purple

@@ -36,12 +36,33 @@ type Rect struct {
 }
 
 type avgContext struct {
-	State        int
-	SubState     string
+	State        string
 	Action       string
 	Sell_stop    Rect
 	Buy_stop     Rect
-	Min_High_low float64
+	High_Low_Min float64
+	Low_High_Max float64
+}
+
+func (ac *avgContext) Show() string {
+	s := "State : " + ac.State + " "
+	s += "Action: " + ac.Action + " "
+	if ac.Action == ACTION_BUY {
+		s += fmt.Sprintf(" (%.2f, %.2f)->(%.2f, %.2f)",
+			ac.Buy_stop.left,
+			ac.Buy_stop.top,
+			ac.Buy_stop.right,
+			ac.Buy_stop.bottom)
+	} else if ac.Action == ACTION_BUY {
+		s += fmt.Sprintf(" (%.2f, %.2f)->(%.2f, %.2f)",
+			ac.Sell_stop.left,
+			ac.Sell_stop.top,
+			ac.Sell_stop.right,
+			ac.Sell_stop.bottom)
+	} else {
+		s += " Invalid Stop"
+	}
+	return s
 }
 
 func (stock *Stock) LoadAllData(filename string) {

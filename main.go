@@ -274,7 +274,7 @@ func main() {
 		if index < 10 {
 			continue
 		}
-		if index > 11 {
+		if index > 21 {
 			break
 		}
 
@@ -290,7 +290,7 @@ func main() {
 			p := drawWithRect(st.dataClose[0:500], arr)
 			drawMinMax(p, st.dataClose[0:500], st.dataMinMax[0:500], 1, 3, gray)
 
-			p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d.png", i))
+			p.Save(vg.Length(picwidth), vg.Length(picheight), fmt.Sprintf("/Users/xinmei365/stock/%d_%d.png", index, i))
 
 			break
 		}

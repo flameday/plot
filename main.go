@@ -77,7 +77,7 @@ func main() {
 		if index < 10 {
 			continue
 		}
-		if index > 12 {
+		if index > 10 {
 			break
 		}
 
@@ -117,31 +117,29 @@ func main() {
 				drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 3, gray)
 
 				if ac.State == STATE_UNKOWN {
-					ok := isValidInit(ac, st.dataClose[0:pos])
-					if ok {
+					ok, revert, change := isValidInit(ac, st.dataClose[0:pos])
+					if ok && revert && change {
 						log.Infof("ac: %s", ac.Show())
-						drawPoint2(p, float64(pos), st.dataClose[pos-1], 12, red)
-						//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+
+						drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, red)
 
 						continue
 					}
 				}
 
 				if ac.State != STATE_UNKOWN {
-					ok := forwardState(ac, st.dataClose[0:pos])
+					ok, revert, change := forwardState(ac, st.dataClose[0:pos])
 					if ok {
-						log.Infof("ac: %s", ac.Show())
-
-						clr := red
-						if ac.State == STATE_NEW_HIGH+STATE_NEW_LOW {
-							clr = purple
-							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, clr)
-							p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+						if revert {
+							//log.Infof("ac: %s", ac.Show())
+							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
+						} else if change {
+							drawPoint2(p, float64(pos), st.dataClose[pos-1], 15, black)
 						}
 					}
 				}
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
-
 			break
 		}
 	}

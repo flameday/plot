@@ -1,6 +1,8 @@
 package main
 
-import "github.com/prometheus/common/log"
+import (
+	log "github.com/cihub/seelog"
+)
 
 // 初始化
 func isValidInit(ac *avgContext, data []float64) (ret bool, revert bool, modify bool) {
@@ -77,7 +79,7 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 	if curValue > ac.Sell_stop.top {
 		ac.State = STATE_NEW_LOW__NEW_HIGH_0
 		ac.Action = ACTION_BUY
-		ac.Sell_stop = arr[size-1]
+		ac.Buy_stop = ac.Sell_stop
 		ac.Low_High_Max = curValue
 
 		return true, true, true
@@ -109,6 +111,10 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 		ac.Sell_stop.bottom = ac.Buy_stop.bottom
 
 		return true, true, true
+	}
+	// 添加一个维持状态, 推进止盈
+	if arr[len(arr)-1].top > ac.Buy_stop.top {
+		ac.Buy_stop = arr[len(arr)-1]
 	}
 
 	return true, false, false
@@ -162,6 +168,11 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 		ac.Buy_stop.bottom = ac.High_Low_Min
 
 		return true, true, true
+	}
+
+	// 添加一个维持状态, 推进止盈
+	if arr[len(arr)-1].bottom < ac.Sell_stop.bottom {
+		ac.Sell_stop = arr[len(arr)-1]
 	}
 
 	return true, false, false
@@ -227,17 +238,16 @@ func forwardState(ac *avgContext, data []float64) (ret bool, revert bool, modify
 		log.Errorf("STATE_NEW_HIGH__NEW_LOW_1 + sell, impossible")
 
 	} else if ac.State == STATE_NEW_LOW__NEW_HIGH_0 && ac.Action == ACTION_BUY {
-		log.Errorf("STATE_NEW_LOW__NEW_HIGH_0 + buy, impossible")
+		ret, revert, modify = action_Low_High_0_Buy(ac, arr, curValue)
 
 	} else if ac.State == STATE_NEW_LOW__NEW_HIGH_0 && ac.Action == ACTION_SELL {
-		ret, revert, modify = action_High_Low_0_Sell(ac, arr, curValue)
+		log.Errorf("STATE_NEW_HIGH__NEW_LOW_1 + sell, impossible")
 
 	} else if ac.State == STATE_NEW_LOW__NEW_HIGH_1 && ac.Action == ACTION_BUY {
-		action_High_Low_1_Buy(ac, arr, curValue)
+		log.Errorf("STATE_NEW_LOW__NEW_HIGH_1 + buy, impossible")
 
 	} else if ac.State == STATE_NEW_LOW__NEW_HIGH_1 && ac.Action == ACTION_SELL {
-		log.Errorf("STATE_NEW_LOW__NEW_HIGH_1 + sell, impossible")
-
+		action_Low_High_1_Sell(ac, arr, curValue)
 	}
 	return ret, revert, modify
 }

@@ -103,9 +103,14 @@ func main() {
 			ac := &avgContext{
 				State: STATE_UNKOWN,
 			}
-			for pos := 10; pos < 500; pos += 1 {
-				arr, st := getAllRect(stock.dataClose[0:pos])
-				log.Infof("arr:%v", arr)
+			for pos := 10; pos < 2000; pos += 1 {
+				//start := 0
+				//if pos-300 >= 0 {
+				//	start = pos - 300
+				//}
+
+				_, st := getAllRect(stock.dataClose[0:pos])
+				//log.Infof("len(arr):%v", len(arr))
 				//for _, r := range arr {
 				//	//drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				//	//drawLine(p, r.left, r.top, r.right, r.bottom)
@@ -125,6 +130,8 @@ func main() {
 						} else if ac.Action == ACTION_SELL {
 							drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 						}
+
+						p.X.Label.Text = ac.State + " " + ac.Action
 						p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 						continue
@@ -134,8 +141,10 @@ func main() {
 				if ac.State != STATE_UNKOWN {
 					ok, revert, change := forwardState(ac, st.dataClose[0:pos])
 					if ok {
+						p.X.Label.Text = ac.State + " " + ac.Action
 						if revert {
-							log.Infof("ac: %s", ac.Show())
+							log.Infof("pos:%d ac: %s", pos, ac.Show())
+
 							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
 
 							if ac.Action == ACTION_BUY {
@@ -145,6 +154,8 @@ func main() {
 							}
 							p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 						} else if change {
+							log.Infof("pos:%d ac: %s", pos, ac.Show())
+
 							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
 
 							if ac.Action == ACTION_BUY {

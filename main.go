@@ -51,11 +51,7 @@ var (
 	ACTION_SELL = "ACTION_SELL"
 )
 
-func run(p *plot.Plot, data []float64, filename string) {
-
-	ac := &avgContext{
-		State: STATE_UNKOWN,
-	}
+func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int) {
 
 	_, st := getAllRect(data)
 	curPos := len(data) - 1
@@ -67,7 +63,7 @@ func run(p *plot.Plot, data []float64, filename string) {
 	//	//drawLine(p, r.left, r.bottom, r.right, r.top)
 	//}
 	//drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 1, yellow)
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+	//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 	if ac.State == STATE_UNKOWN {
 		ok, revert, change := isValidInit(ac, st.dataClose)
@@ -86,6 +82,8 @@ func run(p *plot.Plot, data []float64, filename string) {
 		}
 	} else if ac.State != STATE_UNKOWN {
 		ok, revert, change := forwardState(ac, st.dataClose)
+		log.Infof("pos:%d ok:%v", pos, ok)
+
 		if ok {
 			p.X.Label.Text = ac.State + " " + ac.Action
 			if revert {
@@ -112,6 +110,8 @@ func run(p *plot.Plot, data []float64, filename string) {
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 		}
+	} else {
+		log.Infof("ignore:%d", pos)
 	}
 }
 func main() {
@@ -148,26 +148,31 @@ func main() {
 		stock := Stock{}
 		stock.LoadAllData(filename)
 
-		for i := 1; i < len(stock.dataClose); i += 30 {
+		ac := &avgContext{
+			State: STATE_UNKOWN,
+		}
+
+		for i := 1; i < len(stock.dataClose); i += 1 {
+			//for i := 1; i < 100; i += 1 {
+			log.Infof("i:%d", i)
+
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := 0
-			end := 300
-			//pos := 1
-			if i >= 300 {
-				start = i - 300 + 1
-				end = i + 1
-				//pos = 299
+			start := i - 300
+			end := i + 1
+			if start < 0 {
+				start = 0
+				end = start + 300 + 1
 			}
 
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			run(p, stock.dataClose[start:i+1], filename)
+			run(ac, p, stock.dataClose[start:i+1], filename, i)
 			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 	}

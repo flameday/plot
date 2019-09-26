@@ -134,7 +134,7 @@ func main() {
 							//log.Infof("ac: %s", ac.Show())
 							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
 						} else if change {
-							drawPoint2(p, float64(pos), st.dataClose[pos-1], 15, black)
+							//drawPoint2(p, float64(pos), st.dataClose[pos-1], 15, black)
 						}
 					}
 				}

@@ -98,23 +98,21 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			drawData(p, stock.dataClose[0:500], 1, red)
+			drawData(p, stock.dataClose[0:500], 1, pink)
 
 			ac := &avgContext{
 				State: STATE_UNKOWN,
 			}
-			for pos := 10; pos < 500; pos += 10 {
+			for pos := 10; pos < 500; pos += 1 {
 				arr, st := getAllRect(stock.dataClose[0:pos])
-				for _, r := range arr {
-					drawRectangle(p, r.left, r.top, r.right, r.bottom)
-					//drawLine(p, r.left, r.top, r.right, r.bottom)
-					//drawLine(p, r.left, r.bottom, r.right, r.top)
-				}
-				// 高低点
-				// 保存图片
-				filename := fmt.Sprintf("/Users/xinmei365/stock/%d_%d_%d.png", index, i, pos)
-
-				drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 3, gray)
+				log.Infof("arr:%v", arr)
+				//for _, r := range arr {
+				//	//drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				//	//drawLine(p, r.left, r.top, r.right, r.bottom)
+				//	//drawLine(p, r.left, r.bottom, r.right, r.top)
+				//}
+				filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d_%03d.png", index, i, pos)
+				//drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 1, yellow)
 
 				if ac.State == STATE_UNKOWN {
 					ok, revert, change := isValidInit(ac, st.dataClose[0:pos])
@@ -122,6 +120,12 @@ func main() {
 						log.Infof("ac: %s", ac.Show())
 
 						drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, red)
+						if ac.Action == ACTION_BUY {
+							drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+						} else if ac.Action == ACTION_SELL {
+							drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+						}
+						p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 						continue
 					}
@@ -131,14 +135,27 @@ func main() {
 					ok, revert, change := forwardState(ac, st.dataClose[0:pos])
 					if ok {
 						if revert {
-							//log.Infof("ac: %s", ac.Show())
+							log.Infof("ac: %s", ac.Show())
 							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
+
+							if ac.Action == ACTION_BUY {
+								drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+							} else if ac.Action == ACTION_SELL {
+								drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+							}
+							p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 						} else if change {
-							//drawPoint2(p, float64(pos), st.dataClose[pos-1], 15, black)
+							drawPoint2(p, float64(pos), st.dataClose[pos-1], 20, black)
+
+							if ac.Action == ACTION_BUY {
+								drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+							} else if ac.Action == ACTION_SELL {
+								drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+							}
+							p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 						}
 					}
 				}
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 			break
 		}

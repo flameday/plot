@@ -79,7 +79,7 @@ func drawMinMax2(p *plot.Plot, data []float64, posArr []int, aimArr []int, width
 
 	p.Add(lpLine, lpPoints)
 }
-func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
+func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64, clr color.Color) {
 	points := plotter.XYs{
 		{x1, y1},
 		{x1, y2},
@@ -95,11 +95,12 @@ func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64)
 	lpLine.LineStyle.Width = vg.Points(1)
 
 	//i := rand.Intn(len(colorArray))
-	if flag == 0 {
-		lpLine.LineStyle.Color = black
-	} else {
-		lpLine.LineStyle.Color = red
-	}
+	//if flag == 0 {
+	//	lpLine.LineStyle.Color = black
+	//} else {
+	//	lpLine.LineStyle.Color = red
+	//}
+	lpLine.LineStyle.Color = clr
 	flag = (flag + 1) % 2
 	p.Add(lpLine)
 }

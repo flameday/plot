@@ -51,7 +51,7 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		//新低
 		ac.State = STATE_NEW_HIGH__NEW_LOW_0
 		ac.Action = ACTION_SELL
-		ac.Sell_stop = arr[size-1]
+		ac.Sell_stop = ac.Buy_stop
 		// 记录最小值
 		ac.High_Low_Min = curValue
 

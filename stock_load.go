@@ -48,16 +48,16 @@ func (ac *avgContext) Show() string {
 	s := "State : " + ac.State + " "
 	s += "Action: " + ac.Action + " "
 	if ac.Action == ACTION_BUY {
-		s += fmt.Sprintf(" (%.2f, %.2f)->(%.2f, %.2f)",
-			ac.Buy_stop.left,
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+			int(ac.Buy_stop.left),
 			ac.Buy_stop.top,
-			ac.Buy_stop.right,
+			int(ac.Buy_stop.right),
 			ac.Buy_stop.bottom)
-	} else if ac.Action == ACTION_BUY {
-		s += fmt.Sprintf(" (%.2f, %.2f)->(%.2f, %.2f)",
-			ac.Sell_stop.left,
+	} else if ac.Action == ACTION_SELL {
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+			int(ac.Sell_stop.left),
 			ac.Sell_stop.top,
-			ac.Sell_stop.right,
+			int(ac.Sell_stop.right),
 			ac.Sell_stop.bottom)
 	} else {
 		s += " Invalid Stop"

@@ -58,6 +58,7 @@ func run(p *plot.Plot, data []float64, filename string) {
 	}
 
 	_, st := getAllRect(data)
+	curPos := len(data) - 1
 
 	//log.Infof("len(arr):%v", len(arr))
 	//for _, r := range arr {
@@ -73,15 +74,15 @@ func run(p *plot.Plot, data []float64, filename string) {
 		if ok && revert && change {
 			log.Infof("ac: %s", ac.Show())
 
-			//drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, red)
+			drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, red)
 			if ac.Action == ACTION_BUY {
-				//drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+				drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 			} else if ac.Action == ACTION_SELL {
-				//drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+				drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 			}
 
 			p.X.Label.Text = ac.State + " " + ac.Action
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 	} else if ac.State != STATE_UNKOWN {
 		ok, revert, change := forwardState(ac, st.dataClose)
@@ -90,25 +91,25 @@ func run(p *plot.Plot, data []float64, filename string) {
 			if revert {
 				log.Infof("ac: %s", ac.Show())
 
-				//drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
+				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
 
 				if ac.Action == ACTION_BUY {
-					//drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 				} else if ac.Action == ACTION_SELL {
-					//drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			} else if change {
 				log.Infof("ac: %s", ac.Show())
 
-				//drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
+				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
 
 				if ac.Action == ACTION_BUY {
-					//drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 				} else if ac.Action == ACTION_SELL {
-					//drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
-				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 		}
 	}
@@ -166,8 +167,8 @@ func main() {
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			//run(p, stock.dataClose[start:pos], filename)
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			run(p, stock.dataClose[start:i+1], filename)
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 	}
 }

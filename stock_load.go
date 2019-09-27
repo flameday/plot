@@ -184,6 +184,20 @@ func (stock *Stock) LoadAllData(filename string) {
 		stock.dist150 = append(stock.dist150, 0)
 		stock.dense = append(stock.dense, 0)
 	}
+}
+
+func getAllRect(data []float64) ([]Rect, *Stock) {
+	var stock = Stock{
+		dataClose: data,
+	}
+	stock.dense = make([]float64, len(data))
+
+	//计算最大最小值
+	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
+	//1:1
+	filter_max(stock.dataClose, stock.dataMinMax)
+	filter_min(stock.dataClose, stock.dataMinMax)
+
 	// 计算密度
 	for i := 1; i < len(stock.dataClose)-1; i++ {
 		preMin := findPreIndex(stock.dataMinMax, i-1, -1)
@@ -219,8 +233,38 @@ func (stock *Stock) LoadAllData(filename string) {
 			stock.dense[i] = stock.dense[i-1]
 		}
 	}
-}
+	// 根据dense，寻找真正的推进区域
+	rectArray := make([]Rect, 0)
 
+	for i := 0; i < len(stock.dataClose); {
+		pre := findPreMinOrMaxIndex(stock.dataMinMax, i)
+		if pre == -1 {
+			i++
+			continue
+		}
+		post := findPostMinOrMaxIndex(stock.dataMinMax, i)
+		if post == -1 {
+			i++
+			continue
+		}
+
+		if (stock.dataClose[pre] > stock.dataClose[pre-1]) && (stock.dataClose[pre] > stock.dataClose[post+1]) {
+			left := float64(pre)
+			top := math.Max(stock.dataClose[pre], stock.dataClose[post])
+			right := float64(post)
+			bottom := math.Min(stock.dataClose[pre], stock.dataClose[post])
+			r := Rect{
+				left:   left,
+				top:    top,
+				right:  right,
+				bottom: bottom,
+			}
+			rectArray = append(rectArray, r)
+		}
+		i = post + 1
+	}
+	return rectArray, &stock
+}
 func (stock *Stock) GetMacd() {
 	for i := 1; i < len(stock.dataClose); i++ {
 		ema12 := (stock.dataClose[i-1]*11 + stock.dataClose[i]*2) / 13.0
@@ -231,7 +275,7 @@ func (stock *Stock) GetMacd() {
 	}
 }
 
-func getAllRect(data []float64) ([]Rect, *Stock) {
+func getAllRect2(data []float64) ([]Rect, *Stock) {
 	var stock = Stock{
 		dataClose: data,
 	}

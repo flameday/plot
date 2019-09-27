@@ -153,8 +153,8 @@ func main() {
 		//ac := &avgContext{
 		//	State: STATE_UNKOWN,
 		//}
-		//
-		for i := 1; i < len(stock.dataClose); i += 1 {
+
+		for i := 2000; i < len(stock.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			log.Infof("i:%d", i)
 
@@ -164,11 +164,11 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 800
+			start := i - 2000
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 800 + 1
+				end = start + 2000 + 1
 			}
 
 			//1， 绘制底图
@@ -177,6 +177,12 @@ func main() {
 			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
 			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
+			arr, _ := getAllRect(stock.dataClose[start : i+1])
+			if len(arr) > 0 {
+				for _, r := range arr {
+					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				}
+			}
 			//run(ac, p, stock.dataClose[start:i+1], filename, i)
 			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 

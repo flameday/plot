@@ -19,6 +19,42 @@ func findPreIndex(flagArr []int, posStart int, flagValue int) int {
 	return -1
 }
 
+func findPostMinOrMaxIndex(flagArr []int, posStart int) int {
+	postMin := findNextIndex(flagArr, posStart, -1)
+	postMax := findNextIndex(flagArr, posStart, 1)
+	if postMin == -1 && postMax == -1 {
+		return -1
+	}
+	if postMin == -1 {
+		return postMax
+	}
+	if postMax == -1 {
+		return postMin
+	}
+	if postMin > postMax {
+		return postMax
+	}
+	return postMin
+}
+
+func findPreMinOrMaxIndex(flagArr []int, posStart int) int {
+	preMin := findPreIndex(flagArr, posStart, -1)
+	preMax := findPreIndex(flagArr, posStart, 1)
+	if preMin == -1 && preMax == -1 {
+		return -1
+	}
+	if preMin == -1 {
+		return preMax
+	}
+	if preMax == -1 {
+		return preMin
+	}
+	if preMin > preMax {
+		return preMin
+	}
+	return preMax
+}
+
 // 2个低点之间，只能有1个高点
 func filter_max(data []float64, flagArr []int) {
 	for i := 0; i < len(flagArr); i++ {

@@ -173,15 +173,15 @@ func main() {
 
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
-			drawData(p, stock.dense[start:end], 1, orange)
 			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
 			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			arr, _ := getAllRect(stock.dataClose[start : i+1])
+			arr, st := getAllRect(stock.dataClose[start : i+1])
 			if len(arr) > 0 {
 				for _, r := range arr {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				}
+				drawData(p, st.dense[start:end], 1, orange)
 			}
 			//run(ac, p, stock.dataClose[start:i+1], filename, i)
 			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)

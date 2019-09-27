@@ -22,6 +22,8 @@ func isValidInit(ac *avgContext, data []float64) (ret bool, revert bool, modify 
 			ac.Action = ACTION_SELL
 			ac.Sell_stop = arr[size-1]
 
+			ac.sell = curValue
+
 			return true, true, true
 		}
 	}
@@ -31,6 +33,8 @@ func isValidInit(ac *avgContext, data []float64) (ret bool, revert bool, modify 
 			ac.State = STATE_NEW_HIGH
 			ac.Action = ACTION_BUY
 			ac.Buy_stop = arr[size-1]
+
+			ac.buy = curValue
 
 			return true, true, true
 		}
@@ -57,6 +61,9 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		// 记录最小值
 		ac.High_Low_Min = curValue
 
+		ac.sell = curValue
+		ac.profit += curValue - ac.buy
+
 		return true, true, true
 	}
 
@@ -82,6 +89,9 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		ac.Buy_stop = ac.Sell_stop
 		ac.Low_High_Max = curValue
 
+		ac.buy = curValue
+		ac.profit += ac.sell - curValue
+
 		return true, true, true
 	}
 
@@ -100,15 +110,22 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 			ac.Action = ACTION_SELL
 			ac.Buy_stop.bottom = ac.Sell_stop.bottom
 			ac.Buy_stop.top = ac.Low_High_Max
+
+			ac.sell = curValue
+			ac.profit += curValue - ac.buy
+
 			return true, true, true
 		}
 		return true, false, false
 	} else if curValue < ac.Buy_stop.top {
-		//
+		//"BC"
 		ac.State = STATE_NEW_LOW__NEW_HIGH_1
 		ac.Action = ACTION_SELL
 		ac.Sell_stop.top = ac.Low_High_Max
 		ac.Sell_stop.bottom = ac.Buy_stop.bottom
+
+		ac.sell = curValue
+		ac.profit += curValue - ac.buy
 
 		return true, true, true
 	}
@@ -133,6 +150,9 @@ func action_Low_High_1_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = ac.Sell_stop
 
+		ac.buy = curValue
+		ac.profit += ac.sell - curValue
+
 		return true, true, true
 	}
 
@@ -155,6 +175,9 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 			ac.Buy_stop.top = ac.Sell_stop.top
 			ac.Buy_stop.bottom = ac.High_Low_Min
 
+			ac.buy = curValue
+			ac.profit += ac.sell - curValue
+
 			return true, true, true
 		}
 
@@ -166,6 +189,9 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 		ac.Action = ACTION_BUY
 		ac.Buy_stop.top = ac.Sell_stop.top
 		ac.Buy_stop.bottom = ac.High_Low_Min
+
+		ac.buy = curValue
+		ac.profit += ac.sell - curValue
 
 		return true, true, true
 	}
@@ -196,6 +222,9 @@ func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 		ac.State = STATE_NEW_LOW
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = ac.Buy_stop
+
+		ac.sell = curValue
+		ac.profit += curValue - ac.buy
 
 		return true, true, true
 	}

@@ -5,6 +5,7 @@ import (
 	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/vg"
+	"gonum.org/v1/plot/vg/draw"
 	"image/color"
 	"runtime/debug"
 	"time"
@@ -51,7 +52,30 @@ var (
 	ACTION_SELL = "ACTION_SELL"
 )
 
-func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int) {
+type exampleThumbnailer struct {
+	color.Color
+}
+
+// Thumbnail fulfills the plot.Thumbnailer interface.
+func (et exampleThumbnailer) Thumbnail(c *draw.Canvas) {
+	pts := []vg.Point{
+		{c.Min.X, c.Min.Y},
+		{c.Min.X, c.Max.Y},
+		{c.Max.X, c.Max.Y},
+		{c.Max.X, c.Min.Y},
+	}
+	poly := c.ClipPolygonY(pts)
+	c.FillPolygon(et.Color, poly)
+
+	pts = append(pts, vg.Point{X: c.Min.X, Y: c.Min.Y})
+	outline := c.ClipLinesY(pts)
+	c.StrokeLines(draw.LineStyle{
+		Color: color.Black,
+		Width: vg.Points(1),
+	}, outline...)
+}
+
+func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int) bool {
 
 	_, st := getAllRect(data)
 	curPos := len(data) - 1
@@ -68,7 +92,7 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 	if ac.State == STATE_UNKOWN {
 		ok, revert, change := isValidInit(ac, st.dataClose)
 		if ok && revert && change {
-			log.Infof("ac: %s", ac.Show())
+			//log.Infof("ac: %s", ac.Show())
 
 			drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, red)
 			if ac.Action == ACTION_BUY {
@@ -79,15 +103,28 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 
 			p.X.Label.Text = ac.State + " " + ac.Action
 			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+
+			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
 		ok, revert, change := forwardState(ac, st.dataClose)
-		log.Infof("pos:%d ok:%v", pos, ok)
+		//log.Infof("pos:%d ok:%v", pos, ok)
 
 		if ok {
 			p.X.Label.Text = ac.State + " " + ac.Action
+
+			red := exampleThumbnailer{Color: color.NRGBA{R: 255, A: 255}}
+			green := exampleThumbnailer{Color: color.NRGBA{G: 255, A: 255}}
+			blue := exampleThumbnailer{Color: color.NRGBA{B: 255, A: 255}}
+
+			l, err := plot.NewLegend()
+			if err != nil {
+				panic(err)
+			}
+			l.Add("red", red)
+
 			if revert {
-				log.Infof("ac: %s", ac.Show())
+				//log.Infof("ac: %s", ac.Show())
 
 				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
 
@@ -97,8 +134,9 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				return true
 			} else if change {
-				log.Infof("ac: %s", ac.Show())
+				//log.Infof("ac: %s", ac.Show())
 
 				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
 
@@ -108,12 +146,27 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				return true
 			}
 		}
 	} else {
 		log.Infof("ignore:%d", pos)
 	}
+	return false
 }
+
+func drawPic(data []float64, xlabel string, ylabel string, filename string) {
+	p, _ := plot.New()
+	t := time.Now()
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = xlabel
+	p.Y.Label.Text = ylabel
+
+	drawData(p, data, 1, black)
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+}
+
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -155,9 +208,9 @@ func main() {
 			profit: 0.0,
 		}
 
+		tmpArr := make([]float64, 0)
 		for i := 1; i < len(stock.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
-			log.Infof("i:%d", i)
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
@@ -183,8 +236,14 @@ func main() {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				}
 			}
-			run(ac, p, stock.dataClose[start:i+1], filename, i)
+			ret := run(ac, p, stock.dataClose[start:i+1], filename, i)
+			if ret {
+				log.Infof("[%d] profit:%f", i, ac.profit)
+				tmpArr = append(tmpArr, ac.profit)
+			}
 			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
+		//
+		drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
 	}
 }

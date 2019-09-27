@@ -54,6 +54,8 @@ type avgContext struct {
 	High_Low_Min float64
 	Low_High_Max float64
 	profit       float64
+	buy          float64
+	sell         float64
 }
 
 func (ac *avgContext) Show() string {

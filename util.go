@@ -71,6 +71,11 @@ func getAvg(data []float64, start int, end int) float64 {
 	return total / float64(cnt)
 }
 
+func get_min_max(data []float64) (float64, float64) {
+	minVal := minimum(data)
+	maxVal := maximum(data)
+	return minVal, maxVal
+}
 func minimum(data []float64) float64 {
 	if data == nil {
 		return math.NaN()

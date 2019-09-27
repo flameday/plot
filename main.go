@@ -27,7 +27,7 @@ var (
 	purple         color.Color = color.RGBA{128, 0, 128, 255}
 	magenta        color.Color = color.RGBA{255, 0, 255, 255}
 	olive          color.Color = color.RGBA{128, 128, 0, 255}
-	gray           color.Color = color.RGBA{172, 172, 172, 255}
+	gray           color.Color = color.RGBA{196, 196, 196, 255}
 	colorArray                 = []color.Color{red, blue, black, yellow, orange, gold, purple, magenta, olive, gray}
 	picwidth       float64     = 512 * 2
 	picheight      float64     = 384 * 2
@@ -118,6 +118,7 @@ func main() {
 	defer func() {
 		if err := recover(); err != nil {
 
+			log.Infof("err:%v", err)
 			defer log.Flush()
 
 			debug.PrintStack()
@@ -147,11 +148,12 @@ func main() {
 		filename := dstArray[index]
 		stock := Stock{}
 		stock.LoadAllData(filename)
+		//stock.GetDist()
 
-		ac := &avgContext{
-			State: STATE_UNKOWN,
-		}
-
+		//ac := &avgContext{
+		//	State: STATE_UNKOWN,
+		//}
+		//
 		for i := 1; i < len(stock.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			log.Infof("i:%d", i)
@@ -162,18 +164,23 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 300
+			start := i - 800
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 300 + 1
+				end = start + 800 + 1
 			}
 
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
+			drawData(p, stock.dense[start:end], 1, orange)
+			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
+			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			run(ac, p, stock.dataClose[start:i+1], filename, i)
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//run(ac, p, stock.dataClose[start:i+1], filename, i)
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+
+			break
 		}
 	}
 }

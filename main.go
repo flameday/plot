@@ -107,7 +107,11 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change := forwardState(ac, st.dataClose)
+		ok, revert, change, arr := forwardState(ac, st.dataClose)
+		for _, r := range arr {
+			drawRectangle(p, r.left, r.top, r.right, r.bottom, yellow)
+		}
+		drawData(p, st.dense, 1, gray)
 		//log.Infof("pos:%d ok:%v", pos, ok)
 
 		if ok {
@@ -230,12 +234,12 @@ func main() {
 			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
 			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			arr, _ := getAllRect(stock.dataClose[start : i+1])
-			if len(arr) > 0 {
-				for _, r := range arr {
-					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-				}
-			}
+			//arr, _ := getAllRect(stock.dataClose[start : i+1])
+			//if len(arr) > 0 {
+			//	for _, r := range arr {
+			//		drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+			//	}
+			//}
 			ret := run(ac, p, stock.dataClose[start:i+1], filename, i)
 			if ret {
 				log.Infof("[%d] profit:%f", i, ac.profit)

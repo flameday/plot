@@ -232,11 +232,11 @@ func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 	return true, false, false
 }
 
-func forwardState(ac *avgContext, data []float64) (ret bool, revert bool, modify bool) {
+func forwardState(ac *avgContext, data []float64) (ret bool, revert bool, modify bool, arr []Rect) {
 	//get pre arr
-	arr, _ := getAllRect(data)
+	arr, _ = getAllRect(data)
 	if len(arr) <= 1 {
-		return false, false, false
+		return false, false, false, arr
 	}
 
 	ret, revert, modify = true, false, false
@@ -278,5 +278,5 @@ func forwardState(ac *avgContext, data []float64) (ret bool, revert bool, modify
 	} else if ac.State == STATE_NEW_LOW__NEW_HIGH_1 && ac.Action == ACTION_SELL {
 		action_Low_High_1_Sell(ac, arr, curValue)
 	}
-	return ret, revert, modify
+	return ret, revert, modify, arr
 }

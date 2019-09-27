@@ -150,43 +150,41 @@ func main() {
 		stock.LoadAllData(filename)
 		//stock.GetDist()
 
-		//ac := &avgContext{
-		//	State: STATE_UNKOWN,
-		//}
+		ac := &avgContext{
+			State:  STATE_UNKOWN,
+			profit: 0.0,
+		}
 
-		for i := 2000; i < len(stock.dataClose); i += 1 {
+		for i := 1; i < len(stock.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			log.Infof("i:%d", i)
-
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 2000
+			start := i - 300
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 2000 + 1
+				end = start + 300 + 1
 			}
 
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
-			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
-			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
+			//drawData(p, stock.dense[start:end], 1, orange)
+			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
+			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			arr, st := getAllRect(stock.dataClose[start : i+1])
+			arr, _ := getAllRect(stock.dataClose[start : i+1])
 			if len(arr) > 0 {
 				for _, r := range arr {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				}
-				drawData(p, st.dense[start:end], 1, orange)
 			}
-			//run(ac, p, stock.dataClose[start:i+1], filename, i)
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-
-			break
+			run(ac, p, stock.dataClose[start:i+1], filename, i)
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 	}
 }

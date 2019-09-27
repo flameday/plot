@@ -53,6 +53,7 @@ type avgContext struct {
 	Buy_stop     Rect
 	High_Low_Min float64
 	Low_High_Max float64
+	profit       float64
 }
 
 func (ac *avgContext) Show() string {
@@ -184,6 +185,9 @@ func (stock *Stock) LoadAllData(filename string) {
 		stock.dist150 = append(stock.dist150, 0)
 		stock.dense = append(stock.dense, 0)
 	}
+
+	// 这里绘图，用于展示
+	getAllRect(stock.dataClose)
 }
 
 func getAllRect(data []float64) ([]Rect, *Stock) {

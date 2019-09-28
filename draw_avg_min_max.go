@@ -101,7 +101,7 @@ func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64,
 	//	lpLine.LineStyle.Color = red
 	//}
 	lpLine.LineStyle.Color = clr
-	flag = (flag + 1) % 2
+	//flag = (flag + 1) % 2
 	p.Add(lpLine)
 }
 func drawPoint2(p *plot.Plot, x1 float64, y1 float64, radius int, clr color.Color) {

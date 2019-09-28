@@ -174,10 +174,11 @@ func (stock *Stock) LoadAllData(filename string) {
 	log.Infof("stock.dataClose size: %d", len(stock.dataClose))
 
 	//计算最大最小值
-	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
+	caculateMinMax(stock.dataClose, &stock.dataMinMax, 6)
 	//1:1
-	filter_max(stock.dataClose, stock.dataMinMax)
-	filter_min(stock.dataClose, stock.dataMinMax)
+	filter_min_max(stock.dataClose, stock.dataMinMax)
+	//filter_max(stock.dataClose, stock.dataMinMax)
+	//filter_min(stock.dataClose, stock.dataMinMax)
 
 	//计算平均值
 	for i := 0; i < len(stock.dataClose); i++ {
@@ -189,7 +190,8 @@ func (stock *Stock) LoadAllData(filename string) {
 	}
 
 	// 这里绘图，用于展示
-	getAllRect(stock.dataClose)
+	_, st := getAllRect(stock.dataClose)
+	stock.dense = st.dense
 }
 
 func getAllRect(data []float64) ([]Rect, *Stock) {
@@ -201,8 +203,7 @@ func getAllRect(data []float64) ([]Rect, *Stock) {
 	//计算最大最小值
 	caculateMinMax(stock.dataClose, &stock.dataMinMax, 30)
 	//1:1
-	filter_max(stock.dataClose, stock.dataMinMax)
-	filter_min(stock.dataClose, stock.dataMinMax)
+	filter_min_max(stock.dataClose, stock.dataMinMax)
 
 	// 计算密度
 	for i := 1; i < len(stock.dataClose)-1; i++ {
@@ -288,8 +289,7 @@ func getAllRect2(data []float64) ([]Rect, *Stock) {
 	// 局部最大值
 	caculateMinMax(stock.dataClose, &stock.dataMinMax, 8)
 	//根据1：1的关系，过滤掉多余的大小值
-	filter_max(stock.dataClose, stock.dataMinMax)
-	filter_min(stock.dataClose, stock.dataMinMax)
+	filter_min_max(stock.dataClose, stock.dataMinMax)
 
 	rectArray := make([]Rect, 0)
 	// 查找

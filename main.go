@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
@@ -37,7 +38,6 @@ var (
 
 	buy_stop  float64
 	sell_stop float64
-	flag      int = 0
 
 	STATE_UNKOWN              = "STATE_UNKOWN"
 	STATE_NEW_HIGH            = "STATE_NEW_HIGH"
@@ -50,6 +50,14 @@ var (
 	ACTION_NONE = "ACTION_NONE"
 	ACTION_BUY  = "ACTION_BUY"
 	ACTION_SELL = "ACTION_SELL"
+
+	dpi      = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
+	fontfile = flag.String("fontfile", "/Users/xinmei365/node_modules/editor.md/fonts/editormd-logo.ttf", "filename of the ttf font")
+	hinting  = flag.String("hinting", "none", "none | full")
+	size     = flag.Float64("size", 125, "font size in points")
+	spacing  = flag.Float64("spacing", 1.5, "line spacing (e.g. 2 means double spaced)")
+	wonb     = flag.Bool("whiteonblack", false, "white text on a black background")
+	text     = string("JOJO hoho")
 )
 
 type exampleThumbnailer struct {
@@ -191,6 +199,64 @@ func main() {
 	log.ReplaceLogger(logger)
 	defer log.Flush()
 
+	//b, err := ioutil.ReadFile(*fontfile)
+	//if err != nil {
+	//	log.Errorf("err:%v", err)
+	//	return
+	//}
+	//f, err := truetype.Parse(b)
+	//if err != nil {
+	//	log.Errorf("err:%v", err)
+	//	return
+	//}
+	//// Freetype context
+	//fg, _ := image.Black, image.White
+	//rgba := image.NewRGBA(image.Rect(0, 0, 1000, 200))
+	////draw.Draw(rgba, rgba.Bounds(), bg, image.ZP, draw.Src)
+	//c := freetype.NewContext()
+	//c.SetDPI(*dpi)
+	//c.SetFont(f)
+	//c.SetFontSize(*size)
+	//c.SetClip(rgba.Bounds())
+	//c.SetDst(rgba)
+	//c.SetSrc(fg)
+	//switch *hinting {
+	//default:
+	//	c.SetHinting(font.HintingNone)
+	//case "full":
+	//	c.SetHinting(font.HintingFull)
+	//}
+	//
+	//// Make some background
+	//
+	//// Draw the guidelines.
+	//ruler := color.RGBA{0xdd, 0xdd, 0xdd, 0xff}
+	//for rcount := 0; rcount < 4; rcount++ {
+	//	for i := 0; i < 200; i++ {
+	//		rgba.Set(250*rcount, i, ruler)
+	//	}
+	//}
+	//
+	//// Truetype stuff
+	//opts := truetype.Options{}
+	//opts.Size = 125.0
+	//face := truetype.NewFace(f, &opts)
+	//
+	//// Calculate the widths and print to image
+	//for i, x := range text {
+	//	awidth, ok := face.GlyphAdvance(rune(x))
+	//	if ok != true {
+	//		log.Errorf("err:%v", err)
+	//		return
+	//	}
+	//	iwidthf := int(float64(awidth) / 64)
+	//	fmt.Printf("%+v\n", iwidthf)
+	//
+	//	pt := freetype.Pt(i*250+(125-iwidthf/2), 128)
+	//	c.DrawString(string(x), pt)
+	//	fmt.Printf("%+v\n", awidth)
+	//}
+
 	// 绘图
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
@@ -207,13 +273,13 @@ func main() {
 		stock.LoadAllData(filename)
 		//stock.GetDist()
 
-		ac := &avgContext{
-			State:  STATE_UNKOWN,
-			profit: 0.0,
-		}
+		//ac := &avgContext{
+		//	State:  STATE_UNKOWN,
+		//	profit: 0.0,
+		//}
 
-		tmpArr := make([]float64, 0)
-		for i := 1; i < len(stock.dataClose); i += 1 {
+		//tmpArr := make([]float64, 0)
+		for i := 400; i < len(stock.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
@@ -230,24 +296,25 @@ func main() {
 
 			//1， 绘制底图
 			drawData(p, stock.dataClose[start:end], 1, pink)
-			//drawData(p, stock.dense[start:end], 1, orange)
-			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
-			//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
+			drawData(p, stock.dense[start:end], 1, orange)
+			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
+			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			//arr, _ := getAllRect(stock.dataClose[start : i+1])
-			//if len(arr) > 0 {
-			//	for _, r := range arr {
-			//		drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-			//	}
-			//}
-			ret := run(ac, p, stock.dataClose[start:i+1], filename, i)
-			if ret {
-				log.Infof("[%d] profit:%f", i, ac.profit)
-				tmpArr = append(tmpArr, ac.profit)
+			arr, _ := getAllRect(stock.dataClose[start : i+1])
+			if len(arr) > 0 {
+				for _, r := range arr {
+					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				}
 			}
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//ret := run(ac, p, stock.dataClose[start:i+1], filename, i)
+			//if ret {
+			//	log.Infof("[%d] profit:%f", i, ac.profit)
+			//	tmpArr = append(tmpArr, ac.profit)
+			//}
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			break
 		}
 		//
-		drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
+		//drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
 	}
 }

@@ -202,7 +202,7 @@ func drawInflection(stock *Stock, xlabel string, ylabel string, filename string)
 	for i := 1; i < len(stock.dataOpen); i++ {
 
 		if i%2 == 0 {
-			drawLine(p, float64(i), -1, float64(i), 20)
+			//drawLine(p, float64(i), -1, float64(i), 20)
 		}
 
 		diff := stock.dataClose[i] - stock.dataOpen[i]
@@ -257,9 +257,9 @@ func drawInflection(stock *Stock, xlabel string, ylabel string, filename string)
 			}
 		}
 		if trendRise {
-			trendData = append(trendData, 1.0)
+			trendData = append(trendData, 0.1)
 		} else {
-			trendData = append(trendData, -1.0)
+			trendData = append(trendData, 0)
 		}
 	}
 

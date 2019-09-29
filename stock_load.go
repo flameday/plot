@@ -229,7 +229,7 @@ func (stock *Stock) LoadAllData(filename string) {
 		stock.dataLow = append(stock.dataLow, valueLow)
 	}
 	//
-	stock.resetData()
+	//stock.resetData()
 
 	log.Infof("filename: %s", filename)
 	log.Infof("stock.dataClose size: %d", len(stock.dataClose))

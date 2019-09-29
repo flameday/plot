@@ -148,6 +148,52 @@ func (stock *Stock) GetDist() {
 	}
 	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }
+func (stock *Stock) resetData() {
+	// 构造数据
+	stock.dataOpen = make([]float64, 0)
+	stock.dataClose = make([]float64, 0)
+
+	//for i := 1; i <= 5; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 5; i > 2; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 2; i > 5; i++ {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	//for i := 5; i > 1; i-- {
+	//	stock.dataOpen = append(stock.dataOpen, float64(i+1))
+	//	stock.dataClose = append(stock.dataClose, float64(i))
+	//}
+	for i := 1; i < 10; i++ {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i+1))
+	}
+	for i := 10; i > 5; i-- {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i-1))
+	}
+	for i := 5; i < 15; i++ {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i+1))
+	}
+	for i := 15; i > 3; i-- {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i-1))
+	}
+	for i := 3; i < 20; i++ {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i+1))
+	}
+	for i := 10; i < 3; i-- {
+		stock.dataOpen = append(stock.dataOpen, float64(i))
+		stock.dataClose = append(stock.dataClose, float64(i-1))
+	}
+}
 func (stock *Stock) LoadAllData(filename string) {
 	// 读文本数据
 	b, err := ioutil.ReadFile(filename)
@@ -182,6 +228,9 @@ func (stock *Stock) LoadAllData(filename string) {
 		stock.dataClose = append(stock.dataClose, valueClose)
 		stock.dataLow = append(stock.dataLow, valueLow)
 	}
+	//
+	stock.resetData()
+
 	log.Infof("filename: %s", filename)
 	log.Infof("stock.dataClose size: %d", len(stock.dataClose))
 

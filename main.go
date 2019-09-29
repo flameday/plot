@@ -174,139 +174,173 @@ func drawInflection(stock *Stock, xlabel string, ylabel string, filename string)
 	p.X.Label.Text = xlabel
 	p.Y.Label.Text = ylabel
 
-	totalRiseLength := 0.0
-	totalDownLength := 0.0
-	totalRiseCount := 0
-	totalDownCount := 0
-	preDiff := 0.0
-	for i := 0; i < len(stock.dataOpen); i++ {
+	preRiseLength := 0.0
+	preRiseCount := 0
+	preDownLength := 0.0
+	preDownCount := 0
+	trendRise := true
+	trendData := make([]float64, 0)
+	// 初始化
+	preDiff := stock.dataClose[0] - stock.dataOpen[0]
+	if preDiff >= 0 {
+		trendRise = true
+		preRiseLength = preDiff
+		preRiseCount = 1
+	} else {
+		trendRise = false
+		preDownLength = preDiff
+		preDownCount = 1
+	}
+
+	if trendRise {
+		trendData = append(trendData, 1.0)
+	} else {
+		trendData = append(trendData, -1.0)
+	}
+
+	// 遍历
+	for i := 1; i < len(stock.dataOpen); i++ {
+
+		if i%2 == 0 {
+			drawLine(p, float64(i), -1, float64(i), 20)
+		}
+
 		diff := stock.dataClose[i] - stock.dataOpen[i]
+		log.Infof("[%d] trendRise:%v diff:%f", i, trendRise, diff)
+		log.Infof("[%d] rise:%f %d down:%f %d", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
 
-		if preDiff*diff < 0 {
-			if diff > 0 {
-				drawPoint(p, float64(i), stock.dataOpen[i], 10, blue)
-			} else {
-				drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
+		if diff == 0 {
+			continue
+		}
+
+		if trendRise == true {
+			if diff >= 0 {
+				preRiseLength += math.Abs(diff)
+				preRiseCount += 1
+			} else if diff < 0 {
+				// 转向
+				if math.Abs(diff)+preDownLength > preRiseLength/float64(preRiseCount) {
+					drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
+				}
+				// 转势
+				if math.Abs(diff)+preDownLength > 0.5*preRiseLength {
+					trendRise = false
+
+					preRiseLength = 0
+					preRiseCount = 0
+				}
+
+				preDownLength += math.Abs(diff)
+				preDownCount += 1
+				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
 			}
+		} else if trendRise == false {
+			if diff <= 0 {
+				preDownLength += math.Abs(diff)
+				preDownCount += 1
+			} else if diff > 0 {
+				// 转向
+				if math.Abs(diff)+preRiseLength > preDownLength/float64(preDownCount) {
+					drawPoint(p, float64(i), stock.dataOpen[i], 15, blue)
+				}
+				// 转势
+				if math.Abs(diff)+preRiseLength > 0.5*preDownLength {
+					trendRise = true
+
+					preDownLength = 0
+					preDownCount = 0
+				}
+
+				preRiseLength += math.Abs(diff)
+				preRiseCount += 1
+				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
+			}
+		}
+		if trendRise {
+			trendData = append(trendData, 1.0)
 		} else {
-			if math.Abs(diff) > math.Abs(preDiff) {
-				totalRiseLength += diff
-				totalRiseCount += 1
-			} else {
-				totalDownLength += diff
-				totalDownCount += 1
-			}
+			trendData = append(trendData, -1.0)
 		}
-		//if math.Abs(diff) > math.Abs(preDiff) {
-		//	totalRiseLength += diff
-		//	totalRiseCount += 1
-		//} else {
-		//	totalDownLength += diff
-		//	totalDownCount += 1
-		//}
-		//
-		//// turn to down
-		////if diff < 0 && totalRiseCount > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
-		//if diff < 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
-		//	//avgLength := totalRiseLength / float64(totalRiseCount)
-		//	//if math.Abs(diff) > avgLength {
-		//	//down
-		//	drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
-		//
-		//	totalRiseLength = 0
-		//	totalRiseCount = 0
-		//	//}
-		//}
-		//// turn to rise
-		////if diff > 0 && totalDownCount > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
-		//if diff > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
-		//	//avgLength := totalDownLength / float64(totalDownCount)
-		//	//if math.Abs(diff) > avgLength {
-		//	//down
-		//	drawPoint(p, float64(i), stock.dataOpen[i], 10, blue)
-		//
-		//	totalDownLength = 0
-		//	totalDownCount = 0
-		//	//}
-		//}
-		//
-		preDiff = diff
 	}
+
+	drawData(p, stock.dataOpen, 2, dark_red)
 	drawData(p, stock.dataClose, 2, gray)
+	drawData(p, trendData, 2, magenta)
 	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }
-func drawSubBar(stock *Stock, xlabel string, ylabel string, filename string) {
-	p, _ := plot.New()
-	t := time.Now()
-	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-	p.X.Label.Text = xlabel
-	p.Y.Label.Text = ylabel
 
-	dataBar := make([]float64, 0)
-	flagBar := make([]int, 0)
-	//totalBar := make([]float64, 0)
-	closeBar := make([]int, 0)
-	for i := 0; i < len(stock.dataOpen); i++ {
-		if stock.dataOpen[i] <= stock.dataClose[i] { //rising
-			//down - up - down
-			diff01 := stock.dataOpen[i] - stock.dataLow[i]
-			flag01 := -1
-			diff02 := stock.dataHigh[i] - stock.dataLow[i]
-			flag02 := 1
-			diff03 := stock.dataHigh[i] - stock.dataClose[i]
-			flag03 := -1
-			//if diff01 > 0 {
-			dataBar = append(dataBar, diff01)
-			flagBar = append(flagBar, flag01)
-			//}
-			//if diff02 > 0 {
-			dataBar = append(dataBar, diff02)
-			flagBar = append(flagBar, flag02)
-			//}
-			//if diff03 > 0 {
-			dataBar = append(dataBar, diff03)
-			flagBar = append(flagBar, flag03)
-			//}
-
-			closeBar = append(closeBar, 1)
-		}
-
-		if stock.dataOpen[i] > stock.dataClose[i] { //rising
-			//down - up - down
-			diff01 := stock.dataHigh[i] - stock.dataOpen[i]
-			flag01 := 1
-			diff02 := stock.dataHigh[i] - stock.dataLow[i]
-			flag02 := -1
-			diff03 := stock.dataClose[i] - stock.dataLow[i]
-			flag03 := 1
-			//if diff01 > 0 {
-			dataBar = append(dataBar, diff01)
-			flagBar = append(flagBar, flag01)
-			//}
-			//if diff02 > 0 {
-			dataBar = append(dataBar, diff02)
-			flagBar = append(flagBar, flag02)
-			//}
-			//if diff03 > 0 {
-			dataBar = append(dataBar, diff03)
-			flagBar = append(flagBar, flag03)
-			//}
-
-			closeBar = append(closeBar, -1)
-		}
-	}
-	for i := 1; i < len(dataBar); i++ {
-		//totalBar = append(totalBar, dataBar[i]*float64(flagBar[i]))
-		//totalBar = append(totalBar, dataBar[i]-dataBar[i-1])
-	}
-	//drawData(p, totalBar, 2, blue)
-	//drawMinMax(p, dataBar, flagBar, 1, 1, blue)
-	//drawMinMax(p, dataBar, flagBar, -1, 1, red)
-	drawMinMax(p, stock.dataClose, closeBar, 1, 1, blue)
-	drawMinMax(p, stock.dataClose, closeBar, -1, 1, red)
-
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-}
+//func drawSubBar(stock *Stock, xlabel string, ylabel string, filename string) {
+//	p, _ := plot.New()
+//	t := time.Now()
+//	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+//	p.X.Label.Text = xlabel
+//	p.Y.Label.Text = ylabel
+//
+//	dataBar := make([]float64, 0)
+//	flagBar := make([]int, 0)
+//	//totalBar := make([]float64, 0)
+//	closeBar := make([]int, 0)
+//	for i := 0; i < len(stock.dataOpen); i++ {
+//		if stock.dataOpen[i] <= stock.dataClose[i] { //rising
+//			//down - up - down
+//			diff01 := stock.dataOpen[i] - stock.dataLow[i]
+//			flag01 := -1
+//			diff02 := stock.dataHigh[i] - stock.dataLow[i]
+//			flag02 := 1
+//			diff03 := stock.dataHigh[i] - stock.dataClose[i]
+//			flag03 := -1
+//			//if diff01 > 0 {
+//			dataBar = append(dataBar, diff01)
+//			flagBar = append(flagBar, flag01)
+//			//}
+//			//if diff02 > 0 {
+//			dataBar = append(dataBar, diff02)
+//			flagBar = append(flagBar, flag02)
+//			//}
+//			//if diff03 > 0 {
+//			dataBar = append(dataBar, diff03)
+//			flagBar = append(flagBar, flag03)
+//			//}
+//
+//			closeBar = append(closeBar, 1)
+//		}
+//
+//		if stock.dataOpen[i] > stock.dataClose[i] { //rising
+//			//down - up - down
+//			diff01 := stock.dataHigh[i] - stock.dataOpen[i]
+//			flag01 := 1
+//			diff02 := stock.dataHigh[i] - stock.dataLow[i]
+//			flag02 := -1
+//			diff03 := stock.dataClose[i] - stock.dataLow[i]
+//			flag03 := 1
+//			//if diff01 > 0 {
+//			dataBar = append(dataBar, diff01)
+//			flagBar = append(flagBar, flag01)
+//			//}
+//			//if diff02 > 0 {
+//			dataBar = append(dataBar, diff02)
+//			flagBar = append(flagBar, flag02)
+//			//}
+//			//if diff03 > 0 {
+//			dataBar = append(dataBar, diff03)
+//			flagBar = append(flagBar, flag03)
+//			//}
+//
+//			closeBar = append(closeBar, -1)
+//		}
+//	}
+//	for i := 1; i < len(dataBar); i++ {
+//		//totalBar = append(totalBar, dataBar[i]*float64(flagBar[i]))
+//		//totalBar = append(totalBar, dataBar[i]-dataBar[i-1])
+//	}
+//	//drawData(p, totalBar, 2, blue)
+//	//drawMinMax(p, dataBar, flagBar, 1, 1, blue)
+//	//drawMinMax(p, dataBar, flagBar, -1, 1, red)
+//	drawMinMax(p, stock.dataClose, closeBar, 1, 1, blue)
+//	drawMinMax(p, stock.dataClose, closeBar, -1, 1, red)
+//
+//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+//}
 
 func drawPic(data []float64, xlabel string, ylabel string, filename string) {
 	p, _ := plot.New()

@@ -15,6 +15,9 @@ import (
 type Stock struct {
 	dataClose        []float64
 	dataOpen         []float64
+	dataHigh         []float64
+	dataLow          []float64
+	subBar           []float64
 	avg6             []float64
 	avg30            []float64
 	avg150           []float64
@@ -163,12 +166,21 @@ func (stock *Stock) LoadAllData(filename string) {
 		if len(elems) < 4 {
 			continue
 		}
+		if i > 300 {
+			break
+		}
 
+		valueOpen, err := strconv.ParseFloat(elems[1], 32)
+		valueHigh, err := strconv.ParseFloat(elems[2], 32)
 		valueClose, err := strconv.ParseFloat(elems[3], 32)
+		valueLow, err := strconv.ParseFloat(elems[4], 32)
 		if err != nil {
 			log.Error("ParseFloat elems[3]:%s err:%v", elems[3], err)
 		}
+		stock.dataOpen = append(stock.dataOpen, valueOpen)
+		stock.dataHigh = append(stock.dataHigh, valueHigh)
 		stock.dataClose = append(stock.dataClose, valueClose)
+		stock.dataLow = append(stock.dataLow, valueLow)
 	}
 	log.Infof("filename: %s", filename)
 	log.Infof("stock.dataClose size: %d", len(stock.dataClose))

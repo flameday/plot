@@ -166,6 +166,78 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 	}
 	return false
 }
+func drawSubBar(stock *Stock, xlabel string, ylabel string, filename string) {
+	p, _ := plot.New()
+	t := time.Now()
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = xlabel
+	p.Y.Label.Text = ylabel
+
+	dataBar := make([]float64, 0)
+	flagBar := make([]int, 0)
+	//totalBar := make([]float64, 0)
+	closeBar := make([]int, 0)
+	for i := 0; i < len(stock.dataOpen); i++ {
+		if stock.dataOpen[i] <= stock.dataClose[i] { //rising
+			//down - up - down
+			diff01 := stock.dataOpen[i] - stock.dataLow[i]
+			flag01 := -1
+			diff02 := stock.dataHigh[i] - stock.dataLow[i]
+			flag02 := 1
+			diff03 := stock.dataHigh[i] - stock.dataClose[i]
+			flag03 := -1
+			//if diff01 > 0 {
+			dataBar = append(dataBar, diff01)
+			flagBar = append(flagBar, flag01)
+			//}
+			//if diff02 > 0 {
+			dataBar = append(dataBar, diff02)
+			flagBar = append(flagBar, flag02)
+			//}
+			//if diff03 > 0 {
+			dataBar = append(dataBar, diff03)
+			flagBar = append(flagBar, flag03)
+			//}
+
+			closeBar = append(closeBar, 1)
+		}
+
+		if stock.dataOpen[i] > stock.dataClose[i] { //rising
+			//down - up - down
+			diff01 := stock.dataHigh[i] - stock.dataOpen[i]
+			flag01 := 1
+			diff02 := stock.dataHigh[i] - stock.dataLow[i]
+			flag02 := -1
+			diff03 := stock.dataClose[i] - stock.dataLow[i]
+			flag03 := 1
+			//if diff01 > 0 {
+			dataBar = append(dataBar, diff01)
+			flagBar = append(flagBar, flag01)
+			//}
+			//if diff02 > 0 {
+			dataBar = append(dataBar, diff02)
+			flagBar = append(flagBar, flag02)
+			//}
+			//if diff03 > 0 {
+			dataBar = append(dataBar, diff03)
+			flagBar = append(flagBar, flag03)
+			//}
+
+			closeBar = append(closeBar, -1)
+		}
+	}
+	for i := 1; i < len(dataBar); i++ {
+		//totalBar = append(totalBar, dataBar[i]*float64(flagBar[i]))
+		//totalBar = append(totalBar, dataBar[i]-dataBar[i-1])
+	}
+	//drawData(p, totalBar, 2, blue)
+	//drawMinMax(p, dataBar, flagBar, 1, 1, blue)
+	//drawMinMax(p, dataBar, flagBar, -1, 1, red)
+	drawMinMax(p, stock.dataClose, closeBar, 1, 1, blue)
+	drawMinMax(p, stock.dataClose, closeBar, -1, 1, red)
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+}
 
 func drawPic(data []float64, xlabel string, ylabel string, filename string) {
 	p, _ := plot.New()
@@ -272,6 +344,7 @@ func main() {
 		stock := Stock{}
 		stock.LoadAllData(filename)
 		//stock.GetDist()
+		drawSubBar(&stock, "subBar", "subPrice", "/Users/xinmei365/subBar.png")
 
 		//ac := &avgContext{
 		//	State:  STATE_UNKOWN,

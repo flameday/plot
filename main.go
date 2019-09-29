@@ -8,6 +8,7 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"image/color"
+	"math"
 	"runtime/debug"
 	"time"
 )
@@ -102,7 +103,7 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 		if ok && revert && change {
 			//log.Infof("ac: %s", ac.Show())
 
-			drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, red)
+			drawPoint(p, float64(curPos), st.dataClose[curPos], 20, red)
 			if ac.Action == ACTION_BUY {
 				drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 			} else if ac.Action == ACTION_SELL {
@@ -138,7 +139,7 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 			if revert {
 				//log.Infof("ac: %s", ac.Show())
 
-				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
+				drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
 
 				if ac.Action == ACTION_BUY {
 					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
@@ -150,7 +151,7 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 			} else if change {
 				//log.Infof("ac: %s", ac.Show())
 
-				drawPoint2(p, float64(curPos), st.dataClose[curPos], 20, black)
+				drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
 
 				if ac.Action == ACTION_BUY {
 					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
@@ -165,6 +166,74 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 		log.Infof("ignore:%d", pos)
 	}
 	return false
+}
+func drawInflection(stock *Stock, xlabel string, ylabel string, filename string) {
+	p, _ := plot.New()
+	t := time.Now()
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = xlabel
+	p.Y.Label.Text = ylabel
+
+	totalRiseLength := 0.0
+	totalDownLength := 0.0
+	totalRiseCount := 0
+	totalDownCount := 0
+	preDiff := 0.0
+	for i := 0; i < len(stock.dataOpen); i++ {
+		diff := stock.dataClose[i] - stock.dataOpen[i]
+
+		if preDiff*diff < 0 {
+			if diff > 0 {
+				drawPoint(p, float64(i), stock.dataOpen[i], 10, blue)
+			} else {
+				drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
+			}
+		} else {
+			if math.Abs(diff) > math.Abs(preDiff) {
+				totalRiseLength += diff
+				totalRiseCount += 1
+			} else {
+				totalDownLength += diff
+				totalDownCount += 1
+			}
+		}
+		//if math.Abs(diff) > math.Abs(preDiff) {
+		//	totalRiseLength += diff
+		//	totalRiseCount += 1
+		//} else {
+		//	totalDownLength += diff
+		//	totalDownCount += 1
+		//}
+		//
+		//// turn to down
+		////if diff < 0 && totalRiseCount > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
+		//if diff < 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
+		//	//avgLength := totalRiseLength / float64(totalRiseCount)
+		//	//if math.Abs(diff) > avgLength {
+		//	//down
+		//	drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
+		//
+		//	totalRiseLength = 0
+		//	totalRiseCount = 0
+		//	//}
+		//}
+		//// turn to rise
+		////if diff > 0 && totalDownCount > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
+		//if diff > 0 && preDiff*diff < 0 && math.Abs(diff) > math.Abs(preDiff) {
+		//	//avgLength := totalDownLength / float64(totalDownCount)
+		//	//if math.Abs(diff) > avgLength {
+		//	//down
+		//	drawPoint(p, float64(i), stock.dataOpen[i], 10, blue)
+		//
+		//	totalDownLength = 0
+		//	totalDownCount = 0
+		//	//}
+		//}
+		//
+		preDiff = diff
+	}
+	drawData(p, stock.dataClose, 2, gray)
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }
 func drawSubBar(stock *Stock, xlabel string, ylabel string, filename string) {
 	p, _ := plot.New()
@@ -344,7 +413,8 @@ func main() {
 		stock := Stock{}
 		stock.LoadAllData(filename)
 		//stock.GetDist()
-		drawSubBar(&stock, "subBar", "subPrice", "/Users/xinmei365/subBar.png")
+		//drawSubBar(&stock, "subBar", "subPrice", "/Users/xinmei365/subBar.png")
+		drawInflection(&stock, "inflcection", "length", "/Users/xinmei365/inflection.png")
 
 		//ac := &avgContext{
 		//	State:  STATE_UNKOWN,

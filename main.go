@@ -444,14 +444,14 @@ func main() {
 			//drawMinMax(p, stockBig.dataHigh[start:end], stockBig.dataMinMax[start:end], 1, 3, black)
 			//drawMinMax(p, stockBig.dataLow[start:end], stockBig.dataMinMax[start:end], -1, 3, dark_red)
 
-			//st := copyStock(&stockBig, start, i+1)
-			//arr, _ := getAllRect(st)
-			//if len(arr) > 0 {
-			//	//for _, r := range arr {
-			//	//	drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-			//	//}
-			//}
-			//
+			st := copyStock(&stockBig, start, i+1)
+			arr, _ := getAllRect(st)
+			if len(arr) > 0 {
+				for _, r := range arr {
+					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				}
+			}
+
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
 			//ret := run(ac, p, st, filename, i)
 			//if ret {

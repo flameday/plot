@@ -260,10 +260,10 @@ func copyStock(stock *Stock, start int, end int) *Stock {
 }
 func getAllRect(stock *Stock) ([]Rect, *Stock) {
 	//计算最大最小值
-	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 3)
-	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 3)
-	//1:1
-	//filter_min_max(stock.dataClose, stock.dataMinMax)
+	for i := 0; i < len(stock.dataClose); i++ {
+		log.Infof("i: %d", i)
+		getWave(stock, i)
+	}
 
 	rectArray := make([]Rect, 0)
 	for i := 0; i < len(stock.dataClose); {
@@ -278,7 +278,6 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 			continue
 		}
 
-		//if (stock.dataClose[pre] > stock.dataClose[pre-1]) && (stock.dataClose[pre] > stock.dataClose[post+1]) {
 		left := float64(pre)
 		top := math.Max(stock.dataClose[pre], stock.dataClose[post])
 		right := float64(post)
@@ -290,20 +289,20 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 			bottom: bottom,
 		}
 		rectArray = append(rectArray, r)
-		//}
 		i = post + 1
 	}
 	return rectArray, stock
 }
-func (stock *Stock) GetMacd() {
-	for i := 1; i < len(stock.dataClose); i++ {
-		ema12 := (stock.dataClose[i-1]*11 + stock.dataClose[i]*2) / 13.0
-		ema26 := (stock.dataClose[i-1]*25 + stock.dataClose[i]*2) / 27.0
-		stock.DIFF[i] = ema12 - ema26
-		stock.DEA[i] = stock.DEA[i-1]*8/10.0 + stock.DIFF[i]*2/10.0
-		stock.BAR[i] = 2 * (stock.DIFF[i] - stock.DEA[i])
-	}
-}
+
+//func (stock *Stock) GetMacd() {
+//	for i := 1; i < len(stock.dataClose); i++ {
+//		ema12 := (stock.dataClose[i-1]*11 + stock.dataClose[i]*2) / 13.0
+//		ema26 := (stock.dataClose[i-1]*25 + stock.dataClose[i]*2) / 27.0
+//		stock.DIFF[i] = ema12 - ema26
+//		stock.DEA[i] = stock.DEA[i-1]*8/10.0 + stock.DIFF[i]*2/10.0
+//		stock.BAR[i] = 2 * (stock.DIFF[i] - stock.DEA[i])
+//	}
+//}
 
 //func getAllRect2(data []float64) ([]Rect, *Stock) {
 //	var stock = Stock{
@@ -359,35 +358,35 @@ func (stock *Stock) GetMacd() {
 //	}
 //	return rectArray, &stock
 //}
-
-func caculateMax(dataLow []float64, avg []float64, minMax *[]int, length int) {
-	if len(*minMax) == 0 {
-		*minMax = make([]int, len(dataLow))
-	}
-
-	for i := 0; i < len(dataLow); i++ {
-		if (*minMax)[i] != 0 {
-			continue
-		}
-		flag := 0
-		if isMax(dataLow, avg, i, length) {
-			flag = 1
-		}
-		(*minMax)[i] = flag
-	}
-}
-func caculateMin(dataHigh []float64, avg []float64, minMax *[]int, length int) {
-	if len(*minMax) == 0 {
-		*minMax = make([]int, len(dataHigh))
-	}
-	for i := 0; i < len(dataHigh); i++ {
-		if (*minMax)[i] != 0 {
-			continue
-		}
-		flag := 0
-		if isMin(dataHigh, avg, i, length) {
-			flag = -1
-		}
-		(*minMax)[i] = flag
-	}
-}
+//
+//func caculateMax(dataLow []float64, avg []float64, minMax *[]int, length int) {
+//	if len(*minMax) == 0 {
+//		*minMax = make([]int, len(dataLow))
+//	}
+//
+//	for i := 0; i < len(dataLow); i++ {
+//		if (*minMax)[i] != 0 {
+//			continue
+//		}
+//		flag := 0
+//		if isMax(dataLow, avg, i, length) {
+//			flag = 1
+//		}
+//		(*minMax)[i] = flag
+//	}
+//}
+//func caculateMin(dataHigh []float64, avg []float64, minMax *[]int, length int) {
+//	if len(*minMax) == 0 {
+//		*minMax = make([]int, len(dataHigh))
+//	}
+//	for i := 0; i < len(dataHigh); i++ {
+//		if (*minMax)[i] != 0 {
+//			continue
+//		}
+//		flag := 0
+//		if isMin(dataHigh, avg, i, length) {
+//			flag = -1
+//		}
+//		(*minMax)[i] = flag
+//	}
+//}

@@ -11,7 +11,7 @@ func findNextIndex(flagArr []int, posStart int, flagValue int) int {
 }
 
 func findPreIndex(flagArr []int, posStart int, flagValue int) int {
-	for i := posStart; i >= 0; i-- {
+	for i := posStart; i >= 0 && i < len(flagArr); i-- {
 		if flagArr[i] == flagValue {
 			return i
 		}

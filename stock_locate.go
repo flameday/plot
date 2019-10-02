@@ -84,8 +84,8 @@ func isMax(data []float64, avg []float64, index int, length int) bool {
 	return false
 }
 func initWave(stock *Stock, index int) {
-	minMax := stock.dataMinMax
-	prePos, _ := findPreMinOrMaxIndex(minMax, index-1)
+	//minMax := stock.dataMinMax
+	prePos, _ := findPreMinOrMaxIndex(stock.dataMinMax, index-1)
 	if prePos == -1 {
 		prePos = 0
 	}
@@ -99,9 +99,9 @@ func initWave(stock *Stock, index int) {
 		}
 	}
 	if highCnt >= 3 {
-		minMax[index] = 1
+		stock.dataMinMax[index] = 1
 	} else if lowCnt >= 3 {
-		minMax[index] = -1
+		stock.dataMinMax[index] = -1
 	}
 }
 func getWave(stock *Stock, index int) {

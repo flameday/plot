@@ -101,7 +101,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			}
 
 			p.X.Label.Text = ac.State + " " + ac.Action
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 			return true
 		}
@@ -125,7 +125,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 				} else if ac.Action == ACTION_SELL {
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				return true
 			} else if change {
 				//log.Infof("ac: %s", ac.Show())
@@ -137,7 +137,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 				} else if ac.Action == ACTION_SELL {
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				return true
 			}
 		}
@@ -394,28 +394,28 @@ func main() {
 	// 绘图
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
-	for index := 0; index < len(dstArray); index++ {
+	for index := 0; index < len(dstArray); index += 5 {
 		if index < 10 {
 			continue
 		}
-		if index > 10 {
+		if index > 200 {
 			break
 		}
 
-		filename := dstArray[index]
+		textfile := dstArray[index]
 		stockBig := Stock{}
-		stockBig.LoadAllData(filename)
+		stockBig.LoadAllData(textfile)
 
-		//ac := &avgContext{
-		//	State:  STATE_UNKOWN,
-		//	profit: 0.0,
-		//}
+		ac := &avgContext{
+			State:  STATE_UNKOWN,
+			profit: 0.0,
+		}
 
 		tmpArr := make([]float64, 0)
-		for i := 0; i < 500; i++ {
-			getWave(&stockBig, i)
-		}
-		for i := 100; i < len(stockBig.dataClose); i += 1 {
+		//for i := 0; i < 500; i++ {
+		//	getWave(&stockBig, i)
+		//}
+		for i := 1; i < len(stockBig.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
@@ -453,15 +453,14 @@ func main() {
 			}
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			//ret := run(ac, p, st, filename, i)
-			//if ret {
-			//	tmpArr = append(tmpArr, ac.profit)
-			//	log.Infof("[%d] profit:%f", i, ac.profit)
-			//}
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			break
+			ret := run(ac, p, st, filename, i)
+			if ret {
+				tmpArr = append(tmpArr, ac.profit)
+				log.Infof("[%d] profit:%f", i, ac.profit)
+			}
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 		//
-		drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
+		drawPic(tmpArr, "Count", "Profit", fmt.Sprintf("/Users/xinmei365/profilt_%d.png", index))
 	}
 }

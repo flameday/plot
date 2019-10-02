@@ -82,11 +82,13 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 	// 正常
 	if curValue >= ac.Buy_stop.bottom {
 		// 推进 Buy_stop
-		if (arr[size-1].top > ac.Buy_stop.top) && (arr[size-1].bottom >= ac.Buy_stop.bottom) {
+		if arr[size-1].bottom >= ac.Buy_stop.bottom {
 			ac.Buy_stop = arr[size-1]
 
 			return true, false, true
 		}
+		// 推进止损:找到前低，然后进行处理
+
 	} else if curValue < ac.Buy_stop.bottom {
 		//新低
 		ac.State = STATE_NEW_HIGH__NEW_LOW_0
@@ -110,7 +112,7 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 	// 正常
 	if curValue <= ac.Sell_stop.top {
 		// 推进 Sell_stop
-		if (arr[size-1].top <= ac.Sell_stop.top) && arr[size-1].bottom < ac.Sell_stop.bottom {
+		if arr[size-1].top <= ac.Sell_stop.top {
 			ac.Sell_stop = arr[size-1]
 
 			return true, false, true

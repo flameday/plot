@@ -250,18 +250,19 @@ func (stock *Stock) LoadAllData(filename string) {
 
 func copyStock(stock *Stock, start int, end int) *Stock {
 	st := &Stock{
-		dataOpen:  stock.dataOpen[start:end],
-		dataClose: stock.dataClose[start:end],
-		dataHigh:  stock.dataHigh[start:end],
-		dataLow:   stock.dataLow[start:end],
-		avg10:     stock.avg10[start:end],
+		dataOpen:   stock.dataOpen[start:end],
+		dataClose:  stock.dataClose[start:end],
+		dataHigh:   stock.dataHigh[start:end],
+		dataLow:    stock.dataLow[start:end],
+		avg10:      stock.avg10[start:end],
+		dataMinMax: stock.dataMinMax[start:end],
 	}
 	return st
 }
 func getAllRect(stock *Stock) ([]Rect, *Stock) {
 	//计算最大最小值
 	for i := 0; i < len(stock.dataClose); i++ {
-		log.Infof("i: %d", i)
+		//log.Infof("i: %d", i)
 		getWave(stock, i)
 	}
 

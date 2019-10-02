@@ -240,19 +240,12 @@ func (stock *Stock) LoadAllData(filename string) {
 		val = get_pre_avg(stock.dataClose, i, 30)
 		stock.avg30 = append(stock.avg30, val)
 
+		//初始化
+		stock.dataMinMax = append(stock.dataMinMax, 0)
 		//stock.normalizedAvg150 = append(stock.normalizedAvg150, 0)
 		//stock.dist150 = append(stock.dist150, 0)
 		//stock.dense = append(stock.dense, 0)
 	}
-	//计算最大最小值
-	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 10)
-	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 10)
-	//1:1
-	filter_min_max(stock.dataClose, stock.dataMinMax)
-
-	// 这里绘图，用于展示
-	_, st := getAllRect(stock)
-	stock.dense = st.dense
 }
 
 func copyStock(stock *Stock, start int, end int) *Stock {
@@ -267,14 +260,14 @@ func copyStock(stock *Stock, start int, end int) *Stock {
 }
 func getAllRect(stock *Stock) ([]Rect, *Stock) {
 	//计算最大最小值
-	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 10)
-	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 10)
+	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 3)
+	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 3)
 	//1:1
-	filter_min_max(stock.dataClose, stock.dataMinMax)
+	//filter_min_max(stock.dataClose, stock.dataMinMax)
 
 	rectArray := make([]Rect, 0)
 	for i := 0; i < len(stock.dataClose); {
-		pre := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
+		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
 		if pre == -1 {
 			i++
 			continue
@@ -312,60 +305,60 @@ func (stock *Stock) GetMacd() {
 	}
 }
 
-func getAllRect2(data []float64) ([]Rect, *Stock) {
-	var stock = Stock{
-		dataClose: data,
-	}
-	// 局部最大值
-	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 10)
-	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 10)
-	//根据1：1的关系，过滤掉多余的大小值
-	filter_min_max(stock.dataClose, stock.dataMinMax)
-
-	rectArray := make([]Rect, 0)
-	// 查找
-	for i := 1; i < len(stock.dataMinMax)-1; i++ {
-		if stock.dataMinMax[i] == 1 {
-			preMin := findPreIndex(stock.dataMinMax, i-1, -1)
-			postMin := findNextIndex(stock.dataMinMax, i-1, -1)
-
-			if preMin != -1 && postMin != -1 {
-				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
-				left := math.Min(float64(x1), float64(x2))
-				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
-				right := math.Max(float64(x1), float64(x2))
-				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
-				r := Rect{
-					left:   left,
-					top:    top,
-					right:  right,
-					bottom: bottom,
-				}
-				rectArray = append(rectArray, r)
-			}
-		}
-		if stock.dataMinMax[i] == -1 {
-			preMax := findPreIndex(stock.dataMinMax, i-1, 1)
-			postMax := findNextIndex(stock.dataMinMax, i-1, 1)
-
-			if preMax != -1 && postMax != -1 {
-				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
-				left := math.Min(float64(x1), float64(x2))
-				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
-				right := math.Max(float64(x1), float64(x2))
-				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
-				r := Rect{
-					left:   left,
-					top:    top,
-					right:  right,
-					bottom: bottom,
-				}
-				rectArray = append(rectArray, r)
-			}
-		}
-	}
-	return rectArray, &stock
-}
+//func getAllRect2(data []float64) ([]Rect, *Stock) {
+//	var stock = Stock{
+//		dataClose: data,
+//	}
+//	// 局部最大值
+//	caculateMin(stock.dataHigh, stock.avg10, &stock.dataMinMax, 10)
+//	caculateMax(stock.dataLow, stock.avg10, &stock.dataMinMax, 10)
+//	//根据1：1的关系，过滤掉多余的大小值
+//	filter_min_max(stock.dataClose, stock.dataMinMax)
+//
+//	rectArray := make([]Rect, 0)
+//	// 查找
+//	for i := 1; i < len(stock.dataMinMax)-1; i++ {
+//		if stock.dataMinMax[i] == 1 {
+//			preMin := findPreIndex(stock.dataMinMax, i-1, -1)
+//			postMin := findNextIndex(stock.dataMinMax, i-1, -1)
+//
+//			if preMin != -1 && postMin != -1 {
+//				x1, x2 := getRectangle(stock.dataClose, preMin, i, postMin)
+//				left := math.Min(float64(x1), float64(x2))
+//				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
+//				right := math.Max(float64(x1), float64(x2))
+//				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
+//				r := Rect{
+//					left:   left,
+//					top:    top,
+//					right:  right,
+//					bottom: bottom,
+//				}
+//				rectArray = append(rectArray, r)
+//			}
+//		}
+//		if stock.dataMinMax[i] == -1 {
+//			preMax := findPreIndex(stock.dataMinMax, i-1, 1)
+//			postMax := findNextIndex(stock.dataMinMax, i-1, 1)
+//
+//			if preMax != -1 && postMax != -1 {
+//				x1, x2 := getRectangle(stock.dataClose, preMax, i, postMax)
+//				left := math.Min(float64(x1), float64(x2))
+//				top := math.Max(stock.dataClose[x1], stock.dataClose[x2])
+//				right := math.Max(float64(x1), float64(x2))
+//				bottom := math.Min(stock.dataClose[x1], stock.dataClose[x2])
+//				r := Rect{
+//					left:   left,
+//					top:    top,
+//					right:  right,
+//					bottom: bottom,
+//				}
+//				rectArray = append(rectArray, r)
+//			}
+//		}
+//	}
+//	return rectArray, &stock
+//}
 
 func caculateMax(dataLow []float64, avg []float64, minMax *[]int, length int) {
 	if len(*minMax) == 0 {

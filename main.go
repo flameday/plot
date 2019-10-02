@@ -31,8 +31,8 @@ var (
 	olive          color.Color = color.RGBA{128, 128, 0, 255}
 	gray           color.Color = color.RGBA{196, 196, 196, 255}
 	colorArray                 = []color.Color{red, blue, black, yellow, orange, gold, purple, magenta, olive, gray}
-	picwidth       float64     = 512 * 2
-	picheight      float64     = 384 * 2
+	picwidth       float64     = 512 * 4
+	picheight      float64     = 384 * 4
 	MAX_VALUE_FLAG             = 1
 	MIN_VALUE_FLAG             = -1
 
@@ -406,12 +406,15 @@ func main() {
 		stockBig := Stock{}
 		stockBig.LoadAllData(filename)
 
-		ac := &avgContext{
-			State:  STATE_UNKOWN,
-			profit: 0.0,
-		}
+		//ac := &avgContext{
+		//	State:  STATE_UNKOWN,
+		//	profit: 0.0,
+		//}
 
 		tmpArr := make([]float64, 0)
+		for i := 0; i < 500; i++ {
+			getWave(&stockBig, i)
+		}
 		for i := 100; i < len(stockBig.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
@@ -428,25 +431,35 @@ func main() {
 			}
 
 			////1， 绘制底图
-			drawData(p, stockBig.dataClose[start:end], 1, red)
-			drawData(p, stockBig.avg10[start:end], 1, black)
-			//	//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
-			//	//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
+			//getAllRect(&stockBig)
+			//drawData(p, stockBig.dataHigh[start:end], 2, red)
+			//drawData(p, stockBig.dataLow[start:end], 1, gray)
+			for k := start; k < end; k++ {
+				drawLine(p, float64(k), stockBig.dataLow[k], float64(k), stockBig.dataHigh[k])
+			}
+			//drawData(p, stockBig.dataLow[start:end], 2, yellow)
+			drawData(p, stockBig.avg10[start:end], 1, purple)
+
+			drawAllMinMax(p, &stockBig, 2, black)
+			//drawMinMax(p, stockBig.dataHigh[start:end], stockBig.dataMinMax[start:end], 1, 3, black)
+			//drawMinMax(p, stockBig.dataLow[start:end], stockBig.dataMinMax[start:end], -1, 3, dark_red)
+
+			//st := copyStock(&stockBig, start, i+1)
+			//arr, _ := getAllRect(st)
+			//if len(arr) > 0 {
+			//	//for _, r := range arr {
+			//	//	drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+			//	//}
+			//}
+			//
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			st := copyStock(&stockBig, start, i+1)
-			arr, _ := getAllRect(st)
-			if len(arr) > 0 {
-				//for _, r := range arr {
-				//	drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-				//}
-			}
-			ret := run(ac, p, st, filename, i)
-			if ret {
-				tmpArr = append(tmpArr, ac.profit)
-				log.Infof("[%d] profit:%f", i, ac.profit)
-			}
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			//break
+			//ret := run(ac, p, st, filename, i)
+			//if ret {
+			//	tmpArr = append(tmpArr, ac.profit)
+			//	log.Infof("[%d] profit:%f", i, ac.profit)
+			//}
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			break
 		}
 		//
 		drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")

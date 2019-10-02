@@ -37,22 +37,38 @@ func findPostMinOrMaxIndex(flagArr []int, posStart int) int {
 	return postMin
 }
 
-func findPreMinOrMaxIndex(flagArr []int, posStart int) int {
+func findFastPreMinOrMaxIndex(flagArr []int, posStart int) (int, int) {
+	pos, val := findPreMinOrMaxIndex(flagArr, posStart)
+	if pos == -1 {
+		return pos, -1
+	}
+	for i := pos - 1; i >= 0; {
+		prePos, preVal := findPreMinOrMaxIndex(flagArr, i)
+		if val == preVal {
+			i = prePos - 1
+			pos = prePos
+		} else {
+			break
+		}
+	}
+	return pos, val
+}
+func findPreMinOrMaxIndex(flagArr []int, posStart int) (int, int) {
 	preMin := findPreIndex(flagArr, posStart, -1)
 	preMax := findPreIndex(flagArr, posStart, 1)
 	if preMin == -1 && preMax == -1 {
-		return -1
+		return -1, -1
 	}
 	if preMin == -1 {
-		return preMax
+		return preMax, 1
 	}
 	if preMax == -1 {
-		return preMin
+		return preMin, -1
 	}
 	if preMin > preMax {
-		return preMin
+		return preMin, -1
 	}
-	return preMax
+	return preMax, 1
 }
 
 func filter_min_max(data []float64, minMaxArr []int) {

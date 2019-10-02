@@ -43,18 +43,20 @@ func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width fl
 	p.Add(lpLine, lpPoints)
 }
 
-func drawMinMax2(p *plot.Plot, data []float64, posArr []int, aimArr []int, width float64, clr color.Color) {
+func drawAllMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
-	for i, val := range data {
-		var x float64
-		x = float64(i)
-		for j := 0; j < len(aimArr); j++ {
-			if posArr[i] == aimArr[j] {
-				var elem = plotter.XY{
-					x, val,
-				}
-				points = append(points, elem)
+	for i, _ := range stock.dataClose {
+		if stock.dataMinMax[i] == 1 {
+			var elem = plotter.XY{
+				float64(i), stock.dataHigh[i],
 			}
+			points = append(points, elem)
+		}
+		if stock.dataMinMax[i] == -1 {
+			var elem = plotter.XY{
+				float64(i), stock.dataLow[i],
+			}
+			points = append(points, elem)
 		}
 	}
 	// Make a line plotter and set its style.
@@ -154,7 +156,7 @@ func drawLine(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64) {
 	if err != nil {
 		panic(err)
 	}
-	lpLine2.Color = gray
+	lpLine2.Color = red
 	p.Add(lpLine2)
 }
 

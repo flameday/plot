@@ -124,27 +124,32 @@ func getWave(stock *Stock, index int) {
 
 	highCntFromHigh := 0
 	lowCntFromHigh := 0
-	if preLowPos != -1 {
-		for i := preLowPos; i <= index; i++ {
-			if stock.dataHigh[i] < stock.avg10[i] {
-				lowCntFromLow += 1
-			} else if stock.dataLow[i] > stock.avg10[i] {
-				highCntFromLow += 1
-			}
-		}
+	tmpPreLowPos := preLowPos
+	if tmpPreLowPos == -1 {
+		tmpPreLowPos = 0
 	}
-	if preHighPos != -1 {
-		for i := preHighPos; i <= index; i++ {
-			if stock.dataHigh[i] < stock.avg10[i] {
-				lowCntFromHigh += 1
-			} else if stock.dataLow[i] > stock.avg10[i] {
-				highCntFromHigh += 1
-			}
+	for i := tmpPreLowPos; i <= index; i++ {
+		if stock.dataHigh[i] < stock.avg10[i] {
+			lowCntFromLow += 1
+		} else if stock.dataLow[i] > stock.avg10[i] {
+			highCntFromLow += 1
 		}
 	}
 
+	tmpPreHighPos := preHighPos
+	if tmpPreHighPos == -1 {
+		tmpPreHighPos = 0
+	}
+	for i := tmpPreHighPos; i <= index; i++ {
+		if stock.dataHigh[i] < stock.avg10[i] {
+			lowCntFromHigh += 1
+		} else if stock.dataLow[i] > stock.avg10[i] {
+			highCntFromHigh += 1
+		}
+	}
+	//可能有一个为 -1
 	//低 ---> 高
-	if preLowPos < preHighPos {
+	if preLowPos < preHighPos || preLowPos == -1 {
 		if highCntFromLow >= 3 {
 			//merge
 			if stock.dataHigh[preHighPos] > stock.dataHigh[index] {
@@ -160,7 +165,7 @@ func getWave(stock *Stock, index int) {
 		}
 	}
 	//高 ---> 低
-	if preHighPos < preLowPos {
+	if preHighPos < preLowPos || preHighPos == -1 {
 		if lowCntFromHigh >= 3 {
 			//merge
 			if stock.dataLow[preLowPos] < stock.dataLow[index] {

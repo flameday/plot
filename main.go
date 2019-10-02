@@ -31,8 +31,8 @@ var (
 	olive          color.Color = color.RGBA{128, 128, 0, 255}
 	gray           color.Color = color.RGBA{196, 196, 196, 255}
 	colorArray                 = []color.Color{red, blue, black, yellow, orange, gold, purple, magenta, olive, gray}
-	picwidth       float64     = 512 * 4
-	picheight      float64     = 384 * 4
+	picwidth       float64     = 512 * 2
+	picheight      float64     = 384 * 2
 	MAX_VALUE_FLAG             = 1
 	MIN_VALUE_FLAG             = -1
 
@@ -101,7 +101,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			}
 
 			p.X.Label.Text = ac.State + " " + ac.Action
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 			return true
 		}
@@ -125,7 +125,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 				} else if ac.Action == ACTION_SELL {
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
-				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				return true
 			} else if change {
 				//log.Infof("ac: %s", ac.Show())
@@ -137,7 +137,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 				} else if ac.Action == ACTION_SELL {
 					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 				}
-				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				return true
 			}
 		}
@@ -395,10 +395,10 @@ func main() {
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	for index := 0; index < len(dstArray); index += 5 {
-		if index < 10 {
+		if index < 15 {
 			continue
 		}
-		if index > 200 {
+		if index > 15 {
 			break
 		}
 
@@ -415,19 +415,19 @@ func main() {
 		//for i := 0; i < 500; i++ {
 		//	getWave(&stockBig, i)
 		//}
-		for i := 1; i < len(stockBig.dataClose); i += 1 {
-			//for i := 1; i < 100; i += 1 {
+		//for i := 1; i < len(stockBig.dataClose); i += 1 {
+		for i := 300; i < 301; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 500
+			start := i - 300
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 500 + 1
+				end = start + 300 + 1
 			}
 
 			////1， 绘制底图
@@ -440,7 +440,7 @@ func main() {
 			//drawData(p, stockBig.dataLow[start:end], 2, yellow)
 			drawData(p, stockBig.avg10[start:end], 1, purple)
 
-			drawAllMinMax(p, &stockBig, 2, black)
+			//drawAllMinMax(p, &stockBig, 2, black)
 			//drawMinMax(p, stockBig.dataHigh[start:end], stockBig.dataMinMax[start:end], 1, 3, black)
 			//drawMinMax(p, stockBig.dataLow[start:end], stockBig.dataMinMax[start:end], -1, 3, dark_red)
 
@@ -451,6 +451,7 @@ func main() {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				}
 			}
+			drawAllMinMax(p, st, 2, black)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
 			ret := run(ac, p, st, filename, i)

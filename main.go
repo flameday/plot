@@ -106,10 +106,10 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change, arr := forwardState(ac, st)
-		for _, r := range arr {
-			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
-		}
+		ok, revert, change, _ := forwardState(ac, st)
+		//for _, r := range arr {
+		//drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
+		//}
 		//log.Infof("pos:%d ok:%v", pos, ok)
 
 		if ok {
@@ -416,7 +416,7 @@ func main() {
 		//	getWave(&stockBig, i)
 		//}
 		//for i := 1; i < len(stockBig.dataClose); i += 1 {
-		for i := 300; i < 301; i += 1 {
+		for i := 1; i < 300; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")

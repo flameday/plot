@@ -40,10 +40,12 @@ type Stock struct {
 }
 
 type Rect struct {
-	left   float64
-	top    float64
-	right  float64
-	bottom float64
+	left      float64
+	top       float64
+	right     float64
+	bottom    float64
+	leftFlag  int
+	rightFlag int
 }
 
 type avgContext struct {
@@ -284,13 +286,15 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 		right := float64(post)
 		bottom := math.Min(stock.dataLow[pre], stock.dataLow[post])
 
-		//offset := (top - bottom)*0.2
-		offset := 0.0
+		offset := (top - bottom) * 0.05
+		//offset := 0.0
 		r := Rect{
-			left:   left,
-			top:    top + offset,
-			right:  right,
-			bottom: bottom - offset,
+			left:      left,
+			top:       top + offset,
+			right:     right,
+			bottom:    bottom - offset,
+			leftFlag:  stock.dataMinMax[pre],
+			rightFlag: stock.dataMinMax[post],
 		}
 		rectArray = append(rectArray, r)
 		i = post + 1

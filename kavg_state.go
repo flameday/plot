@@ -14,18 +14,18 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 
 	curIndex := len(stock.dataClose) - 1
 
-	//简单根据高低点来尽快买入、卖出
+	//简单根据高低点来尽快买入、卖出: 注意MinMax的计算方法
 	preMin := findPreIndex(stock.dataMinMax, curIndex-1, -1)
 	preMax := findPreIndex(stock.dataMinMax, curIndex-1, 1)
 	if preMin == -1 && preMax == -1 {
 		return false, false, false
 	}
-	if preMax > preMin {
+	if preMax == -1 {
 		ac.State = STATE_NEW_LOW
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = Rect{
-			left:   float64(preMax),
-			top:    stock.dataClose[preMax],
+			left:   float64(0),
+			top:    stock.dataClose[0],
 			right:  float64(curIndex),
 			bottom: stock.dataClose[curIndex],
 		}
@@ -33,12 +33,12 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		ac.sell = stock.dataClose[curIndex]
 
 		return true, true, true
-	} else if preMin > preMax {
+	} else if preMin == -1 {
 		ac.State = STATE_NEW_HIGH
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = Rect{
-			left:   float64(preMin),
-			top:    stock.dataClose[preMin],
+			left:   float64(0),
+			top:    stock.dataClose[0],
 			right:  float64(curIndex),
 			bottom: stock.dataClose[curIndex],
 		}
@@ -78,16 +78,20 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 }
 
 func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
-	size := len(arr)
 	// 正常
-	if curValue >= ac.Buy_stop.bottom {
+	if curValue >= ac.Buy_stop.top {
 		// 推进 Buy_stop
-		if arr[size-1].bottom >= ac.Buy_stop.bottom {
-			ac.Buy_stop = arr[size-1]
-
-			return true, false, true
-		}
 		// 推进止损:找到前低，然后进行处理
+
+		for size := len(arr) - 1; size >= 0; size-- {
+			if arr[size].leftFlag == -1 && arr[size].rightFlag == 1 {
+				if arr[size].bottom >= ac.Buy_stop.bottom {
+					ac.Buy_stop = arr[size]
+
+					return true, false, true
+				}
+			}
+		}
 
 	} else if curValue < ac.Buy_stop.bottom {
 		//新低
@@ -107,15 +111,17 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 }
 
 func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
-	size := len(arr)
-
 	// 正常
-	if curValue <= ac.Sell_stop.top {
+	if curValue <= ac.Sell_stop.bottom {
 		// 推进 Sell_stop
-		if arr[size-1].top <= ac.Sell_stop.top {
-			ac.Sell_stop = arr[size-1]
+		for size := len(arr) - 1; size >= 0; size-- {
+			if arr[size].leftFlag == 1 && arr[size].rightFlag == -1 {
+				if arr[size].top <= ac.Buy_stop.top {
+					ac.Buy_stop = arr[size]
 
-			return true, false, true
+					return true, false, true
+				}
+			}
 		}
 	}
 	// 新低
@@ -278,6 +284,7 @@ func forwardState(ac *avgContext, stock *Stock) (ret bool, revert bool, modify b
 	ret, revert, modify = true, false, false
 	curValue := stock.dataClose[len(stock.dataClose)-1]
 
+	//注意这里是状态转换：波动不管，不得不动的时候，状态才变换
 	if ac.State == STATE_NEW_HIGH && ac.Action == ACTION_BUY {
 		ret, revert, modify = action_High_Buy(ac, arr, curValue)
 

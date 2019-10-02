@@ -88,15 +88,6 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 	_, st := getAllRect(stock)
 	curPos := len(stock.dataClose) - 1
 
-	//log.Infof("len(arr):%v", len(arr))
-	//for _, r := range arr {
-	//	//drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-	//	//drawLine(p, r.left, r.top, r.right, r.bottom)
-	//	//drawLine(p, r.left, r.bottom, r.right, r.top)
-	//}
-	//drawMinMax(p, st.dataClose[0:pos], st.dataMinMax[0:pos], 1, 1, yellow)
-	//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-
 	if ac.State == STATE_UNKOWN {
 		ok, revert, change := isValidInit(ac, st)
 		if ok && revert && change {
@@ -117,22 +108,12 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 	} else if ac.State != STATE_UNKOWN {
 		ok, revert, change, arr := forwardState(ac, st)
 		for _, r := range arr {
-			drawRectangle(p, r.left, r.top, r.right, r.bottom, yellow)
+			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
 		}
 		//log.Infof("pos:%d ok:%v", pos, ok)
 
 		if ok {
 			p.X.Label.Text = ac.State + " " + ac.Action
-
-			red := exampleThumbnailer{Color: color.NRGBA{R: 255, A: 255}}
-			green := exampleThumbnailer{Color: color.NRGBA{G: 255, A: 255}}
-			blue := exampleThumbnailer{Color: color.NRGBA{B: 255, A: 255}}
-
-			l, err := plot.NewLegend()
-			if err != nil {
-				panic(err)
-			}
-			l.Add("red", red)
 
 			if revert {
 				//log.Infof("ac: %s", ac.Show())
@@ -341,17 +322,18 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 //	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 //}
 
-//func drawPic(data []float64, xlabel string, ylabel string, filename string) {
-//	p, _ := plot.New()
-//	t := time.Now()
-//	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-//	p.X.Label.Text = xlabel
-//	p.Y.Label.Text = ylabel
-//
-//	drawData(p, data, 1, black)
-//
-//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-//}
+func drawPic(data []float64, xlabel string, ylabel string, filename string) {
+	p, _ := plot.New()
+	t := time.Now()
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = xlabel
+	p.Y.Label.Text = ylabel
+
+	drawData(p, data, 1, black)
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+}
+
 //func merge(dataHigh []float64, dataLow []float64) ([]float64, []float64) {
 //	if len(dataHigh) <= 0 {
 //		return dataHigh, dataLow
@@ -424,13 +406,13 @@ func main() {
 		stockBig := Stock{}
 		stockBig.LoadAllData(filename)
 
-		//ac := &avgContext{
-		//	State:  STATE_UNKOWN,
-		//	profit: 0.0,
-		//}
+		ac := &avgContext{
+			State:  STATE_UNKOWN,
+			profit: 0.0,
+		}
 
-		//tmpArr := make([]float64, 0)
-		for i := 300; i < len(stockBig.dataClose); i += 500 {
+		tmpArr := make([]float64, 0)
+		for i := 100; i < len(stockBig.dataClose); i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
@@ -438,11 +420,11 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 300
+			start := i - 500
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 300 + 1
+				end = start + 500 + 1
 			}
 
 			////1， 绘制底图
@@ -454,18 +436,19 @@ func main() {
 			st := copyStock(&stockBig, start, i+1)
 			arr, _ := getAllRect(st)
 			if len(arr) > 0 {
-				for _, r := range arr {
-					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-				}
+				//for _, r := range arr {
+				//	drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				//}
 			}
-			//ret := run(ac, p, st, filename, i)
-			//if ret {
-			//	log.Infof("[%d] profit:%f", i, ac.profit)
-			//}
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			break
+			ret := run(ac, p, st, filename, i)
+			if ret {
+				tmpArr = append(tmpArr, ac.profit)
+				log.Infof("[%d] profit:%f", i, ac.profit)
+			}
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//break
 		}
 		//
-		//drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
+		drawPic(tmpArr, "Count", "Profit", "/Users/xinmei365/profilt.png")
 	}
 }

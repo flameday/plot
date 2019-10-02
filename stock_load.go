@@ -274,12 +274,12 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 
 	rectArray := make([]Rect, 0)
 	for i := 0; i < len(stock.dataClose); {
-		pre := findPreMinOrMaxIndex(stock.dataMinMax, i)
+		pre := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
 		if pre == -1 {
 			i++
 			continue
 		}
-		post := findPostMinOrMaxIndex(stock.dataMinMax, i)
+		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
 		if post == -1 {
 			i++
 			continue

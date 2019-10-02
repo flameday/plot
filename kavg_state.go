@@ -7,38 +7,72 @@ import (
 // 初始化
 func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bool) {
 	//get pre arr
-	arr, _ := getAllRect(stock)
-	if len(arr) <= 1 {
+	//arr, _ := getAllRect(stock)
+	//if len(arr) <= 1 {
+	//	return false, false, false
+	//}
+
+	curIndex := len(stock.dataClose) - 1
+
+	//简单根据高低点来尽快买入、卖出
+	preMin := findPreIndex(stock.dataMinMax, curIndex-1, -1)
+	preMax := findPreIndex(stock.dataMinMax, curIndex-1, 1)
+	if preMin == -1 && preMax == -1 {
 		return false, false, false
 	}
-
-	curValue := stock.dataClose[len(stock.dataClose)-1]
-
-	// M
-	size := len(arr)
-	if (arr[size-1].top < arr[size-2].top) && (arr[size-1].bottom < arr[size-2].bottom) {
-		if curValue < arr[0].bottom {
-			ac.State = STATE_NEW_LOW
-			ac.Action = ACTION_SELL
-			ac.Sell_stop = arr[size-1]
-
-			ac.sell = curValue
-
-			return true, true, true
+	if preMax > preMin {
+		ac.State = STATE_NEW_LOW
+		ac.Action = ACTION_SELL
+		ac.Sell_stop = Rect{
+			left:   float64(preMax),
+			top:    stock.dataClose[preMax],
+			right:  float64(curIndex),
+			bottom: stock.dataClose[curIndex],
 		}
-	}
-	// W
-	if (arr[size-1].top > arr[size-2].top) && (arr[size-1].bottom > arr[size-2].bottom) {
-		if curValue > arr[size-1].top {
-			ac.State = STATE_NEW_HIGH
-			ac.Action = ACTION_BUY
-			ac.Buy_stop = arr[size-1]
 
-			ac.buy = curValue
+		ac.sell = stock.dataClose[curIndex]
 
-			return true, true, true
+		return true, true, true
+	} else if preMin > preMax {
+		ac.State = STATE_NEW_HIGH
+		ac.Action = ACTION_BUY
+		ac.Buy_stop = Rect{
+			left:   float64(preMin),
+			top:    stock.dataClose[preMin],
+			right:  float64(curIndex),
+			bottom: stock.dataClose[curIndex],
 		}
+
+		ac.buy = stock.dataClose[curIndex]
+
+		return true, true, true
 	}
+
+	//// M
+	//size := len(arr)
+	//if (arr[size-1].top < arr[size-2].top) && (arr[size-1].bottom < arr[size-2].bottom) {
+	//	if curValue < arr[0].bottom {
+	//		ac.State = STATE_NEW_LOW
+	//		ac.Action = ACTION_SELL
+	//		ac.Sell_stop = arr[size-1]
+	//
+	//		ac.sell = curValue
+	//
+	//		return true, true, true
+	//	}
+	//}
+	//// W
+	//if (arr[size-1].top > arr[size-2].top) && (arr[size-1].bottom > arr[size-2].bottom) {
+	//	if curValue > arr[size-1].top {
+	//		ac.State = STATE_NEW_HIGH
+	//		ac.Action = ACTION_BUY
+	//		ac.Buy_stop = arr[size-1]
+	//
+	//		ac.buy = curValue
+	//
+	//		return true, true, true
+	//	}
+	//}
 
 	return true, false, false
 }

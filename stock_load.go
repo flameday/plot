@@ -280,14 +280,17 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 		}
 
 		left := float64(pre)
-		top := math.Max(stock.dataClose[pre], stock.dataClose[post])
+		top := math.Max(stock.dataHigh[pre], stock.dataHigh[post])
 		right := float64(post)
-		bottom := math.Min(stock.dataClose[pre], stock.dataClose[post])
+		bottom := math.Min(stock.dataLow[pre], stock.dataLow[post])
+
+		//offset := (top - bottom)*0.2
+		offset := 0.0
 		r := Rect{
 			left:   left,
-			top:    top,
+			top:    top + offset,
 			right:  right,
-			bottom: bottom,
+			bottom: bottom - offset,
 		}
 		rectArray = append(rectArray, r)
 		i = post + 1

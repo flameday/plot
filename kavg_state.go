@@ -5,14 +5,14 @@ import (
 )
 
 // 初始化
-func isValidInit(ac *avgContext, data []float64) (ret bool, revert bool, modify bool) {
+func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bool) {
 	//get pre arr
-	arr, _ := getAllRect(data)
+	arr, _ := getAllRect(stock)
 	if len(arr) <= 1 {
 		return false, false, false
 	}
 
-	curValue := data[len(data)-1]
+	curValue := stock.dataClose[len(stock.dataClose)-1]
 
 	// M
 	size := len(arr)
@@ -232,15 +232,15 @@ func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 	return true, false, false
 }
 
-func forwardState(ac *avgContext, data []float64) (ret bool, revert bool, modify bool, arr []Rect) {
+func forwardState(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bool, arr []Rect) {
 	//get pre arr
-	arr, _ = getAllRect(data)
+	arr, _ = getAllRect(stock)
 	if len(arr) <= 1 {
 		return false, false, false, arr
 	}
 
 	ret, revert, modify = true, false, false
-	curValue := data[len(data)-1]
+	curValue := stock.dataClose[len(stock.dataClose)-1]
 
 	if ac.State == STATE_NEW_HIGH && ac.Action == ACTION_BUY {
 		ret, revert, modify = action_High_Buy(ac, arr, curValue)

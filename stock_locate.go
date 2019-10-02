@@ -34,39 +34,105 @@ func findMinIndex(data []float64, flagArr []int, posStart int, posEnd int) int {
 //}
 
 // 局部最大值
-func isMax(value_list []float64, index int, length int) bool {
+func isMax(data []float64, avg []float64, index int, length int) bool {
 	//前后端点不计算大小值
-	if index <= length/2 || index >= len(value_list)-length/2 {
+	if index <= length/2 || index >= len(data)-length/2 {
 		return false
 	}
 
 	for i := 1; i <= length/2; i++ {
-		if value_list[index-i] > value_list[index] {
+		if data[index-i] > data[index] {
 			return false
 		}
-		if value_list[index+i] > value_list[index] {
+		if data[index+i] > data[index] {
 			return false
 		}
 	}
-	return true
+	//
+	limitCnt := 0
+	for i := 0; i < index+3; i++ {
+		if i <= 0 {
+			continue
+		}
+		if i >= len(data) || i >= len(avg) {
+			continue
+		}
+		if data[i] <= avg[i] {
+			break
+		}
+		limitCnt += 1
+		if limitCnt >= 3 {
+			return true
+		}
+	}
+	for i := index - 1; i >= index-3; i-- {
+		if i <= 0 {
+			continue
+		}
+		if i >= len(data) || i >= len(avg) {
+			continue
+		}
+
+		if data[i] <= avg[i] {
+			break
+		}
+		limitCnt += 1
+		if limitCnt >= 3 {
+			return true
+		}
+	}
+	return false
 }
 
 // 局部最小值
-func isMin(value_list []float64, index int, length int) bool {
+func isMin(data []float64, avg []float64, index int, length int) bool {
 	//前后端点不计算大小值
-	if index <= length/2 || index >= len(value_list)-length/2 {
+	if index <= length/2 || index >= len(data)-length/2 {
 		return false
 	}
 
 	for i := 1; i <= length/2; i++ {
-		if value_list[index-i] < value_list[index] {
+		if data[index-i] < data[index] {
 			return false
 		}
-		if value_list[index+i] < value_list[index] {
+		if data[index+i] < data[index] {
 			return false
 		}
 	}
-	return true
+	//
+	limitCnt := 0
+	for i := 0; i < index+3; i++ {
+		if i <= 0 {
+			continue
+		}
+		if i >= len(data) || i >= len(avg) {
+			continue
+		}
+		if data[i] >= avg[i] {
+			break
+		}
+		limitCnt += 1
+		if limitCnt >= 3 {
+			return true
+		}
+	}
+	for i := index - 1; i >= index-3; i-- {
+		if i <= 0 {
+			continue
+		}
+		if i >= len(data) || i >= len(avg) {
+			continue
+		}
+
+		if data[i] >= avg[i] {
+			break
+		}
+		limitCnt += 1
+		if limitCnt >= 3 {
+			return true
+		}
+	}
+	return false
 }
 
 // 根据前面的 length 个值，获取平均值

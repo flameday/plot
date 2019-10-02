@@ -8,7 +8,6 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"image/color"
-	"math"
 	"runtime/debug"
 	"time"
 )
@@ -84,10 +83,10 @@ func (et exampleThumbnailer) Thumbnail(c *draw.Canvas) {
 	}, outline...)
 }
 
-func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int) bool {
+func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) bool {
 
-	_, st := getAllRect(data)
-	curPos := len(data) - 1
+	_, st := getAllRect(stock)
+	curPos := len(stock.dataClose) - 1
 
 	//log.Infof("len(arr):%v", len(arr))
 	//for _, r := range arr {
@@ -99,7 +98,7 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 	//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 	if ac.State == STATE_UNKOWN {
-		ok, revert, change := isValidInit(ac, st.dataClose)
+		ok, revert, change := isValidInit(ac, st)
 		if ok && revert && change {
 			//log.Infof("ac: %s", ac.Show())
 
@@ -116,11 +115,10 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change, arr := forwardState(ac, st.dataClose)
+		ok, revert, change, arr := forwardState(ac, st)
 		for _, r := range arr {
 			drawRectangle(p, r.left, r.top, r.right, r.bottom, yellow)
 		}
-		drawData(p, st.dense, 1, gray)
 		//log.Infof("pos:%d ok:%v", pos, ok)
 
 		if ok {
@@ -167,107 +165,108 @@ func run(ac *avgContext, p *plot.Plot, data []float64, filename string, pos int)
 	}
 	return false
 }
-func drawInflection(stock *Stock, xlabel string, ylabel string, filename string) {
-	p, _ := plot.New()
-	t := time.Now()
-	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-	p.X.Label.Text = xlabel
-	p.Y.Label.Text = ylabel
 
-	preRiseLength := 0.0
-	preRiseCount := 0
-	preDownLength := 0.0
-	preDownCount := 0
-	trendRise := true
-	trendData := make([]float64, 0)
-	// 初始化
-	preDiff := stock.dataClose[0] - stock.dataOpen[0]
-	if preDiff >= 0 {
-		trendRise = true
-		preRiseLength = preDiff
-		preRiseCount = 1
-	} else {
-		trendRise = false
-		preDownLength = preDiff
-		preDownCount = 1
-	}
-
-	if trendRise {
-		trendData = append(trendData, 1.0)
-	} else {
-		trendData = append(trendData, -1.0)
-	}
-
-	// 遍历
-	for i := 1; i < len(stock.dataOpen); i++ {
-
-		if i%2 == 0 {
-			//drawLine(p, float64(i), -1, float64(i), 20)
-		}
-
-		diff := stock.dataClose[i] - stock.dataOpen[i]
-		log.Infof("[%d] trendRise:%v diff:%f", i, trendRise, diff)
-		log.Infof("[%d] rise:%f %d down:%f %d", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
-
-		if diff == 0 {
-			continue
-		}
-
-		if trendRise == true {
-			if diff >= 0 {
-				preRiseLength += math.Abs(diff)
-				preRiseCount += 1
-			} else if diff < 0 {
-				// 转向
-				if math.Abs(diff)+preDownLength > preRiseLength/float64(preRiseCount) {
-					drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
-				}
-				// 转势
-				if math.Abs(diff)+preDownLength > 0.5*preRiseLength {
-					trendRise = false
-
-					preRiseLength = 0
-					preRiseCount = 0
-				}
-
-				preDownLength += math.Abs(diff)
-				preDownCount += 1
-				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
-			}
-		} else if trendRise == false {
-			if diff <= 0 {
-				preDownLength += math.Abs(diff)
-				preDownCount += 1
-			} else if diff > 0 {
-				// 转向
-				if math.Abs(diff)+preRiseLength > preDownLength/float64(preDownCount) {
-					drawPoint(p, float64(i), stock.dataOpen[i], 15, blue)
-				}
-				// 转势
-				if math.Abs(diff)+preRiseLength > 0.5*preDownLength {
-					trendRise = true
-
-					preDownLength = 0
-					preDownCount = 0
-				}
-
-				preRiseLength += math.Abs(diff)
-				preRiseCount += 1
-				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
-			}
-		}
-		if trendRise {
-			trendData = append(trendData, 0.1)
-		} else {
-			trendData = append(trendData, 0)
-		}
-	}
-
-	drawData(p, stock.dataOpen, 2, dark_red)
-	drawData(p, stock.dataClose, 2, gray)
-	drawData(p, trendData, 2, magenta)
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-}
+//func drawInflection(stock *Stock, xlabel string, ylabel string, filename string) {
+//	p, _ := plot.New()
+//	t := time.Now()
+//	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+//	p.X.Label.Text = xlabel
+//	p.Y.Label.Text = ylabel
+//
+//	preRiseLength := 0.0
+//	preRiseCount := 0
+//	preDownLength := 0.0
+//	preDownCount := 0
+//	trendRise := true
+//	trendData := make([]float64, 0)
+//	// 初始化
+//	preDiff := stock.dataClose[0] - stock.dataOpen[0]
+//	if preDiff >= 0 {
+//		trendRise = true
+//		preRiseLength = preDiff
+//		preRiseCount = 1
+//	} else {
+//		trendRise = false
+//		preDownLength = preDiff
+//		preDownCount = 1
+//	}
+//
+//	if trendRise {
+//		trendData = append(trendData, 1.0)
+//	} else {
+//		trendData = append(trendData, -1.0)
+//	}
+//
+//	// 遍历
+//	for i := 1; i < len(stock.dataOpen); i++ {
+//
+//		if i%2 == 0 {
+//			//drawLine(p, float64(i), -1, float64(i), 20)
+//		}
+//
+//		diff := stock.dataClose[i] - stock.dataOpen[i]
+//		log.Infof("[%d] trendRise:%v diff:%f", i, trendRise, diff)
+//		log.Infof("[%d] rise:%f %d down:%f %d", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
+//
+//		if diff == 0 {
+//			continue
+//		}
+//
+//		if trendRise == true {
+//			if diff >= 0 {
+//				preRiseLength += math.Abs(diff)
+//				preRiseCount += 1
+//			} else if diff < 0 {
+//				// 转向
+//				if math.Abs(diff)+preDownLength > preRiseLength/float64(preRiseCount) {
+//					drawPoint(p, float64(i), stock.dataOpen[i], 10, red)
+//				}
+//				// 转势
+//				if math.Abs(diff)+preDownLength > 0.5*preRiseLength {
+//					trendRise = false
+//
+//					preRiseLength = 0
+//					preRiseCount = 0
+//				}
+//
+//				preDownLength += math.Abs(diff)
+//				preDownCount += 1
+//				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
+//			}
+//		} else if trendRise == false {
+//			if diff <= 0 {
+//				preDownLength += math.Abs(diff)
+//				preDownCount += 1
+//			} else if diff > 0 {
+//				// 转向
+//				if math.Abs(diff)+preRiseLength > preDownLength/float64(preDownCount) {
+//					drawPoint(p, float64(i), stock.dataOpen[i], 15, blue)
+//				}
+//				// 转势
+//				if math.Abs(diff)+preRiseLength > 0.5*preDownLength {
+//					trendRise = true
+//
+//					preDownLength = 0
+//					preDownCount = 0
+//				}
+//
+//				preRiseLength += math.Abs(diff)
+//				preRiseCount += 1
+//				log.Infof("[%d] rise:%f %d down:%f %d\n", i, preRiseLength, preRiseCount, preDownLength, preDownCount)
+//			}
+//		}
+//		if trendRise {
+//			trendData = append(trendData, 0.1)
+//		} else {
+//			trendData = append(trendData, 0)
+//		}
+//	}
+//
+//	drawData(p, stock.dataOpen, 2, dark_red)
+//	drawData(p, stock.dataClose, 2, gray)
+//	drawData(p, trendData, 2, magenta)
+//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+//}
 
 //func drawSubBar(stock *Stock, xlabel string, ylabel string, filename string) {
 //	p, _ := plot.New()
@@ -342,18 +341,54 @@ func drawInflection(stock *Stock, xlabel string, ylabel string, filename string)
 //	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 //}
 
-func drawPic(data []float64, xlabel string, ylabel string, filename string) {
-	p, _ := plot.New()
-	t := time.Now()
-	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-	p.X.Label.Text = xlabel
-	p.Y.Label.Text = ylabel
-
-	drawData(p, data, 1, black)
-
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-}
-
+//func drawPic(data []float64, xlabel string, ylabel string, filename string) {
+//	p, _ := plot.New()
+//	t := time.Now()
+//	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+//	p.X.Label.Text = xlabel
+//	p.Y.Label.Text = ylabel
+//
+//	drawData(p, data, 1, black)
+//
+//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+//}
+//func merge(dataHigh []float64, dataLow []float64) ([]float64, []float64) {
+//	if len(dataHigh) <= 0 {
+//		return dataHigh, dataLow
+//	}
+//	if len(dataHigh) != len(dataLow) {
+//		log.Errorf("merge error")
+//	}
+//
+//	newHigh := make([]float64, 0)
+//	newLow := make([]float64, 0)
+//	newHigh = append(newHigh, dataHigh[0])
+//	newLow = append(newLow, dataLow[0])
+//
+//	for i := 1; i < len(dataHigh); i++ {
+//		if (dataHigh[i-1] >= dataHigh[i]) && (dataLow[i-1] <= dataLow[i]) {
+//			newHigh[len(newHigh)-1] = math.Max(newHigh[len(newHigh)-1], dataHigh[i])
+//			newLow[len(newLow)-1] = math.Min(newLow[len(newLow)-1], dataLow[i])
+//		} else {
+//			newHigh = append(newHigh, dataHigh[i])
+//			newLow = append(newLow, dataLow[i])
+//		}
+//	}
+//	return newHigh, newLow
+//}
+//
+//func isPen(data []float64) bool {
+//	if len(data) < 3 {
+//		return false
+//	}
+//	return true
+//}
+//func isTopFractal(data []float64) bool {
+//	return false
+//}
+//func isBottomFractal(data []float64) bool {
+//	return false
+//}
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -374,64 +409,6 @@ func main() {
 	log.ReplaceLogger(logger)
 	defer log.Flush()
 
-	//b, err := ioutil.ReadFile(*fontfile)
-	//if err != nil {
-	//	log.Errorf("err:%v", err)
-	//	return
-	//}
-	//f, err := truetype.Parse(b)
-	//if err != nil {
-	//	log.Errorf("err:%v", err)
-	//	return
-	//}
-	//// Freetype context
-	//fg, _ := image.Black, image.White
-	//rgba := image.NewRGBA(image.Rect(0, 0, 1000, 200))
-	////draw.Draw(rgba, rgba.Bounds(), bg, image.ZP, draw.Src)
-	//c := freetype.NewContext()
-	//c.SetDPI(*dpi)
-	//c.SetFont(f)
-	//c.SetFontSize(*size)
-	//c.SetClip(rgba.Bounds())
-	//c.SetDst(rgba)
-	//c.SetSrc(fg)
-	//switch *hinting {
-	//default:
-	//	c.SetHinting(font.HintingNone)
-	//case "full":
-	//	c.SetHinting(font.HintingFull)
-	//}
-	//
-	//// Make some background
-	//
-	//// Draw the guidelines.
-	//ruler := color.RGBA{0xdd, 0xdd, 0xdd, 0xff}
-	//for rcount := 0; rcount < 4; rcount++ {
-	//	for i := 0; i < 200; i++ {
-	//		rgba.Set(250*rcount, i, ruler)
-	//	}
-	//}
-	//
-	//// Truetype stuff
-	//opts := truetype.Options{}
-	//opts.Size = 125.0
-	//face := truetype.NewFace(f, &opts)
-	//
-	//// Calculate the widths and print to image
-	//for i, x := range text {
-	//	awidth, ok := face.GlyphAdvance(rune(x))
-	//	if ok != true {
-	//		log.Errorf("err:%v", err)
-	//		return
-	//	}
-	//	iwidthf := int(float64(awidth) / 64)
-	//	fmt.Printf("%+v\n", iwidthf)
-	//
-	//	pt := freetype.Pt(i*250+(125-iwidthf/2), 128)
-	//	c.DrawString(string(x), pt)
-	//	fmt.Printf("%+v\n", awidth)
-	//}
-
 	// 绘图
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
@@ -444,11 +421,8 @@ func main() {
 		}
 
 		filename := dstArray[index]
-		stock := Stock{}
-		stock.LoadAllData(filename)
-		//stock.GetDist()
-		//drawSubBar(&stock, "subBar", "subPrice", "/Users/xinmei365/subBar.png")
-		drawInflection(&stock, "inflcection", "length", "/Users/xinmei365/inflection.png")
+		stockBig := Stock{}
+		stockBig.LoadAllData(filename)
 
 		//ac := &avgContext{
 		//	State:  STATE_UNKOWN,
@@ -456,7 +430,7 @@ func main() {
 		//}
 
 		//tmpArr := make([]float64, 0)
-		for i := 400; i < len(stock.dataClose); i += 1 {
+		for i := 300; i < len(stockBig.dataClose); i += 500 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
@@ -471,22 +445,22 @@ func main() {
 				end = start + 300 + 1
 			}
 
-			//1， 绘制底图
-			drawData(p, stock.dataClose[start:end], 1, pink)
-			drawData(p, stock.dense[start:end], 1, orange)
-			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
-			drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
+			////1， 绘制底图
+			drawData(p, stockBig.dataClose[start:end], 1, red)
+			drawData(p, stockBig.avg10[start:end], 1, black)
+			//	//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], 1, 3, gray)
+			//	//drawMinMax(p, stock.dataClose[start:end], stock.dataMinMax[start:end], -1, 3, gray)
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			arr, _ := getAllRect(stock.dataClose[start : i+1])
+			st := copyStock(&stockBig, start, i+1)
+			arr, _ := getAllRect(st)
 			if len(arr) > 0 {
 				for _, r := range arr {
 					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
 				}
 			}
-			//ret := run(ac, p, stock.dataClose[start:i+1], filename, i)
+			//ret := run(ac, p, st, filename, i)
 			//if ret {
 			//	log.Infof("[%d] profit:%f", i, ac.profit)
-			//	tmpArr = append(tmpArr, ac.profit)
 			//}
 			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			break

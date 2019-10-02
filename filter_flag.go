@@ -62,9 +62,7 @@ func filter_min_max(data []float64, minMaxArr []int) {
 		if minMaxArr[i] == MIN_VALUE_FLAG {
 			if last_minPos == -1 {
 				last_minPos = i
-			}
-
-			if last_minPos > last_maxPos {
+			} else if last_minPos > last_maxPos {
 				//判断哪个大
 				if data[last_minPos] < data[i] {
 					minMaxArr[i] = 0
@@ -79,9 +77,7 @@ func filter_min_max(data []float64, minMaxArr []int) {
 		if minMaxArr[i] == MAX_VALUE_FLAG {
 			if last_maxPos == -1 {
 				last_maxPos = i
-			}
-
-			if last_maxPos > last_minPos {
+			} else if last_maxPos > last_minPos {
 				if data[last_maxPos] > data[i] {
 					minMaxArr[i] = 0
 				} else {

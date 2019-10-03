@@ -263,11 +263,90 @@ func copyStock(stock *Stock, start int, end int) *Stock {
 	}
 	return st
 }
+func getSubWave(stock *Stock, pre int, post int) {
+
+}
+func isLow(data []float64, index int, length int) bool {
+	//前后端点不计算大小值
+	if index <= length/2 || index >= len(data)-length/2 {
+		return false
+	}
+
+	for i := 1; i <= length/2; i++ {
+		if data[index-i] < data[index] {
+			return false
+		}
+		if data[index+i] < data[index] {
+			return false
+		}
+	}
+	return true
+}
+func isHigh(data []float64, index int, length int) bool {
+	//前后端点不计算大小值
+	if index <= length/2 || index >= len(data)-length/2 {
+		return false
+	}
+
+	for i := 1; i <= length/2; i++ {
+		if data[index-i] > data[index] {
+			return false
+		}
+		if data[index+i] > data[index] {
+			return false
+		}
+	}
+	return true
+}
+func getSmallWave(stock *Stock, pre int, post int) {
+	//先求高点
+	for i := pre + 1; i < post; i++ {
+		if isHigh(stock.dataHigh, i, 5) {
+			stock.dataMinMax[i] = 2
+		}
+	}
+	//遍历高点，求后面的低点
+	for i := pre + 1; i < post; i++ {
+		if stock.dataMinMax[i] == 2 {
+			next := findNextIndex(stock.dataMinMax, i+1, 2)
+			if next == -1 {
+				next = post
+			}
+			for k := i + 2; k < next; k++ {
+				if isLow(stock.dataLow, k, 5) {
+					//判断高低
+					if stock.dataHigh[i] > stock.dataHigh[k] && stock.dataLow[i] > stock.dataLow[k] {
+						stock.dataMinMax[k] = -2
+					}
+				}
+			}
+		}
+	}
+}
 func getAllRect(stock *Stock) ([]Rect, *Stock) {
 	//计算最大最小值
 	for i := 0; i < len(stock.dataClose); i++ {
 		//log.Infof("i: %d", i)
 		getWave(stock, i)
+	}
+	for i := 0; i < len(stock.dataClose); {
+		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
+		if pre == -1 {
+			i++
+			continue
+		}
+		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
+		if post == -1 {
+			i++
+			continue
+		}
+
+		if post > pre+33 {
+			getSmallWave(stock, pre, post)
+		}
+
+		// next
+		i = post + 1
 	}
 
 	rectArray := make([]Rect, 0)
@@ -282,6 +361,7 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 			i++
 			continue
 		}
+		// 获得子浪
 
 		left := float64(pre)
 		top := math.Max(stock.dataHigh[pre], stock.dataHigh[post])

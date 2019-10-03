@@ -445,6 +445,7 @@ func main() {
 				}
 			}
 			drawAllMinMax(p, st, 2, black)
+			drawAllSubMinMax(p, st, 2, blue)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
 			ret := run(ac, p, st, filename, i)
@@ -452,7 +453,9 @@ func main() {
 				tmpArr = append(tmpArr, ac.profit)
 				log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			if i%300 == 0 {
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			}
 		}
 		//
 		drawPic(tmpArr, "Count", "Profit", fmt.Sprintf("/Users/xinmei365/profilt_%d.png", index))

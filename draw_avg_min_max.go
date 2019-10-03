@@ -43,6 +43,45 @@ func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width fl
 	p.Add(lpLine, lpPoints)
 }
 
+func drawAllSubMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color) {
+	points := make(plotter.XYs, 0)
+	for i, _ := range stock.dataClose {
+		if stock.dataMinMax[i] == 2 || stock.dataMinMax[i] == 2 {
+			var elem = plotter.XY{
+				float64(i), stock.dataHigh[i],
+			}
+			points = append(points, elem)
+		}
+		if stock.dataMinMax[i] == -2 || stock.dataMinMax[i] == -2 {
+			var elem = plotter.XY{
+				float64(i), stock.dataLow[i],
+			}
+			points = append(points, elem)
+		}
+	}
+	// Make a line plotter and set its style.
+	//l, err := plotter.NewLine(points)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Width = vg.Points(1)
+	//l.LineStyle.Dashes = []vg.Length{vg.Points(1), vg.Points(1)}
+	//l.LineStyle.Color = clr
+
+	lpLine, lpPoints, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine.Color = clr
+	lpPoints.Shape = draw.CircleGlyph{}
+	lpPoints.Radius = vg.Length(width)
+	lpPoints.Color = clr
+	lpLine.LineStyle.Width = vg.Points(2)
+
+	p.Add(lpLine, lpPoints)
+}
+
 func drawAllMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
 	for i, _ := range stock.dataClose {

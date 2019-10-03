@@ -105,10 +105,6 @@ func initWave(stock *Stock, index int) {
 	}
 }
 func getWave(stock *Stock, index int) {
-	//if index == 21 {
-	//	log.Infof("index:%d", index)
-	//}
-
 	minMax := stock.dataMinMax
 
 	pos, _ := findPreMinOrMaxIndex(minMax, index-1)
@@ -181,143 +177,8 @@ func getWave(stock *Stock, index int) {
 			minMax[index] = 1
 		}
 	}
-
 }
 
-//func getWave3(stock *Stock, index int) {
-//	//if index == 21 {
-//	//	log.Infof("index:%d", index)
-//	//}
-//
-//	minMax := stock.dataMinMax
-//
-//	pos, _ := findPreMinOrMaxIndex(minMax, index-1)
-//	if pos == -1 {
-//		initWave(stock, index)
-//		return
-//	}
-//
-//	//找到1，-1的位置
-//	preLowPos := findPreIndex(minMax, index-1, -1)
-//	preHighPos := findPreIndex(minMax, index-1, 1)
-//	// 二选一
-//	if preLowPos == -1 || preHighPos == -1 {
-//		if preLowPos != -1 {
-//			highCnt := 0
-//			lowCnt := 0
-//			for i := preLowPos; i <= index; i++ {
-//				if stock.dataHigh[i] < stock.avg10[i] {
-//					lowCnt += 1
-//				} else if stock.dataLow[i] > stock.avg10[i] {
-//					highCnt += 1
-//				}
-//			}
-//
-//			if lowCnt >= 3 {
-//				//merge
-//				if stock.dataLow[preLowPos] < stock.dataLow[index] {
-//					//keep old
-//				} else if stock.dataLow[index] < stock.avg10[index] {
-//					//use new
-//					minMax[preLowPos] = 0
-//					minMax[index] = -1
-//					log.Errorf("		-1: use new %d  ---> %d", preLowPos, index)
-//				}
-//			}
-//
-//			if highCnt >= 3 {
-//				minMax[index] = 1
-//			}
-//		}
-//
-//		if preHighPos != -1 {
-//			highCnt := 0
-//			lowCnt := 0
-//			for i := preHighPos; i <= index; i++ {
-//				if stock.dataHigh[i] < stock.avg10[i] {
-//					lowCnt += 1
-//				} else if stock.dataLow[i] > stock.avg10[i] {
-//					highCnt += 1
-//				}
-//			}
-//			if highCnt >= 3 {
-//				//merge
-//				if stock.dataHigh[preHighPos] > stock.dataHigh[index] {
-//					//keep old
-//				} else if stock.dataHigh[index] > stock.avg10[index] {
-//					//use new
-//					minMax[preHighPos] = 0
-//					minMax[index] = 1
-//					log.Errorf("		1: use new %d  ---> %d", preHighPos, index)
-//				}
-//			}
-//			if lowCnt >= 3 {
-//				minMax[index] = -1
-//			}
-//		}
-//
-//		return
-//	}
-//	//两个都有:先低后高
-//	if preLowPos < preHighPos {
-//		highCnt := 0
-//		lowCnt := 0
-//		for i := preLowPos; i <= index; i++ {
-//			if stock.dataHigh[i] < stock.avg10[i] {
-//				lowCnt += 1
-//			} else if stock.dataLow[i] > stock.avg10[i] {
-//				highCnt += 1
-//			}
-//		}
-//		//合并高点
-//		if highCnt >= 3 {
-//			//merge
-//			if stock.dataHigh[preHighPos] > stock.dataHigh[index] {
-//				//keep old
-//			} else if stock.dataHigh[index] > stock.avg10[index] {
-//				//use new
-//				minMax[preHighPos] = 0
-//				minMax[index] = 1
-//				log.Errorf("		1: use new %d  ---> %d", preHighPos, index)
-//			}
-//		}
-//		if lowCnt >= 3 {
-//			minMax[index] = -1
-//		}
-//	}
-//
-//	// 高低
-//	if preHighPos < preLowPos {
-//		highCnt := 0
-//		lowCnt := 0
-//		for i := preHighPos; i <= index; i++ {
-//			if stock.dataHigh[i] < stock.avg10[i] {
-//				lowCnt += 1
-//			} else if stock.dataLow[i] > stock.avg10[i] {
-//				highCnt += 1
-//			}
-//		}
-//		//合并高点
-//		if lowCnt >= 3 {
-//			//merge
-//			if stock.dataLow[preLowPos] < stock.dataLow[index] {
-//				//keep old
-//			} else if stock.dataLow[index] < stock.avg10[index] {
-//				//use new
-//				minMax[preLowPos] = 0
-//				minMax[index] = -1
-//				log.Errorf("		-1: use new %d  ---> %d", preLowPos, index)
-//			}
-//		}
-//		if highCnt >= 3 {
-//			minMax[index] = 1
-//		}
-//	}
-//
-//	if minMax[index] == 1 || minMax[index] == -1 {
-//		log.Errorf("[%d] minMax:%d", index, minMax[index])
-//	}
-//}
 func get_fractal(data []float64, index int) int {
 	if index == 0 || index >= len(data)-1 {
 		return 0

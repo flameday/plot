@@ -50,32 +50,6 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		return true, true, true
 	}
 
-	//// M
-	//size := len(arr)
-	//if (arr[size-1].top < arr[size-2].top) && (arr[size-1].bottom < arr[size-2].bottom) {
-	//	if curValue < arr[0].bottom {
-	//		ac.State = STATE_NEW_LOW
-	//		ac.Action = ACTION_SELL
-	//		ac.Sell_stop = arr[size-1]
-	//
-	//		ac.sell = curValue
-	//
-	//		return true, true, true
-	//	}
-	//}
-	//// W
-	//if (arr[size-1].top > arr[size-2].top) && (arr[size-1].bottom > arr[size-2].bottom) {
-	//	if curValue > arr[size-1].top {
-	//		ac.State = STATE_NEW_HIGH
-	//		ac.Action = ACTION_BUY
-	//		ac.Buy_stop = arr[size-1]
-	//
-	//		ac.buy = curValue
-	//
-	//		return true, true, true
-	//	}
-	//}
-
 	return true, false, false
 }
 

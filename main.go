@@ -437,12 +437,12 @@ func main() {
 			st := copyStock(&stockBig, start, end)
 			arr, _ := getAllRect(st)
 			if len(arr) > 0 {
-				for _, r := range arr {
-					drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-				}
+				//	for _, r := range arr {
+				//		drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+				//	}
 			}
-			drawAllMinMax(p, st, 2, black)
 			drawAllSubMinMax(p, st, 2, blue)
+			drawAllMinMax(p, st, 2, black)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
 			//ret := run(ac, p, st, filename, i)

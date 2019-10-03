@@ -301,8 +301,20 @@ func isHigh(data []float64, index int, length int) bool {
 	}
 	return true
 }
+func isRising(stock *Stock, pre int, post int) bool {
+	if stock.dataMinMax[pre] < 0 && stock.dataMinMax[post] > 0 {
+		return true
+	}
+	return false
+}
+func isFall(stock *Stock, pre int, post int) bool {
+	if stock.dataMinMax[pre] > 0 && stock.dataMinMax[post] < 0 {
+		return true
+	}
+	return false
+}
 func getSmallWave(stock *Stock, pre int, post int) {
-	if (stock.subDataMinMax[pre] == -2) && (stock.subDataMinMax[post] == 2) {
+	if isRising(stock, pre, post) {
 		//先求高点
 		for i := pre + 1; i < post; i++ {
 			if isHigh(stock.dataHigh, i, 5) {
@@ -326,7 +338,7 @@ func getSmallWave(stock *Stock, pre int, post int) {
 				}
 			}
 		}
-	} else if (stock.subDataMinMax[pre] == 2) && (stock.subDataMinMax[post] == -2) {
+	} else if isFall(stock, pre, post) {
 		for i := pre + 1; i < post; i++ {
 			if isLow(stock.dataLow, i, 5) {
 				stock.subDataMinMax[i] = -2
@@ -401,8 +413,10 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 		}
 
 		if post > pre+33 {
-			log.Infof("%d --> %d diff:%d", pre, post, post-pre)
-			//getSmallWave(stock, pre, post)
+			if i == 114 {
+				log.Infof("%d --> %d diff:%d", pre, post, post-pre)
+			}
+			getSmallWave(stock, pre, post)
 		}
 
 		// next

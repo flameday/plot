@@ -433,10 +433,6 @@ func main() {
 			//drawData(p, stockBig.dataLow[start:end], 2, yellow)
 			drawData(p, stockBig.avg10[start:end], 1, purple)
 
-			//drawAllMinMax(p, &stockBig, 2, black)
-			//drawMinMax(p, stockBig.dataHigh[start:end], stockBig.dataMinMax[start:end], 1, 3, black)
-			//drawMinMax(p, stockBig.dataLow[start:end], stockBig.dataMinMax[start:end], -1, 3, dark_red)
-
 			st := copyStock(&stockBig, start, i+1)
 			arr, _ := getAllRect(st)
 			if len(arr) > 0 {

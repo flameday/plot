@@ -46,13 +46,13 @@ func drawMinMax(p *plot.Plot, data []float64, posArr []int, minMax int, width fl
 func drawAllSubMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
 	for i, _ := range stock.dataClose {
-		if stock.dataMinMax[i] == 2 || stock.dataMinMax[i] == 2 {
+		if stock.dataMinMax[i] == 1 || stock.subDataMinMax[i] == 2 {
 			var elem = plotter.XY{
 				float64(i), stock.dataHigh[i],
 			}
 			points = append(points, elem)
 		}
-		if stock.dataMinMax[i] == -2 || stock.dataMinMax[i] == -2 {
+		if stock.dataMinMax[i] == -1 || stock.subDataMinMax[i] == -2 {
 			var elem = plotter.XY{
 				float64(i), stock.dataLow[i],
 			}
@@ -85,13 +85,13 @@ func drawAllSubMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color
 func drawAllMinMax(p *plot.Plot, stock *Stock, width float64, clr color.Color) {
 	points := make(plotter.XYs, 0)
 	for i, _ := range stock.dataClose {
-		if stock.dataMinMax[i] == 1 {
+		if stock.dataMinMax[i] > 0 {
 			var elem = plotter.XY{
 				float64(i), stock.dataHigh[i],
 			}
 			points = append(points, elem)
 		}
-		if stock.dataMinMax[i] == -1 {
+		if stock.dataMinMax[i] < 0 {
 			var elem = plotter.XY{
 				float64(i), stock.dataLow[i],
 			}

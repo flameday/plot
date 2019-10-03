@@ -49,15 +49,17 @@ type Rect struct {
 }
 
 type avgContext struct {
-	State        string
-	Action       string
-	Sell_stop    Rect
-	Buy_stop     Rect
-	High_Low_Min float64
-	Low_High_Max float64
-	profit       float64
-	buy          float64
-	sell         float64
+	State          string
+	Action         string
+	Sell_stop      Rect
+	Buy_stop       Rect
+	High_Low_Min   float64
+	Low_High_Max   float64
+	Sell_Min_Value float64
+	Buy_Max_Value  float64
+	profit         float64
+	buy            float64
+	sell           float64
 }
 
 func (ac *avgContext) Show() string {

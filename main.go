@@ -85,6 +85,10 @@ func (et exampleThumbnailer) Thumbnail(c *draw.Canvas) {
 
 func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) bool {
 
+	//log.Infof("pos:%d", pos)
+	//if pos == 58 {
+	//	log.Infof("58")
+	//}
 	_, st := getAllRect(stock)
 	curPos := len(stock.dataClose) - 1
 
@@ -101,45 +105,32 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			}
 
 			p.X.Label.Text = ac.State + " " + ac.Action
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 
 			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change, _ := forwardState(ac, st)
-		//for _, r := range arr {
-		//drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
-		//}
-		//log.Infof("pos:%d ok:%v", pos, ok)
-
-		if ok {
-			p.X.Label.Text = ac.State + " " + ac.Action
-
-			if revert {
-				//log.Infof("ac: %s", ac.Show())
-
-				drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
-
-				if ac.Action == ACTION_BUY {
-					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
-				} else if ac.Action == ACTION_SELL {
-					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
-				}
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-				return true
-			} else if change {
-				//log.Infof("ac: %s", ac.Show())
-
-				drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
-
-				if ac.Action == ACTION_BUY {
-					drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
-				} else if ac.Action == ACTION_SELL {
-					drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
-				}
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-				return true
+		ok, revert, change, arr := forwardState(ac, st)
+		for _, r := range arr {
+			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
+			if r.leftFlag == -1 {
+				drawPoint(p, r.left, r.top, 10, red)
 			}
+			if r.leftFlag == 1 {
+				drawPoint(p, r.left, r.top, 15, blue)
+			}
+		}
+		//log.Infof("pos:%d ok:%v", pos, ok)
+		if ok && (revert || change) {
+
+			p.X.Label.Text = ac.State + " " + ac.Action
+			drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
+			if ac.Action == ACTION_BUY {
+				drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
+			} else if ac.Action == ACTION_SELL {
+				drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
+			}
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 	} else {
 		log.Infof("ignore:%d", pos)
@@ -407,16 +398,18 @@ func main() {
 		stockBig.LoadAllData(textfile)
 
 		ac := &avgContext{
-			State:  STATE_UNKOWN,
-			profit: 0.0,
+			State:          STATE_UNKOWN,
+			profit:         0.0,
+			Sell_Min_Value: -1,
+			Buy_Max_Value:  -1,
 		}
 
 		tmpArr := make([]float64, 0)
 		//for i := 0; i < 500; i++ {
 		//	getWave(&stockBig, i)
 		//}
-		//for i := 1; i < len(stockBig.dataClose); i += 1 {
-		for i := 1; i < 300; i += 1 {
+		for i := 1; i < len(stockBig.dataClose); i += 1 {
+			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
 			p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
@@ -435,7 +428,7 @@ func main() {
 			//drawData(p, stockBig.dataHigh[start:end], 2, red)
 			//drawData(p, stockBig.dataLow[start:end], 1, gray)
 			for k := start; k < end; k++ {
-				drawLine(p, float64(k), stockBig.dataLow[k], float64(k), stockBig.dataHigh[k])
+				drawLine(p, float64(k-start), stockBig.dataLow[k], float64(k-start), stockBig.dataHigh[k])
 			}
 			//drawData(p, stockBig.dataLow[start:end], 2, yellow)
 			drawData(p, stockBig.avg10[start:end], 1, purple)

@@ -31,6 +31,7 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		}
 
 		ac.sell = stock.dataClose[curIndex]
+		ac.Buy_Max_Value = -1
 
 		return true, true, true
 	} else if preMin == -1 {
@@ -44,6 +45,7 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		}
 
 		ac.buy = stock.dataClose[curIndex]
+		ac.Sell_Min_Value = -1
 
 		return true, true, true
 	}
@@ -78,18 +80,24 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 }
 
 func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
+	//获取最高点
+	if ac.Buy_Max_Value < curValue || ac.Buy_Max_Value == -1 {
+		ac.Buy_Max_Value = curValue
+	}
 	// 正常
-	if curValue >= ac.Buy_stop.top {
+	if curValue > ac.Buy_Max_Value {
 		// 推进 Buy_stop
 		// 推进止损:找到前低，然后进行处理
 
 		for size := len(arr) - 1; size >= 0; size-- {
-			if arr[size].leftFlag == -1 && arr[size].rightFlag == 1 {
-				if arr[size].bottom >= ac.Buy_stop.bottom {
+			if arr[size].leftFlag == 1 && arr[size].rightFlag == -1 {
+				if arr[size].bottom >= ac.Buy_stop.bottom && curValue > arr[size].top {
 					ac.Buy_stop = arr[size]
 
 					return true, false, true
 				}
+				//就看最近的回调
+				break
 			}
 		}
 
@@ -98,8 +106,13 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		ac.State = STATE_NEW_HIGH__NEW_LOW_0
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = ac.Buy_stop
+		if ac.Buy_Max_Value != -1 {
+			ac.Sell_stop.top = ac.Buy_Max_Value
+			ac.Buy_Max_Value = -1
+		}
 		// 记录最小值
 		ac.High_Low_Min = curValue
+		ac.Buy_Max_Value = -1
 
 		ac.sell = curValue
 		ac.profit += curValue - ac.buy
@@ -111,16 +124,22 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 }
 
 func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
+	//获取最低点
+	if ac.Sell_Min_Value > curValue || ac.Sell_Min_Value == -1 {
+		ac.Sell_Min_Value = curValue
+	}
 	// 正常
-	if curValue <= ac.Sell_stop.bottom {
+	if curValue < ac.Sell_Min_Value {
 		// 推进 Sell_stop
 		for size := len(arr) - 1; size >= 0; size-- {
 			if arr[size].leftFlag == 1 && arr[size].rightFlag == -1 {
-				if arr[size].top <= ac.Buy_stop.top {
-					ac.Buy_stop = arr[size]
+				if arr[size].top <= ac.Sell_stop.top && curValue > arr[size].top {
+					ac.Sell_stop = arr[size]
 
 					return true, false, true
 				}
+				//就看最近的回调
+				break
 			}
 		}
 	}
@@ -129,7 +148,11 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		ac.State = STATE_NEW_LOW__NEW_HIGH_0
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = ac.Sell_stop
+		if ac.Sell_Min_Value != -1 {
+			ac.Buy_stop.bottom = ac.Sell_Min_Value
+		}
 		ac.Low_High_Max = curValue
+		ac.Sell_Min_Value = -1
 
 		ac.buy = curValue
 		ac.profit += ac.sell - curValue
@@ -155,6 +178,7 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 
 			ac.sell = curValue
 			ac.profit += curValue - ac.buy
+			ac.Buy_Max_Value = -1
 
 			return true, true, true
 		}
@@ -168,12 +192,21 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 
 		ac.sell = curValue
 		ac.profit += curValue - ac.buy
+		ac.Buy_Max_Value = -1
 
 		return true, true, true
 	}
 	// 添加一个维持状态, 推进止盈
-	if arr[len(arr)-1].top > ac.Buy_stop.top {
-		ac.Buy_stop = arr[len(arr)-1]
+	for size := len(arr) - 1; size >= 0; size-- {
+		if arr[size].leftFlag == 1 && arr[size].rightFlag == -1 {
+			if arr[size].bottom >= ac.Buy_stop.bottom && curValue > arr[size].top {
+				ac.Buy_stop = arr[size]
+
+				return true, false, true
+			}
+			//就看最近的回调
+			break
+		}
 	}
 
 	return true, false, false
@@ -194,6 +227,7 @@ func action_Low_High_1_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 
 		ac.buy = curValue
 		ac.profit += ac.sell - curValue
+		ac.Sell_Min_Value = -1
 
 		return true, true, true
 	}
@@ -219,6 +253,7 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 
 			ac.buy = curValue
 			ac.profit += ac.sell - curValue
+			ac.Sell_Min_Value = -1
 
 			return true, true, true
 		}
@@ -234,13 +269,22 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 
 		ac.buy = curValue
 		ac.profit += ac.sell - curValue
+		ac.Sell_Min_Value = -1
 
 		return true, true, true
 	}
 
 	// 添加一个维持状态, 推进止盈
-	if arr[len(arr)-1].bottom < ac.Sell_stop.bottom {
-		ac.Sell_stop = arr[len(arr)-1]
+	for size := len(arr) - 1; size >= 0; size-- {
+		if arr[size].leftFlag == 1 && arr[size].rightFlag == -1 {
+			if arr[size].top <= ac.Sell_stop.top && curValue > arr[size].top {
+				ac.Sell_stop = arr[size]
+
+				return true, false, true
+			}
+			//就看最近的回调
+			break
+		}
 	}
 
 	return true, false, false
@@ -267,6 +311,7 @@ func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 
 		ac.sell = curValue
 		ac.profit += curValue - ac.buy
+		ac.Buy_Max_Value = -1
 
 		return true, true, true
 	}

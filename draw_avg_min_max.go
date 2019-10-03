@@ -94,7 +94,7 @@ func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64,
 	if err != nil {
 		panic(err)
 	}
-	lpLine.LineStyle.Width = vg.Points(1)
+	lpLine.LineStyle.Width = vg.Points(2)
 
 	//i := rand.Intn(len(colorArray))
 	//if flag == 0 {

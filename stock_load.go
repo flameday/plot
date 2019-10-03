@@ -421,9 +421,6 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 			i++
 			continue
 		}
-		if post-pre >= 34 {
-			log.Infof("%d --> %d diff:%d", pre, post, post-pre)
-		}
 
 		left := float64(pre)
 		top := math.Max(stock.dataHigh[pre], stock.dataHigh[post])

@@ -89,15 +89,15 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 	//if pos == 58 {
 	//	log.Infof("58")
 	//}
-	_, st := getAllRect(stock)
+	//_, st := getAllRect(stock)
 	curPos := len(stock.dataClose) - 1
 
 	if ac.State == STATE_UNKOWN {
-		ok, revert, change := isValidInit(ac, st)
+		ok, revert, change := isValidInit(ac, stock)
 		if ok && revert && change {
 			//log.Infof("ac: %s", ac.Show())
 
-			drawPoint(p, float64(curPos), st.dataClose[curPos], 20, red)
+			drawPoint(p, float64(curPos), stock.dataClose[curPos], 20, red)
 			if ac.Action == ACTION_BUY {
 				drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 			} else if ac.Action == ACTION_SELL {
@@ -110,7 +110,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			return true
 		}
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change, arr := forwardState(ac, st)
+		ok, revert, change, arr := forwardState(ac, stock)
 		for _, r := range arr {
 			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
 			if r.leftFlag == -1 {
@@ -124,7 +124,7 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		if ok && (revert || change) {
 
 			p.X.Label.Text = ac.State + " " + ac.Action
-			drawPoint(p, float64(curPos), st.dataClose[curPos], 20, black)
+			drawPoint(p, float64(curPos), stock.dataClose[curPos], 20, black)
 			if ac.Action == ACTION_BUY {
 				drawRectangle(p, ac.Buy_stop.left, ac.Buy_stop.top, ac.Buy_stop.right, ac.Buy_stop.bottom, blue)
 			} else if ac.Action == ACTION_SELL {
@@ -397,18 +397,18 @@ func main() {
 		stockBig := Stock{}
 		stockBig.LoadAllData(textfile)
 
-		ac := &avgContext{
-			State:          STATE_UNKOWN,
-			profit:         0.0,
-			Sell_Min_Value: -1,
-			Buy_Max_Value:  -1,
-		}
+		//ac := &avgContext{
+		//	State:          STATE_UNKOWN,
+		//	profit:         0.0,
+		//	Sell_Min_Value: -1,
+		//	Buy_Max_Value:  -1,
+		//}
 
 		tmpArr := make([]float64, 0)
 		//for i := 0; i < 500; i++ {
 		//	getWave(&stockBig, i)
 		//}
-		for i := 1; i < len(stockBig.dataClose); i += 1 {
+		for i := 1; i < 301; i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
 			t := time.Now()
@@ -433,7 +433,8 @@ func main() {
 			//drawData(p, stockBig.dataLow[start:end], 2, yellow)
 			drawData(p, stockBig.avg10[start:end], 1, purple)
 
-			st := copyStock(&stockBig, start, i+1)
+			//st := copyStock(&stockBig, start, i+1)
+			st := copyStock(&stockBig, start, end)
 			arr, _ := getAllRect(st)
 			if len(arr) > 0 {
 				for _, r := range arr {
@@ -444,14 +445,15 @@ func main() {
 			drawAllSubMinMax(p, st, 2, blue)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			ret := run(ac, p, st, filename, i)
-			if ret {
-				tmpArr = append(tmpArr, ac.profit)
-				log.Infof("[%d] profit:%f", i, ac.profit)
-			}
-			if i%300 == 0 {
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			}
+			//ret := run(ac, p, st, filename, i)
+			//if ret {
+			//	tmpArr = append(tmpArr, ac.profit)
+			//	log.Infof("[%d] profit:%f", i, ac.profit)
+			//}
+			//if i%300 == 0 {
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//}
+			break
 		}
 		//
 		drawPic(tmpArr, "Count", "Profit", fmt.Sprintf("/Users/xinmei365/profilt_%d.png", index))

@@ -234,7 +234,7 @@ func (stock *Stock) LoadAllData(filename string) {
 	//stock.resetData()
 
 	log.Infof("filename: %s", filename)
-	log.Infof("stock.dataClose size: %d", len(stock.dataClose))
+	log.Infof("LoadAllData() stock.dataClose size: %d", len(stock.dataClose))
 
 	//计算平均值
 	for i := 0; i < len(stock.dataClose); i++ {
@@ -385,7 +385,10 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 		//log.Infof("i: %d", i)
 		getWave(stock, i)
 	}
-	for i := 0; i < len(stock.dataClose); {
+	//找到最后一个点
+	lastPos, _ := findPreMinOrMaxIndex(stock.dataMinMax, len(stock.dataMinMax)-1)
+	lastPos, _ = findPreMinOrMaxIndex(stock.dataMinMax, lastPos-1)
+	for i := 0; i < lastPos; {
 		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
 		if pre == -1 {
 			i++
@@ -398,7 +401,8 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 		}
 
 		if post > pre+33 {
-			getSmallWave(stock, pre, post)
+			log.Infof("%d --> %d diff:%d", pre, post, post-pre)
+			//getSmallWave(stock, pre, post)
 		}
 
 		// next
@@ -417,7 +421,9 @@ func getAllRect(stock *Stock) ([]Rect, *Stock) {
 			i++
 			continue
 		}
-		// 获得子浪
+		if post-pre >= 34 {
+			log.Infof("%d --> %d diff:%d", pre, post, post-pre)
+		}
 
 		left := float64(pre)
 		top := math.Max(stock.dataHigh[pre], stock.dataHigh[post])

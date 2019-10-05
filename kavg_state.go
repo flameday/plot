@@ -1,17 +1,57 @@
 package main
 
 import (
+	"fmt"
 	log "github.com/cihub/seelog"
 )
+
+type Rect struct {
+	left      float64
+	top       float64
+	right     float64
+	bottom    float64
+	leftFlag  int
+	rightFlag int
+}
+
+type avgContext struct {
+	State          string
+	Action         string
+	Sell_stop      Rect
+	Buy_stop       Rect
+	High_Low_Min   float64
+	Low_High_Max   float64
+	Sell_Min_Value float64
+	Buy_Max_Value  float64
+	profit         float64
+	buy            float64
+	sell           float64
+}
+
+func (ac *avgContext) Show() string {
+	s := "State : " + ac.State + " "
+	s += "Action: " + ac.Action + " "
+	if ac.Action == ACTION_BUY {
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+			int(ac.Buy_stop.left),
+			ac.Buy_stop.top,
+			int(ac.Buy_stop.right),
+			ac.Buy_stop.bottom)
+	} else if ac.Action == ACTION_SELL {
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+			int(ac.Sell_stop.left),
+			ac.Sell_stop.top,
+			int(ac.Sell_stop.right),
+			ac.Sell_stop.bottom)
+	} else {
+		s += " Invalid Stop"
+	}
+	return s
+}
 
 // 初始化
 func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bool) {
 	//get pre arr
-	//arr, _ := getAllRect(stock)
-	//if len(arr) <= 1 {
-	//	return false, false, false
-	//}
-
 	curIndex := len(stock.dataClose) - 1
 
 	//简单根据高低点来尽快买入、卖出: 注意MinMax的计算方法

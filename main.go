@@ -109,19 +109,6 @@ func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 	}
 	return false
 }
-
-func drawPic(data []float64, xlabel string, ylabel string, filename string) {
-	p, _ := plot.New()
-	t := time.Now()
-	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
-	p.X.Label.Text = xlabel
-	p.Y.Label.Text = ylabel
-
-	drawData(p, data, 1, black)
-
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-}
-
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -218,4 +205,16 @@ func main() {
 		//
 		drawPic(tmpArr, "Count", "Profit", fmt.Sprintf("/Users/xinmei365/profilt_%d.png", index))
 	}
+}
+
+func drawPic(data []float64, xlabel string, ylabel string, filename string) {
+	p, _ := plot.New()
+	t := time.Now()
+	p.Title.Text = t.Format("2006-01-02 15:04:05.000000000")
+	p.X.Label.Text = xlabel
+	p.Y.Label.Text = ylabel
+
+	drawData(p, data, 1, black)
+
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }

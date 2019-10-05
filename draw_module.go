@@ -27,6 +27,25 @@ func drawRectangle(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64,
 	p.Add(lpLine)
 }
 
+func drawRectangle2(p *plot.Plot, x1 float64, y1 float64, x2 float64, y2 float64, width int, clr color.Color) {
+	points := plotter.XYs{
+		{x1, y1},
+		{x1, y2},
+		{x2, y2},
+		{x2, y1},
+		{x1, y1},
+	}
+	plotutil.AddLinePoints(p, points)
+	lpLine, _, err := plotter.NewLinePoints(points)
+	if err != nil {
+		panic(err)
+	}
+	lpLine.LineStyle.Width = vg.Points(float64(width))
+
+	lpLine.LineStyle.Color = clr
+	p.Add(lpLine)
+}
+
 func drawPoint(p *plot.Plot, x1 float64, y1 float64, radius int, clr color.Color) {
 	points := plotter.XYs{
 		{x1, y1},

@@ -14,6 +14,26 @@ type Rect struct {
 	rightFlag int
 }
 
+func (r *Rect) isRising() bool {
+	if r.left == -1 && r.right == 1 {
+		return true
+	} else if r.left == 1 && r.right == -1 {
+		return false
+	} else {
+		log.Errorf("bad value")
+		panic("bad value")
+	}
+	return false
+}
+
+func (r *Rect) Height() float64 {
+	return r.top - r.bottom
+}
+
+func (r *Rect) Width() float64 {
+	return r.right - r.left
+}
+
 type avgContext struct {
 	State          string
 	Action         string
@@ -335,7 +355,7 @@ func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 
 func forwardState(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bool, arr []Rect) {
 	//get pre arr
-	arr, _ = getAllRect(stock)
+	arr, _ = GetAllRect(stock)
 	if len(arr) <= 1 {
 		return false, false, false, arr
 	}

@@ -1,10 +1,5 @@
 package main
 
-import (
-	log "github.com/cihub/seelog"
-	"math"
-)
-
 func isLow(data []float64, index int, length int) bool {
 	//前后端点不计算大小值
 	if index <= length/2 || index >= len(data)-length/2 {
@@ -222,87 +217,4 @@ func getWave(stock *Stock, index int) {
 			minMax[index] = 1
 		}
 	}
-}
-
-// 根据前面的 length 个值，获取平均值
-func get_pre_avg(value_list []float64, index int, length int) float64 {
-	var total float64
-	var count int
-	total = 0.0
-	count = 0
-	for i := 0; i < length; i++ {
-		pos := index - i
-		if pos < 0 {
-			break
-		}
-		total += value_list[pos]
-		count += 1
-	}
-	return total / float64(count)
-}
-
-func getAllRect(stock *Stock) ([]Rect, *Stock) {
-	//计算最大最小值
-	for i := 0; i < len(stock.dataClose); i++ {
-		//log.Infof("i: %d", i)
-		getWave(stock, i)
-	}
-	//找到最后一个点
-	lastPos, _ := findPreMinOrMaxIndex(stock.dataMinMax, len(stock.dataMinMax)-1)
-	lastPos, _ = findPreMinOrMaxIndex(stock.dataMinMax, lastPos-1)
-	for i := 0; i < lastPos; {
-		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
-		if pre == -1 {
-			i++
-			continue
-		}
-		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
-		if post == -1 {
-			i++
-			continue
-		}
-
-		if post > pre+33 {
-			if i == 114 {
-				log.Infof("%d --> %d diff:%d", pre, post, post-pre)
-			}
-			getSmallWave(stock, pre, post)
-		}
-
-		// next
-		i = post + 1
-	}
-
-	rectArray := make([]Rect, 0)
-	for i := 0; i < len(stock.dataClose); {
-		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
-		if pre == -1 {
-			i++
-			continue
-		}
-		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
-		if post == -1 {
-			i++
-			continue
-		}
-
-		left := float64(pre)
-		top := math.Max(stock.dataHigh[pre], stock.dataHigh[post])
-		right := float64(post)
-		bottom := math.Min(stock.dataLow[pre], stock.dataLow[post])
-
-		offset := (top - bottom) * 0.05
-		//offset := 0.0
-		r := Rect{
-			left:      left,
-			top:       top + offset,
-			right:     right,
-			bottom:    bottom - offset,
-			leftFlag:  stock.dataMinMax[pre],
-			rightFlag: stock.dataMinMax[post],
-		}
-		rectArray = append(rectArray, r)
-		i = post + 1
-	}
-	return rectArray, stock
 }

@@ -61,7 +61,7 @@ var (
 
 func run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) bool {
 
-	//_, st := getAllRect(stock)
+	//_, st := GetAllRect(stock)
 	curPos := len(stock.dataClose) - 1
 
 	if ac.State == STATE_UNKOWN {
@@ -132,11 +132,11 @@ func main() {
 	// 绘图
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
-	for index := 0; index < len(dstArray); index += 5 {
-		if index < 15 {
+	for index := 0; index < len(dstArray); index += 1 {
+		if index < 1 {
 			continue
 		}
-		if index > 15 {
+		if index > 50 {
 			break
 		}
 
@@ -171,7 +171,7 @@ func main() {
 			}
 
 			////1， 绘制底图
-			//getAllRect(&stockBig)
+			//GetAllRect(&stockBig)
 			//drawData(p, stockBig.dataHigh[start:end], 2, red)
 			//drawData(p, stockBig.dataLow[start:end], 1, gray)
 			for k := start; k < end; k++ {
@@ -182,12 +182,7 @@ func main() {
 
 			//st := copyStock(&stockBig, start, i+1)
 			st := copyStock(&stockBig, start, end)
-			arr, _ := getAllRect(st)
-			if len(arr) > 0 {
-				//	for _, r := range arr {
-				//		drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-				//	}
-			}
+			drawWave(p, st)
 			drawAllSubMinMax(p, st, 2, blue)
 			drawAllMinMax(p, st, 2, black)
 
@@ -216,5 +211,5 @@ func drawPic(data []float64, xlabel string, ylabel string, filename string) {
 
 	drawData(p, data, 1, black)
 
-	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+	//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }

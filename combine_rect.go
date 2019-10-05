@@ -40,12 +40,21 @@ func GetAllRect(stock *Stock) ([]Rect, *Stock) {
 	rectArray := make([]Rect, 0)
 	for i := 0; i < len(stock.dataClose); {
 		pre, _ := findPreMinOrMaxIndex(stock.dataMinMax, i-1)
-		if pre == -1 {
+		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
+		if post == -1 {
 			i++
 			continue
 		}
-		post := findPostMinOrMaxIndex(stock.dataMinMax, i+1)
-		if post == -1 {
+		if pre == -1 {
+			//这里加上坐标0
+			if post > 0 {
+				if stock.dataMinMax[post] == -1 {
+					stock.dataMinMax[0] = 1
+				} else {
+					stock.dataMinMax[0] = -1
+				}
+			}
+
 			i++
 			continue
 		}

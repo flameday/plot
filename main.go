@@ -325,43 +325,6 @@ func drawPic(data []float64, xlabel string, ylabel string, filename string) {
 	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }
 
-//func merge(dataHigh []float64, dataLow []float64) ([]float64, []float64) {
-//	if len(dataHigh) <= 0 {
-//		return dataHigh, dataLow
-//	}
-//	if len(dataHigh) != len(dataLow) {
-//		log.Errorf("merge error")
-//	}
-//
-//	newHigh := make([]float64, 0)
-//	newLow := make([]float64, 0)
-//	newHigh = append(newHigh, dataHigh[0])
-//	newLow = append(newLow, dataLow[0])
-//
-//	for i := 1; i < len(dataHigh); i++ {
-//		if (dataHigh[i-1] >= dataHigh[i]) && (dataLow[i-1] <= dataLow[i]) {
-//			newHigh[len(newHigh)-1] = math.Max(newHigh[len(newHigh)-1], dataHigh[i])
-//			newLow[len(newLow)-1] = math.Min(newLow[len(newLow)-1], dataLow[i])
-//		} else {
-//			newHigh = append(newHigh, dataHigh[i])
-//			newLow = append(newLow, dataLow[i])
-//		}
-//	}
-//	return newHigh, newLow
-//}
-//
-//func isPen(data []float64) bool {
-//	if len(data) < 3 {
-//		return false
-//	}
-//	return true
-//}
-//func isTopFractal(data []float64) bool {
-//	return false
-//}
-//func isBottomFractal(data []float64) bool {
-//	return false
-//}
 func main() {
 	defer func() {
 		if err := recover(); err != nil {

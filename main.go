@@ -133,10 +133,10 @@ func main() {
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	for index := 0; index < len(dstArray); index += 1 {
-		if index < 1 {
+		if index < 2 {
 			continue
 		}
-		if index > 50 {
+		if index > 2 {
 			break
 		}
 

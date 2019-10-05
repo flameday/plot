@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/prometheus/common/log"
+	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
 )
 
 func drawWave(p *plot.Plot, stock *Stock) {
 	arr, _ := GetAllRect(stock)
 	if len(arr) > 0 {
-		for _, r := range arr {
-			drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
-		}
+		//for _, r := range arr {
+		//	drawRectangle(p, r.left, r.top, r.right, r.bottom, gray)
+		//}
 
 		//find centrum
 		flagArr := mergeRect(arr)

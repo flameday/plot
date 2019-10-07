@@ -133,10 +133,10 @@ func main() {
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	for index := 0; index < len(dstArray); index += 1 {
-		if index < 2 {
+		if index < 4 {
 			continue
 		}
-		if index > 2 {
+		if index > 4 {
 			break
 		}
 
@@ -183,7 +183,7 @@ func main() {
 			//st := copyStock(&stockBig, start, i+1)
 			st := copyStock(&stockBig, start, end)
 			drawWave(p, st)
-			drawAllSubMinMax(p, st, 2, blue)
+			//drawAllSubMinMax(p, st, 2, blue)
 			drawAllMinMax(p, st, 2, black)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)

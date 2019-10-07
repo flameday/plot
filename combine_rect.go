@@ -64,7 +64,7 @@ func GetAllRect(stock *Stock) ([]Rect, *Stock) {
 		right := float64(post)
 		bottom := math.Min(stock.dataLow[pre], stock.dataLow[post])
 
-		offset := (top - bottom) * 0.05
+		offset := (top - bottom) * 0 //.05
 		//offset := 0.0
 		r := Rect{
 			left:      left,

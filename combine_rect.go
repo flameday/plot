@@ -1,7 +1,6 @@
 package main
 
 import (
-	log "github.com/cihub/seelog"
 	"math"
 )
 
@@ -26,12 +25,12 @@ func GetAllRect(stock *Stock) ([]Rect, *Stock) {
 			continue
 		}
 
-		if post > pre+33 {
-			if i == 114 {
-				log.Infof("%d --> %d diff:%d", pre, post, post-pre)
-			}
-			getSmallWave(stock, pre, post)
-		}
+		//if post > pre+33 {
+		//	if i == 114 {
+		//		log.Infof("%d --> %d diff:%d", pre, post, post-pre)
+		//	}
+		//	getSmallWave(stock, pre, post)
+		//}
 
 		// next
 		i = post + 1

@@ -120,7 +120,7 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 	size := len(arr)
 	//如果有3个区间，就要判断 M
 	if size >= 3 {
-		//W
+		//M
 		if arr[size-3].top == ac.Sell_stop.top && arr[size-3].bottom == ac.Sell_stop.bottom {
 			if curValue < arr[size-1].bottom && arr[size-1].top < arr[size-2].top+arr[size-2].Width()*0.1 {
 				ac.State = STATE_NEW_LOW
@@ -132,17 +132,17 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		}
 	}
 
-	// 正常
-	if curValue >= ac.Buy_stop.top {
+	// 正常 W
+	if curValue >= ac.Buy_stop.top && size >= 3 {
 		// 如果是上涨区间，推进 Buy_stop
-		if (arr[size-1].leftFlag == -1) && (arr[size-1].top > ac.Buy_stop.top) && (arr[size-1].bottom >= ac.Buy_stop.bottom) {
-			ac.Buy_stop = arr[size-1]
-
-			return true, false, true
-		} else if arr[size-1].top > ac.Buy_stop.top {
-			ac.Buy_stop.top = arr[size-1].top
-
-			return true, false, true
+		if arr[size-3].top == ac.Sell_stop.top && arr[size-3].bottom == ac.Sell_stop.bottom {
+			if curValue > arr[size-2].top && arr[size-2].bottom > arr[size-3].bottom-arr[size-3].Height()*0.1 {
+				ac.State = STATE_NEW_HIGH
+				ac.Action = ACTION_BUY
+				ac.Buy_stop = arr[size-1]
+				ac.buy = curValue
+				return true, true, true
+			}
 		}
 	} else if curValue < ac.Buy_stop.bottom {
 		//必定是下跌
@@ -169,6 +169,12 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		return true, true, true
 	}
 
+	if arr[size-1].top > ac.Buy_stop.top {
+		ac.Buy_stop.top = arr[size-1].top
+
+		return true, false, true
+	}
+
 	return true, false, false
 }
 
@@ -178,7 +184,7 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 	if size >= 4 {
 		//W
 		if arr[size-4].top == ac.Sell_stop.top && arr[size-4].bottom == ac.Sell_stop.bottom {
-			if curValue > arr[size-2].top && arr[size-2].bottom > arr[size-3].bottom-arr[size-3].Width()*0.1 {
+			if curValue > arr[size-2].top && arr[size-2].bottom > arr[size-3].bottom-arr[size-3].Height()*0.1 {
 				ac.State = STATE_NEW_HIGH
 				ac.Action = ACTION_BUY
 				ac.Buy_stop = arr[size-1]
@@ -188,17 +194,18 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		}
 	}
 
-	// 正常
-	if curValue <= ac.Sell_stop.top {
+	// 正常 M
+	if curValue <= ac.Sell_stop.top && size >= 3 {
 		// 如果是下跌区间，推进 Sell_stop
-		if (arr[size-1].leftFlag == 1) && (arr[size-1].top <= ac.Sell_stop.top) && arr[size-1].bottom < ac.Sell_stop.bottom {
-			ac.Sell_stop = arr[size-1]
-
-			return true, false, true
-		}
-		//bottom 降低
-		if arr[size-1].bottom < ac.Sell_stop.bottom {
-			ac.Sell_stop.bottom = arr[size-1].bottom
+		//M
+		if arr[size-3].top == ac.Sell_stop.top && arr[size-3].bottom == ac.Sell_stop.bottom {
+			if curValue < arr[size-2].bottom && arr[size-1].top < arr[size-2].top+arr[size-2].Height()*0.1 {
+				ac.State = STATE_NEW_LOW
+				ac.Action = ACTION_SELL
+				ac.Sell_stop = arr[size-1]
+				ac.sell = curValue
+				return true, true, true
+			}
 		}
 	}
 	// 新低
@@ -212,6 +219,13 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 		ac.profit += ac.sell - curValue
 
 		return true, true, true
+	}
+
+	//bottom 降低
+	if arr[size-1].bottom < ac.Sell_stop.bottom {
+		ac.Sell_stop.bottom = arr[size-1].bottom
+
+		return true, false, true
 	}
 
 	return true, false, false

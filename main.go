@@ -83,10 +83,10 @@ func main() {
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	for index := 0; index < len(dstArray); index += 1 {
-		if index < 4 {
+		if index < 5 {
 			continue
 		}
-		if index > 4 {
+		if index > 5 {
 			break
 		}
 
@@ -144,7 +144,7 @@ func main() {
 				tmpArr = append(tmpArr, ac.profit)
 				log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			if i > 250 {
+			if i > 100 {
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 			//break

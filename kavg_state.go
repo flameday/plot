@@ -125,8 +125,8 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 			if curValue < arr[size-1].bottom && arr[size-1].top < arr[size-2].top+arr[size-2].Width()*0.1 {
 				ac.State = STATE_NEW_LOW
 				ac.Action = ACTION_SELL
-				ac.Buy_stop = arr[size-1]
-				ac.buy = curValue
+				ac.Sell_stop = arr[size-1]
+				ac.sell = curValue
 				return true, true, true
 			}
 		}
@@ -139,9 +139,9 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 			ac.Buy_stop = arr[size-1]
 
 			return true, false, true
-		} else if curValue > ac.Buy_stop.top {
-			//top抬高
-			ac.Buy_stop.top = curValue
+		} else if arr[size-1].top > ac.Buy_stop.top {
+			ac.Buy_stop.top = arr[size-1].top
+
 			return true, false, true
 		}
 	} else if curValue < ac.Buy_stop.bottom {
@@ -197,8 +197,8 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 			return true, false, true
 		}
 		//bottom 降低
-		if curValue < ac.Sell_stop.bottom {
-			ac.Sell_stop.bottom = curValue
+		if arr[size-1].bottom < ac.Sell_stop.bottom {
+			ac.Sell_stop.bottom = arr[size-1].bottom
 		}
 	}
 	// 新低
@@ -218,8 +218,9 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 }
 func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 
-	if curValue > ac.Buy_stop.top {
-		ac.Buy_stop.top = curValue
+	size := len(arr)
+	if arr[size-1].top > ac.Buy_stop.top {
+		ac.Buy_stop.top = arr[size-1].top
 	}
 
 	if curValue < ac.Buy_stop.bottom {
@@ -240,7 +241,7 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 		//"BC"
 		ac.State = STATE_NEW_LOW__NEW_HIGH_1
 		ac.Action = ACTION_SELL
-		ac.Sell_stop.bottom = ac.Buy_stop.bottom
+		ac.Sell_stop = ac.Buy_stop
 
 		ac.sell = curValue
 		ac.profit += curValue - ac.buy
@@ -252,6 +253,21 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 }
 
 func action_Low_High_1_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
+	size := len(arr)
+	//如果有3个区间，就要判断 M
+	if size >= 4 {
+		//M
+		if arr[size-4].top == ac.Sell_stop.top && arr[size-4].bottom == ac.Sell_stop.bottom {
+			if curValue < arr[size-2].bottom && arr[size-1].top < arr[size-3].top+arr[size-3].Width()*0.1 {
+				ac.State = STATE_NEW_LOW
+				ac.Action = ACTION_SELL
+				ac.Sell_stop = arr[size-1]
+				ac.sell = curValue
+				return true, true, true
+			}
+		}
+	}
+
 	if curValue < ac.Sell_stop.bottom {
 		//"A"
 		ac.State = STATE_NEW_LOW

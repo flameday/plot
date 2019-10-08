@@ -144,7 +144,7 @@ func main() {
 				tmpArr = append(tmpArr, ac.profit)
 				log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			if i > 200 && i < 300 {
+			if i > 400 && i < 500 {
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 			//break

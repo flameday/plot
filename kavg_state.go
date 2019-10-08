@@ -177,6 +177,29 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 
 	return true, false, false
 }
+func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify bool) {
+	//按最近的3个判断
+	size := len(arr)
+	if size < 3 {
+		return false, false, false
+	}
+	//sell
+	if arr[size-1].top < arr[size-3].top+arr[size-3].Height()*0.1 && arr[size-1].bottom < arr[size-3].bottom {
+		ac.State = STATE_NEW_LOW
+		ac.Action = ACTION_SELL
+		ac.Buy_stop = arr[size-1]
+		return true, true, true
+	}
+	//buy
+	if arr[size-1].top > arr[size-3].top && arr[size-1].bottom > arr[size-3].bottom {
+		ac.State = STATE_NEW_HIGH
+		ac.Action = ACTION_BUY
+		ac.Buy_stop = arr[size-1]
+		return true, true, true
+	}
+
+	return false, false, false
+}
 
 func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	size := len(arr)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/vg"
 )
 
 type Rect struct {
@@ -122,6 +123,8 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		arr[size-1].top < arr[size-3].top+arr[size-3].Height()*0.1 &&
 		arr[size-1].bottom < arr[size-3].bottom {
 
+		change := ac.Action == STATE_NEW_LOW
+		revert := ac.State == ACTION_SELL
 		if ac.Action != ACTION_SELL {
 			ac.sell = arr[size-1].bottom
 			ac.profit += ac.sell - ac.buy
@@ -131,13 +134,15 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = arr[size-1]
 
-		return true, true, true
+		return true, revert, change
 	}
 	//buy
 	if arr[size-1].leftFlag == -1 &&
 		arr[size-1].top > arr[size-3].top &&
-		arr[size-1].bottom > arr[size-3].bottom {
+		arr[size-1].bottom >= arr[size-3].bottom-arr[size-3].Height()*0.1 {
 
+		change := ac.Action == STATE_NEW_HIGH
+		revert := ac.State == ACTION_BUY
 		if ac.Action != ACTION_BUY {
 			ac.buy = arr[size-1].top
 			ac.profit += ac.buy - ac.sell
@@ -147,7 +152,7 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = arr[size-1]
 
-		return true, true, true
+		return true, revert, change
 	}
 
 	return false, false, false
@@ -450,7 +455,7 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		}
 		p.X.Label.Text = ac.State + "          " + ac.Action
 	} else if ac.State != STATE_UNKOWN {
-		ok, revert, change, arr := forwardState(ac, stock)
+		ok, revert, _, arr := forwardState(ac, stock)
 		for _, r := range arr {
 			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
 			if r.leftFlag == -1 {
@@ -458,16 +463,6 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 			}
 			if r.leftFlag == 1 {
 				drawPoint(p, r.left, r.top, 15, blue)
-			}
-		}
-		//log.Infof("pos:%d ok:%v", pos, ok)
-		if ok && (revert || change) {
-			if last_buy == ac.buy && last_sell == ac.sell {
-			} else {
-				log.Infof("[%d] buy: %f sell:%f lb:%f, ls:%f profit:%.3f %s", pos, ac.buy, ac.sell, last_buy, last_sell, ac.profit, ac.Show())
-
-				last_buy = ac.buy
-				last_sell = ac.sell
 			}
 		}
 
@@ -478,7 +473,17 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		} else if ac.Action == ACTION_SELL {
 			drawRectangle(p, ac.Sell_stop.left, ac.Sell_stop.top, ac.Sell_stop.right, ac.Sell_stop.bottom, green)
 		}
-		//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+		//log.Infof("pos:%d ok:%v", pos, ok)
+		if ok && (revert) {
+			if last_buy == ac.buy && last_sell == ac.sell {
+			} else {
+				//log.Infof("[%d] buy: %f sell:%f lb:%f, ls:%f profit:%.3f %s", pos, ac.buy, ac.sell, last_buy, last_sell, ac.profit, ac.Show())
+
+				last_buy = ac.buy
+				last_sell = ac.sell
+			}
+			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+		}
 	} else {
 		log.Infof("ignore:%d", pos)
 	}

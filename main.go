@@ -86,10 +86,10 @@ func main() {
 	fileArray := make([]string, 0)
 	dstArray, err := GetAllFile("/Users/xinmei365/stock_data_history/day/data/", fileArray)
 	for index := 0; index < len(dstArray); index += 1 {
-		if index < 5 {
+		if index < 1 {
 			continue
 		}
-		if index > 5 {
+		if index > 1 {
 			break
 		}
 
@@ -106,7 +106,7 @@ func main() {
 		//for i := 0; i < 500; i++ {
 		//	getWave(&stockBig, i)
 		//}
-		limit := 100 * 5
+		limit := len(stockBig.dataClose)
 		for i := 1; i < limit; i += 1 {
 			//for i := 1; i < 100; i += 1 {
 			p, _ := plot.New()
@@ -115,11 +115,11 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 500
+			start := i - 300
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 500 + 1
+				end = start + 300 + 1
 			}
 
 			////1， 绘制底图
@@ -147,9 +147,12 @@ func main() {
 				tmpArr = append(tmpArr, ac.profit)
 				//log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			//if i > 400 && i < 500 {
-			//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			//}
+			if i > 0 {
+				if i%10 == 0 {
+					p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+					time.Sleep(200 * time.Millisecond)
+				}
+			}
 			//break
 		}
 		//

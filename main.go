@@ -30,8 +30,8 @@ var (
 	olive          color.Color = color.RGBA{128, 128, 0, 255}
 	gray           color.Color = color.RGBA{196, 196, 196, 255}
 	colorArray                 = []color.Color{red, blue, black, yellow, orange, gold, purple, magenta, olive, gray}
-	picwidth       float64     = 512 * 3
-	picheight      float64     = 384 * 3
+	picwidth       float64     = 512 * 2
+	picheight      float64     = 384 * 2
 	MAX_VALUE_FLAG             = 1
 	MIN_VALUE_FLAG             = -1
 
@@ -144,7 +144,7 @@ func main() {
 				tmpArr = append(tmpArr, ac.profit)
 				log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			if i > 100 {
+			if i > 200 && i < 300 {
 				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 			}
 			//break

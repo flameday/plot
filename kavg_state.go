@@ -4,7 +4,6 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/vg"
 )
 
 type Rect struct {
@@ -52,17 +51,21 @@ func (ac *avgContext) Show() string {
 	s := "State : " + ac.State + " "
 	s += "Action: " + ac.Action + " "
 	if ac.Action == ACTION_BUY {
-		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f) b:%.3f s:%.3f",
 			int(ac.Buy_stop.left),
 			ac.Buy_stop.top,
 			int(ac.Buy_stop.right),
-			ac.Buy_stop.bottom)
+			ac.Buy_stop.bottom,
+			ac.buy,
+			ac.sell)
 	} else if ac.Action == ACTION_SELL {
-		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f)",
+		s += fmt.Sprintf(" (%d, %.2f)->(%d, %.2f) b:%.3f s:%.3f",
 			int(ac.Sell_stop.left),
 			ac.Sell_stop.top,
 			int(ac.Sell_stop.right),
-			ac.Sell_stop.bottom)
+			ac.Sell_stop.bottom,
+			ac.buy,
+			ac.sell)
 	} else {
 		s += " Invalid Stop"
 	}
@@ -119,12 +122,14 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		arr[size-1].top < arr[size-3].top+arr[size-3].Height()*0.1 &&
 		arr[size-1].bottom < arr[size-3].bottom {
 
+		if ac.Action != ACTION_SELL {
+			ac.sell = arr[size-1].bottom
+			ac.profit += ac.sell - ac.buy
+		}
+
 		ac.State = STATE_NEW_LOW
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = arr[size-1]
-
-		ac.sell = arr[size-1].bottom
-		ac.profit += ac.sell - ac.buy
 
 		return true, true, true
 	}
@@ -133,12 +138,15 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		arr[size-1].top > arr[size-3].top &&
 		arr[size-1].bottom > arr[size-3].bottom {
 
+		if ac.Action != ACTION_BUY {
+			ac.buy = arr[size-1].top
+			ac.profit += ac.buy - ac.sell
+		}
+
 		ac.State = STATE_NEW_HIGH
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = arr[size-1]
 
-		ac.sell = arr[size-1].top
-		ac.profit += ac.buy - ac.sell
 		return true, true, true
 	}
 
@@ -432,7 +440,7 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		ok, revert, change := isValidInit(ac, stock)
 		if ok && revert && change {
 			//log.Infof("ac: %s", ac.Show())
-			p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 		}
 		drawPoint(p, float64(curPos), stock.dataClose[curPos], 20, red)
 		if ac.Action == ACTION_BUY {
@@ -454,6 +462,13 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		}
 		//log.Infof("pos:%d ok:%v", pos, ok)
 		if ok && (revert || change) {
+			if last_buy == ac.buy && last_sell == ac.sell {
+			} else {
+				log.Infof("[%d] buy: %f sell:%f lb:%f, ls:%f profit:%.3f %s", pos, ac.buy, ac.sell, last_buy, last_sell, ac.profit, ac.Show())
+
+				last_buy = ac.buy
+				last_sell = ac.sell
+			}
 		}
 
 		p.X.Label.Text = ac.State + "          " + ac.Action
@@ -467,5 +482,5 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 	} else {
 		log.Infof("ignore:%d", pos)
 	}
-	return false
+	return true
 }

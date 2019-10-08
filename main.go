@@ -57,6 +57,9 @@ var (
 	spacing  = flag.Float64("spacing", 1.5, "line spacing (e.g. 2 means double spaced)")
 	wonb     = flag.Bool("whiteonblack", false, "white text on a black background")
 	text     = string("JOJO hoho")
+
+	last_buy  = 0.0
+	last_sell = 0.0
 )
 
 func main() {
@@ -142,11 +145,11 @@ func main() {
 			ret := Run(ac, p, st, filename, i)
 			if ret {
 				tmpArr = append(tmpArr, ac.profit)
-				log.Infof("[%d] profit:%f", i, ac.profit)
+				//log.Infof("[%d] profit:%f", i, ac.profit)
 			}
-			if i > 400 && i < 500 {
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-			}
+			//if i > 400 && i < 500 {
+			//	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//}
 			//break
 		}
 		//
@@ -163,5 +166,5 @@ func drawPic(data []float64, xlabel string, ylabel string, filename string) {
 
 	drawData(p, data, 1, black)
 
-	//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+	p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 }

@@ -115,11 +115,11 @@ func main() {
 			p.X.Label.Text = "drawWithRect"
 			p.Y.Label.Text = "Price"
 
-			start := i - 300
+			start := i - 500
 			end := i + 1
 			if start < 0 {
 				start = 0
-				end = start + 300 + 1
+				end = start + 500 + 1
 			}
 
 			////1， 绘制底图
@@ -142,16 +142,12 @@ func main() {
 			drawAllMinMax(p, st, 2, black)
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
-			ret := Run(ac, p, st, filename, i)
-			if ret {
-				tmpArr = append(tmpArr, ac.profit)
-				//log.Infof("[%d] profit:%f", i, ac.profit)
-			}
-			if i > 0 {
-				if i%10 == 0 {
-					p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
-					time.Sleep(200 * time.Millisecond)
-				}
+			flagSave := Run(ac, p, st, filename, i)
+			tmpArr = append(tmpArr, ac.profit)
+			//log.Infof("[%d] profit:%f", i, ac.profit)
+			if (i > 4000 && i < 4500) || flagSave {
+				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+				time.Sleep(200 * time.Millisecond)
 			}
 			//break
 		}

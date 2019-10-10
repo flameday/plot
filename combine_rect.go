@@ -70,8 +70,10 @@ func GetAllRect(stock *Stock) ([]Rect, *Stock) {
 			top:       top + offset,
 			right:     right,
 			bottom:    bottom - offset,
-			leftFlag:  stock.dataMinMax[pre],
-			rightFlag: stock.dataMinMax[post],
+			FlagLeft:  stock.dataMinMax[pre],
+			FlagRight: stock.dataMinMax[post],
+			DistLeft:  len(stock.dataClose) - pre,
+			DistRight: len(stock.dataClose) - post,
 		}
 		rectArray = append(rectArray, r)
 		i = post + 1
@@ -88,14 +90,14 @@ func ExpandRect(r1 *Rect, r2 *Rect) *Rect {
 	right := math.Max(r1.right, r2.right)
 	top := math.Max(r1.top, r2.top)
 	bottom := math.Min(r1.bottom, r2.bottom)
-	leftFlag := -1
-	rightFlag := 1
+	FlagLeft := -1
+	FlagRight := 1
 	if r1.top > r2.top {
-		leftFlag = 1
-		rightFlag = -1
+		FlagLeft = 1
+		FlagRight = -1
 	} else if r1.bottom < r2.bottom {
-		leftFlag = 1
-		rightFlag = -1
+		FlagLeft = 1
+		FlagRight = -1
 	}
 
 	r := &Rect{
@@ -103,8 +105,8 @@ func ExpandRect(r1 *Rect, r2 *Rect) *Rect {
 		top:       top,
 		right:     right,
 		bottom:    bottom,
-		leftFlag:  leftFlag,
-		rightFlag: rightFlag,
+		FlagLeft:  FlagLeft,
+		FlagRight: FlagRight,
 	}
 	return r
 }

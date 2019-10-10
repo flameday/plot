@@ -11,8 +11,10 @@ type Rect struct {
 	top       float64
 	right     float64
 	bottom    float64
-	leftFlag  int
-	rightFlag int
+	FlagLeft  int
+	FlagRight int
+	DistLeft  int
+	DistRight int
 }
 
 func (r *Rect) isRising() bool {
@@ -36,16 +38,15 @@ func (r *Rect) Width() float64 {
 }
 
 type avgContext struct {
-	State        string
-	Action       string
-	Sell_stop    Rect
-	Buy_stop     Rect
-	StopDistance int
-	profit       float64
-	buy          float64
-	sell         float64
-	tmpTop       float64
-	tmpBottom    float64
+	State     string
+	Action    string
+	Sell_stop Rect
+	Buy_stop  Rect
+	profit    float64
+	buy       float64
+	sell      float64
+	tmpTop    float64
+	tmpBottom float64
 }
 
 func (ac *avgContext) Show() string {
@@ -98,8 +99,6 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		ac.buy = stock.dataClose[curIndex]
 		ac.profit = 0
 
-		ac.StopDistance = curIndex - preMax
-
 		return true, true, true
 	} else {
 
@@ -109,8 +108,6 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 
 		ac.sell = stock.dataClose[curIndex]
 		ac.profit = 0
-
-		ac.StopDistance = curIndex - preMax
 
 		return true, true, true
 	}
@@ -125,7 +122,7 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		return false, false, false
 	}
 	//sell
-	if arr[size-1].leftFlag == 1 &&
+	if arr[size-1].FlagLeft == 1 &&
 		arr[size-1].top < arr[size-3].top+arr[size-3].Height()*0.1 &&
 		arr[size-1].bottom < arr[size-3].bottom {
 
@@ -140,11 +137,10 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = arr[size-1]
 
-		ac.StopDistance = 0
 		return true, revert, change
 	}
 	//buy
-	if arr[size-1].leftFlag == -1 &&
+	if arr[size-1].FlagLeft == -1 &&
 		arr[size-1].top > arr[size-3].top &&
 		arr[size-1].bottom >= arr[size-3].bottom-arr[size-3].Height()*0.1 {
 
@@ -159,7 +155,6 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = arr[size-1]
 
-		ac.StopDistance = 0
 		return true, revert, change
 	}
 
@@ -472,10 +467,10 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		ok, revert, _, arr := forwardState(ac, stock)
 		for _, r := range arr {
 			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)
-			if r.leftFlag == -1 {
+			if r.FlagLeft == -1 {
 				drawPoint(p, r.left, r.top, 10, red)
 			}
-			if r.leftFlag == 1 {
+			if r.FlagLeft == 1 {
 				drawPoint(p, r.left, r.top, 15, blue)
 			}
 		}

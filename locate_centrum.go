@@ -124,7 +124,7 @@ func findExtremePoint(arr []Rect) (min int, max int) {
 	//max
 	for i := len(arr) - 1; i >= 0; i-- {
 		if isMax(arr, i) {
-			if arr[i].leftFlag == -1 {
+			if arr[i].FlagLeft == -1 {
 				max = int(arr[i].right)
 			} else {
 				max = int(arr[i].left)
@@ -134,7 +134,7 @@ func findExtremePoint(arr []Rect) (min int, max int) {
 	//min
 	for i := len(arr) - 1; i >= 0; i-- {
 		if isMax(arr, i) {
-			if arr[i].leftFlag == -1 {
+			if arr[i].FlagLeft == -1 {
 				min = int(arr[i].left)
 			} else {
 				min = int(arr[i].right)

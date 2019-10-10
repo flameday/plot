@@ -4,6 +4,8 @@ import (
 	log "github.com/cihub/seelog"
 )
 
+//first time: 1/3 height
+//second time: 1/3
 //get by time order
 func isSimilar(r1 *Rect, r2 *Rect) bool {
 	height1 := r1.Height()

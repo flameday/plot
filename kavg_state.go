@@ -36,15 +36,16 @@ func (r *Rect) Width() float64 {
 }
 
 type avgContext struct {
-	State     string
-	Action    string
-	Sell_stop Rect
-	Buy_stop  Rect
-	profit    float64
-	buy       float64
-	sell      float64
-	tmpTop    float64
-	tmpBottom float64
+	State        string
+	Action       string
+	Sell_stop    Rect
+	Buy_stop     Rect
+	StopDistance int
+	profit       float64
+	buy          float64
+	sell         float64
+	tmpTop       float64
+	tmpBottom    float64
 }
 
 func (ac *avgContext) Show() string {
@@ -97,6 +98,8 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 		ac.buy = stock.dataClose[curIndex]
 		ac.profit = 0
 
+		ac.StopDistance = curIndex - preMax
+
 		return true, true, true
 	} else {
 
@@ -106,6 +109,8 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 
 		ac.sell = stock.dataClose[curIndex]
 		ac.profit = 0
+
+		ac.StopDistance = curIndex - preMax
 
 		return true, true, true
 	}
@@ -135,6 +140,7 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_SELL
 		ac.Sell_stop = arr[size-1]
 
+		ac.StopDistance = 0
 		return true, revert, change
 	}
 	//buy
@@ -153,6 +159,7 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 		ac.Action = ACTION_BUY
 		ac.Buy_stop = arr[size-1]
 
+		ac.StopDistance = 0
 		return true, revert, change
 	}
 

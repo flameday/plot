@@ -464,6 +464,11 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 
 		flagSaveFile = true
 	} else if ac.State != STATE_UNKOWN {
+		//before state change, we add 1 dot first
+		ac.Sell_stop.DistLeft += 1
+		ac.Sell_stop.DistRight += 1
+		ac.Buy_stop.DistLeft += 1
+		ac.Buy_stop.DistRight += 1
 		ok, revert, _, arr := forwardState(ac, stock)
 		for _, r := range arr {
 			drawRectangle(p, r.left, r.top, r.right, r.bottom, olive)

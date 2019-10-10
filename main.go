@@ -143,10 +143,11 @@ func main() {
 
 			filename := fmt.Sprintf("/Users/xinmei365/stock/%03d_%03d.png", index, i)
 			flagSave := Run(ac, p, st, filename, i)
-			tmpArr = append(tmpArr, ac.profit)
 			//log.Infof("[%d] profit:%f", i, ac.profit)
-			if (i > 4000 && i < 4500) || flagSave {
-				p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
+			//if (i > 4000 && i < 4500) || flagSave {
+			if flagSave {
+				tmpArr = append(tmpArr, ac.profit)
+				//p.Save(vg.Length(picwidth), vg.Length(picheight), filename)
 				time.Sleep(200 * time.Millisecond)
 			}
 			//break

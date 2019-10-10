@@ -551,7 +551,7 @@ func Run(ac *avgContext, p *plot.Plot, stock *Stock, filename string, pos int) b
 		if ok && (revert) {
 			if last_buy == ac.buy && last_sell == ac.sell {
 			} else {
-				//log.Infof("[%d] buy: %f sell:%f lb:%f, ls:%f profit:%.3f %s", pos, ac.buy, ac.sell, last_buy, last_sell, ac.profit, ac.Show())
+				log.Infof("[%d] buy: %f sell:%f lastb:%f, lasts:%f %s", pos, ac.buy, ac.sell, last_buy, last_sell, ac.Show())
 
 				last_buy = ac.buy
 				last_sell = ac.sell

@@ -115,7 +115,65 @@ func isValidInit(ac *avgContext, stock *Stock) (ret bool, revert bool, modify bo
 	return true, false, false
 }
 
-func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify bool) {
+//count how many wave there are
+func countWave(ac *avgContext, arr []Rect) (count int) {
+	count = 0
+	for i := len(arr) - 1; i >= 0; i-- {
+		if arr[i].DistLeft <= i {
+			break
+		}
+		count += 1
+	}
+	return count
+}
+
+//r: dst stop rectangle
+func moveComplexAdvanceBuy(ac *avgContext, arr []Rect, r Rect, y float64) {
+	ac.Buy_stop = r
+
+	count := countWave(ac, arr)
+	L := ac.Buy_stop.Height()
+	l := r.bottom - ac.Buy_stop.bottom
+	diff := L - l
+	if diff <= 0 {
+		log.Errorf("impossible")
+		// nothing to move
+		return
+	}
+	step := ((y-ac.Buy_stop.top)/L + float64(count/3)) * (diff / 3)
+	if step >= 0.9*diff {
+		step = 0.9 * diff
+	}
+	if step < 0 {
+		step = 0
+	}
+	expand := diff - step
+	ac.Buy_stop.bottom -= expand
+}
+
+func moveComplexAdvanceSell(ac *avgContext, arr []Rect, r Rect, y float64) {
+	ac.Sell_stop = r
+
+	count := countWave(ac, arr)
+	L := ac.Sell_stop.Height()
+	l := r.top - ac.Sell_stop.bottom
+	diff := L - l
+	if diff < 0 {
+		log.Errorf("impossible")
+		// nothing to move
+		return
+	}
+	step := ((ac.Buy_stop.bottom-y)/L + float64(count/3)) * (diff / 3)
+	if step >= 0.9*diff {
+		step = 0.9 * diff
+	}
+	if step < 0 {
+		step = 0
+	}
+	expand := diff - step
+	ac.Sell_stop.top += expand
+}
+func restrictStop(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	//latest 3
 	size := len(arr)
 	if size < 3 {
@@ -135,7 +193,8 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 
 		ac.State = STATE_NEW_LOW
 		ac.Action = ACTION_SELL
-		ac.Sell_stop = arr[size-1]
+		moveComplexAdvanceSell(ac, arr, arr[size-1], curValue)
+		//ac.Sell_stop = arr[size-1]
 
 		return true, revert, change
 	}
@@ -153,7 +212,8 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 
 		ac.State = STATE_NEW_HIGH
 		ac.Action = ACTION_BUY
-		ac.Buy_stop = arr[size-1]
+		//ac.Buy_stop = arr[size-1]
+		moveComplexAdvanceBuy(ac, arr, arr[size-1], curValue)
 
 		return true, revert, change
 	}
@@ -164,7 +224,7 @@ func restrictStop(ac *avgContext, arr []Rect) (ret bool, revert bool, modify boo
 func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}
@@ -205,7 +265,7 @@ func action_High_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}
@@ -235,7 +295,7 @@ func action_Low_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, re
 func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}
@@ -277,7 +337,7 @@ func action_Low_High_0_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bo
 func action_Low_High_1_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}
@@ -312,7 +372,7 @@ func action_Low_High_1_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}
@@ -354,7 +414,7 @@ func action_High_Low_0_Sell(ac *avgContext, arr []Rect, curValue float64) (ret b
 func action_High_Low_1_Buy(ac *avgContext, arr []Rect, curValue float64) (ret bool, revert bool, modify bool) {
 	// quick change
 	size := len(arr)
-	ret, revert, modify = restrictStop(ac, arr)
+	ret, revert, modify = restrictStop(ac, arr, curValue)
 	if ret {
 		return ret, revert, modify
 	}

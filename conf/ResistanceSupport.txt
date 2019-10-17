@@ -1,0 +1,40 @@
+//------------------------------------------------------------------------
+// 简称:ResistanceSupport
+// 名称:计算机支撑压力位
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+	NumericSeries lowArr;
+	NumericSeries highArr;
+	Integer count(0);
+	Integer i;
+	Integer inter;
+	Integer currentPrice;
+Begin		
+	//策略执行区
+	//获取最近100个Bar的值，进行统计
+		lowArr = AverageFC(Low, 1);
+		highArr= AverageFC(High, 1);
+	if(barstatus==2) {
+		for inter = 0 to 100 {
+			count = 0;
+			currentPrice = 4200 + inter * 10;
+			for i=0 to 300 {
+				if (lowArr[i] <=currentPrice && highArr[i] >= currentPrice) {
+					count += 1;
+				}
+			}
+			//PlotNumeric("count", count);
+			//PlotNumeric("i", i);
+			//PlotNumeric("low", lowArr[i]);
+			PartLine("ResSup", count, currentPrice, 0, currentPrice, Red, 5);
+		}
+	}
+
+End

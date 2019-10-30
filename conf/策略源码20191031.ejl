@@ -1,0 +1,4788 @@
+//------------------------------------------------------------------------
+// 简称:AD
+// 名称:Accumulation/Distribution
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("AD",((CLOSE-LOW)-(HIGH-CLOSE))/(HIGH-LOW)*VOL);
+End
+##FamulaInfo#fullName#Accumulation/Distribution#fmlName#AD#fmldise#对每一交易日求： 　偏移值＝（收盘价－最低价）－（最高价－收盘价） 　振幅　＝最高价－最低价 　用偏移值除以振幅，再乘以成交量，得一值。 将该值从上市第一天起开始累加，得AD值。#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ADTM
+// 名称:动态买卖气指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(23);
+	Integer M(8);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric DTM = IIF(O<=REF(O,1),0,MAX((H-O),(O-REF(O,1))));
+	Numeric DBM = IIF(O>=REF(O,1),0,MAX((O-L),(O-REF(O,1))));
+	Numeric STM = SummationFC(DTM,N);
+	Numeric SBM = SummationFC(DBM,N);
+	
+	Numeric ADTM = IIF(STM>SBM,(STM-SBM)/STM,IIF(STM==SBM,0,(STM-SBM)/SBM));
+	Numeric MA1  = MA(ADTM,M);
+	
+	PlotNumeric("ADTM",ADTM);
+	PlotNumeric("MA1",MA1);
+End
+##FamulaInfo#fullName#动态买卖气指标#fmlName#ADTM#fmldise#该指标在+1到-1之间波动, 低于-0.5时为很好的买入点,高于+0.5时需注意风险.#fmltype##fmlGroup#超买超卖指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ARBR
+// 名称:人气意愿指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(26);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric AR = SummationFC(HIGH-OPEN,N)/SummationFC(OPEN-LOW,N)*100;
+	Numeric BR = SummationFC(MAX(0,HIGH-REF(CLOSE,1)),N)/
+     Summation(MAX(0,REF(CLOSE,1)-LOW),N)*100;
+	 
+	PlotNumeric("AR",AR);
+	PlotNumeric("BR",BR);
+End
+##FamulaInfo#fullName#人气意愿指标#fmlName#ARBR#fmldise#AR人气指标 算法：最近N天内最高价与收盘价的差的和除以开盘价与最低价的差的和，所得的比值放大100。 用法：介于80至100，盘整；过高，回落；过低，反弹。 BR意愿指标 最近N日内，若某日的最高价高于前一天的收盘价，将该日最高价与前收的差累加到强势和中，若某日的最低价低于前收，则将前收与该日最低价的差累加到弱势和中。最后用强势和除以弱势和，所得比值放大100。 用法：介于70至150，盘整；高于300，回档；低于50，反弹。 参数：N 天数，一般取26#fmltype##fmlGroup#能量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ASI
+// 名称:振动升降指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+	NumericSeries ASI(0);
+Begin		
+	//策略执行区
+	Numeric LC = REF(CLOSE,1);
+	Numeric AA = ABS(HIGH-LC);
+	Numeric BB = ABS(LOW-LC);
+	Numeric CC = ABS(HIGH-REF(LOW,1));
+	Numeric DD = ABS(LC-REF(OPEN,1));
+	Numeric R = IIF(AA>BB AND AA>CC,AA+BB/2+DD/4,IIF(BB>CC AND BB>AA,BB+AA/2+DD/4,CC+DD/4));
+	Numeric X = (CLOSE-LC+(CLOSE-OPEN)/2+LC-REF(OPEN,1));
+	Numeric SI = 16*X/R*MAX(AA,BB);
+	ASI = ASI[1] + SI;
+	PlotNumeric("ASI",ASI);
+End
+##FamulaInfo#fullName#振动升降指标#fmlName#ASI#fmldise##fmltype##fmlGroup#量价指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ATR
+// 名称:真实波幅
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric TR = MAX(MAX((HIGH-LOW),ABS(REF(CLOSE,1)-HIGH)),ABS(REF(CLOSE,1)-LOW));
+	
+	PlotNumeric("TR", TR);
+	PlotNumeric("ATR", MA(TR,N));
+End
+##FamulaInfo#fullName#真实波幅#fmlName#ATR#fmldise#算法：今日振幅、今日最高与昨收差价、今日最低与昨收差价中的最大值，为真实波幅，求真实波幅的N日移动平均 参数：N　天数，一般取14#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: BarChannel
+// 名称: 画K线通道
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArrayRef highArr;
+	Numeric slope;
+	NumericArrayRef aArr;
+	NumericArrayRef bArr;
+Vars
+	Integer i;
+	Integer k;
+	Integer m;
+Begin
+	// 第一步，先找所有的边界线
+	// 这里严格的说，应该遍历所有点，但是快速处理，只取顶底分型
+	// 高点
+	NumericArray yArray;
+	NumericArray xArray;
+	Integer size = ArrLength(highArr);
+	Commentary("highArr size:"+Text(size));
+	for i = 0 to size-1 {
+		if (i == 0 && size > 1) {
+			if (highArr[i] <= highArr[i+1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (i == size-1 && size > 1) {
+			if (highArr[i] <= highArr[i-1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (highArr[i] <= highArr[i-1] && highArr[i] <= highArr[i+1]) {
+			ArrAdd(xArray, i);
+			ArrAdd(yArray, highArr[i]);
+		}
+	}
+	ShowArr("xArray", xArray);
+	ShowArr("yArray", yArray);
+	
+	// 第二步，选择合适的边界线
+	// 采用通用方案，遍历
+	size = ArrLength(xArray);
+	for i = 0 to size-2 {
+		for k = i+1 to size-1 {
+			// 这里获得所有的直线，判断是否都大于等于0：算法复杂度是O（n*n*n）
+			// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+			Integer x1 = xArray[i];
+			Numeric y1 = yArray[i];
+			
+			Integer x2 = xArray[k];
+			Numeric y2 = yArray[k];
+			// 限制斜率一致，避免奇葩结果
+			if ((y2-y1)/(x2-x1)*slope <= 0) {
+				continue;
+			}
+			
+			Bool flag = True;
+			// 两点之外的所有其他点，都必须在直线之下
+			for m = 0 to size - 1 {
+				if (m == i || m == k) {
+					continue;
+				}
+				Integer x =  xArray[m];
+				Numeric y = y1 + (x - x1)*(y2-y1)/(x2-x1);
+				Numeric diff = yArray[m] - y;
+				//Commentary("x,y diff=(" + Text(x) +","+Text(y) + ")," + Text(diff));
+				
+				// 向上倾斜
+				if (slope > 0) {
+					//上涨如果还低，就不合法了
+					if (diff < 0) {
+						//Commentary("-----ignore high x/y pair");
+						flag = False;
+						break;
+					}
+				}
+				if (slope < 0) {
+					if (diff > 0) {
+						flag = False;
+						break;
+					}
+				}
+			}// for m = 0
+			
+			if (flag) {
+				Commentary("allow x,y:("+Text(xArray[i])+","+Text(yArray[i])+"), (" +Text(xArray[k])+","+Text(yArray[k])+")");
+				//获得 a b，并加入到数组
+				Numeric a = (y2-y1)/(x2-x1);
+				Numeric b = y1 - a*x1;
+				
+				if (a == 0) {
+					Continue;
+				}
+				
+				size = ArrLength(aArr);
+				Bool isExists = False;
+				for i=0 to size-1 {
+					if (aArr[i] == a && bArr[i] == b) {
+						isExists = True;
+						break;
+					}
+				}
+				if (! isExists) {
+					ArrAdd(aArr, a);
+					ArrAdd(bArr, b);
+				}
+			}
+		}// for k = i+1 to size-1
+	}// for i = 0 to size-2
+	ShowArr("aArr", aArr);
+	ShowArr("bArr", bArr);
+	Return 0;
+End
+##FamulaInfo#fullName#画K线通道#fmlName#BarChannel#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:BBIBOLL
+// 名称:多空布林带
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(10);
+	Numeric P(3);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric BBI = (MA(CLOSE,3)+MA(CLOSE,6)+MA(CLOSE,12)+MA(CLOSE,24))/4;
+	Numeric UPR = BBI+P*StandardDev(BBI,N);
+	Numeric DWN = BBI-P*StandardDev(BBI,N);
+	
+	PlotNumeric("BBI",BBI);
+	PlotNumeric("UPR",UPR);
+	PlotNumeric("DWN",DWN);
+End
+##FamulaInfo#fullName#多空布林带#fmlName#BBIBOLL#fmldise#UPR线为压力线,对股价有压制作用,DWN线为支撑线,对股价具有 支撑作用,BBI线为中轴线。 N、P为参数： N为统计天数，P为轨道宽度。 缺损值为10和3 用法： 轨道收敛时为买入信号； 轨道发散，且股价超越上轨时为卖出信号； 股价跌穿下轨时为卖出信号；#fmltype##fmlGroup#压力支撑指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:BIAS
+// 名称:乖离率
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer L1(6);
+	Integer L2(12);
+	Integer L3(24);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric BIAS1 = (Close-AverageFC(Close,L1)) / AverageFC(Close,L1)*100;
+	Numeric BIAS2 = (Close-AverageFC(Close,L2)) / AverageFC(Close,L2)*100;
+	Numeric BIAS3 = (Close-AverageFC(Close,L3)) / AverageFC(Close,L3)*100;
+	
+	PlotNumeric("BIAS1",BIAS1);
+	PlotNumeric("BIAS2",BIAS2);
+	PlotNumeric("BIAS3",BIAS3);
+	
+End
+##FamulaInfo#fullName#乖离率#fmlName#BIAS#fmldise#乖离率表现个股当日收盘价与移动平均线之间的差距。 正的乖离率愈大，表示短期获利愈大，则获利回吐的可能性愈高；负的乖离率愈大，则空头回补的可能性愈高。 按个股收盘价与不同天数的平均价之间的差距，可绘制不同的BIAS线。 参数：系统绘制三条BIAS线，分别为收盘价与L1日、L2日、L3日移动平均价的差。#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:BOLL
+// 名称:布林带
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(26);
+	Numeric P(2);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric midPrice = MA(Close,N);
+	Numeric upPrice = midPrice + P * StandardDev(Close,N);
+	Numeric dnPrice = midPrice - P * StandardDev(Close,N);
+	
+	PlotNumeric("MID",midPrice);
+	PlotNumeric("UPPER",upPrice);
+	PlotNumeric("LOWER",dnPrice);
+End
+##FamulaInfo#fullName#布林带#fmlName#BOLL#fmldise#BOLL带绘制支撑线(LOWER)、阻力线(UPER)、中线(MID)。 MID：收盘价的N日移动平均 UPER：中线加偏移值 LOWER：中线减偏移值 参数：N　设定统计天数 ，一般为26 　　　P　设定BOLL带宽度，一般为2 用法： 1.股价向上穿越支撑线，买入信号 2.股价向上穿越阻力线，卖出信号#fmltype##fmlGroup#压力支撑指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:CCI
+// 名称:顺势指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric TYP = (High + Low + Close) / 3;
+	Numeric CCI = (TYP-MA(TYP,N)) / (0.015*AvgDeviation(TYP,N));
+	
+	PlotNumeric("CCI",CCI);
+End
+##FamulaInfo#fullName#顺势指标#fmlName#CCI#fmldise#算法： 　中价与中价的N日移动平均的差除以N日内中价的平均绝对偏差 参数：N　设定计算移动平均的天数，一般为14 用法： 当CCI小于-100时为买入信号，CCI大于100时为卖出信号。#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:CDP
+// 名称:逆势操作
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric PT  = REF(HIGH,1)-REF(LOW,1);
+	Numeric CDP = (HIGH + LOW + CLOSE)/3;
+	
+	PlotNumeric("CDP",CDP);
+	PlotNumeric("AH" , CDP + PT);
+	PlotNumeric("AL" , CDP - PT);
+	PlotNumeric("NH" , 2*CDP-LOW);
+	PlotNumeric("NL" , 2*CDP-HIGH);
+End
+##FamulaInfo#fullName#逆势操作#fmlName#CDP#fmldise#超级短线指标 算法：CDP 为最高价、最低价、收盘价的均值，称中价；中价与前一天的振幅的和、差分别记为AH(最高值)、AL(最低值)；两倍中价与最低价的差称NH(近高值)，与最高价的差称NL(近低值)。 用法： 1.股价波动不大时，开盘价位于近高值与近低值间，可在近低值价位买进，近高值价位卖出。 2.开盘价位于最高值或最低值附近，意味着跳空，是大行情发动的开始，可在最高值价位追买，或最低值价位追卖。#fmltype##fmlGroup#压力支撑指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:CJL
+// 名称:成交量指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("持仓量",OpenInt);	
+	
+	if(Close>Open)
+		PlotBar("成交量",Vol,0,True,ColorUp());
+	Else
+		PlotBar("成交量",Vol,0,False,ColorDown());
+	SetOwnAxis("持仓量");
+End
+##FamulaInfo#fullName#成交量指标#fmlName#CJL#fmldise##fmltype##fmlGroup#成交量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ColorRSI
+// 名称:ColorRSI
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(6);
+	Integer LL(20);
+	Integer HH(80);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	
+	Numeric fRSI = RSI(Close,N);
+	if(fRSI<LL)
+	{
+		ColorBar(ColorUp());
+	}
+	if(fRSI>HH)
+	{
+		ColorBar(ColorDown());
+	}
+End
+##FamulaInfo#fullName#超买超卖#fmlName#ColorRSI#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ColorWR
+// 名称:威廉指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+	Integer M(6);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric MWR = MA(-100*(HighestFC(HIGH,N)-CLOSE)/(HighestFC(HIGH,N)-LowestFC(LOW,N)),M);
+	if(MWR<-80)
+	{
+		ColorBar(ColorUp());
+	}
+	if(MWR >-20)
+	{
+		ColorBar(ColorDown());
+	}
+
+End
+##FamulaInfo#fullName#威廉指标#fmlName#ColorWR#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:CP
+// 名称:分时均线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+	NumericSeries fSum(0);
+	NumericSeries fSumVol(0);
+	NumericSeries ret(0);
+Begin		
+	//策略执行区
+	if(TradeDate != TradeDate[1])
+	{
+		fSum=Close*Vol;
+		fSumVol=Vol;
+				
+	}
+	Else
+	{
+		fSum=fSum[1]+Close*Vol;
+		fSumVol=fSumVol[1]+Vol;		
+	}
+		
+	if(fSumVol>0)
+	{
+		ret = fSum/fSumVol;		
+	}
+	Else
+	{
+		ret = Close;
+	}
+	
+	if(TradeDate == TradeDate[1])
+	{
+		PartLine("Avg",0,ret,1,ret[1]);
+	}
+	Else
+	{
+		PartLine("Avg",0,ret,0,ret);	
+	}
+	
+End
+##FamulaInfo#fullName#分时均线#fmlName#CP#fmldise##fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:CR
+// 名称:CR能量指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(26);
+	Integer M1(5);
+	Integer M2(10);
+	Integer M3(20);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric midPrice = (HIGH+LOW+CLOSE)/3;
+	Numeric vCR = SummationFC(MAX(0,HIGH-REF(midPrice,1)),N)/SummationFC(MAX(0,REF(midPrice,1)-L),N)*100;
+	PlotNumeric("CR",vCR);
+	PlotNumeric("MA1",REF(MA(vCR,M1),M1/2.5+1));
+	PlotNumeric("MA2",REF(MA(vCR,M2),M2/2.5+1));
+	PlotNumeric("MA3",REF(MA(vCR,M3),M3/2.5+1));
+End
+##FamulaInfo#fullName#CR能量指标#fmlName#CR#fmldise#算法： 在N日内，若某日最高价高于前一日中价(最高、最低价的均值)，将二者的差累加到强势和中；若某日最低价低于前中价，将前中价与最低价的差累加到弱势和中。强势和除以弱势和，再乘100，即得CR。 同时绘制CR的M1日、M2日、M3日均线。 参数：N 统计天数 　M1、M2、M3　计算移动平均的天数，一般为5、10、20#fmltype##fmlGroup#能量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:DMA
+// 名称:平均线差
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer ShortPrd(10);
+	Integer LongPrd(50);
+	Integer N(10);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric DDD = AverageFC(CLOSE,ShortPrd)-AverageFC(CLOSE,LongPrd);
+	Numeric AMA = AverageFC(DDD,N);
+	
+	PlotNumeric("DDD",DDD);
+	PlotNumeric("AMA",AMA);
+End
+##FamulaInfo#fullName#平均线差#fmlName#DMA#fmldise#算法： 收盘价的短期平均与长期平均的差除以短期天数，得DMA；DMA的M日平均为AMA。 参数：ShortPrd 短期天数 LongPrd 长期天数　N 计算移动平均的天数 一般为10、50、10#fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:DMI
+// 名称:趋向指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+	Integer M(6);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric TR = Summation(MAX(MAX(HIGH-LOW,ABS(HIGH-CLOSE[1])),ABS(LOW-CLOSE[1])),N);
+	Numeric HD = HIGH-HIGH[1];
+	Numeric LD = LOW[1]-LOW;
+	Numeric DMP = Summation(IIF(HD>0 AND HD>LD,HD,0),N);
+	Numeric DMM = Summation(IIF(LD>0 AND LD>HD,LD,0),N);
+	
+	Numeric PDI = DMP*100/TR;
+	PlotNumeric("PDI", PDI);
+	
+	Numeric MDI = DMM*100/TR;
+	PlotNumeric("MDI", MDI);
+	Numeric ADX = AverageFC(ABS(MDI-PDI)/(MDI+PDI)*100,M);
+	
+	PlotNumeric("ADX", ADX);
+	PlotNumeric("ADXR",(ADX+REF(ADX,M))/2);
+End
+##FamulaInfo#fullName#趋向指标#fmlName#DMI#fmldise#用法：市场行情趋向明显时，指标效果理想。 PDI(上升方向线) MDI(下降方向线) ADX(趋向平均值) 1.PDI线从下向上突破MDI线，显示有新多头进场，为买进信号； 2.PDI线从上向下跌破MDI线，显示有新空头进场，为卖出信号； 3.ADX值持续高于前一日时，市场行情将维持原趋势； 4.ADX值递减，降到20以下，且横向行进时，市场气氛为盘整； 5.ADX值从上升倾向转为下降时，表明行情即将反转。 参数：N　统计天数； M 间隔天数，一般为14、6 ADXR线为当日ADX值与M日前的ADX值的均值　　　#fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:Donchian
+// 名称:唐氏通道交易系统
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer M(5);
+	Integer N(5);
+	Integer MaxPositionNum(3);		//最大开仓数
+	Numeric StopPoint(30);		//止损点
+	Numeric WinPoint(100);		//止赢点
+	Numeric FloatStopStart(50);	//浮动止损开始点
+	Numeric FloatStopPoint(20);	//浮动止损点
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+	NumericSeries HHV;
+	NumericSeries LLV;
+Begin		
+	HHV = HighestFC(High,M);  //求M周期最高
+	LLV = LowestFC(Low,N);	  //求N周期最低
+	
+	PlotNumeric("LAST_HHV",HHV[1]);
+	PlotNumeric("LAST_LLV",LLV[1]);
+	if(High > HHV[1])
+	{
+		if(CurrentContracts<MaxPositionNum || MarketPosition<0)
+			Buy(1,High);
+	}
+	Else if(Low<LLV[1])
+	{
+		IF(ABS(CurrentContracts)<MaxPositionNum || MarketPosition>0)
+			SellShort(1,Low);
+	}
+	
+	SetStopPoint(StopPoint);	//止损
+	SetWinPoint(WinPoint);		//止赢
+	SetFloatStopPoint(FloatStopStart,FloatStopPoint);	//浮动止损
+
+End
+##FamulaInfo#fullName#唐氏通道交易系统#fmlName#Donchian#fmldise##fmltype##fmlGroup#交易系统#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:doubleMACDSys
+// 名称:双MACD系统
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Numeric FastLength(12);
+    Numeric SlowLength(26);
+    Numeric MACDLength(9);
+	
+	Numeric TimeFrame(60);               // 目标时间周期参数，参数说明参见MtBar
+    Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+	Numeric Lots(1);
+GlobalVars	
+	//全局变量定义
+	Integer lastCrossPos(-1);
+Vars		
+	//局部变量定义
+	NumericSeries MACDValue5;
+    Numeric AvgMACD5;
+    NumericSeries MACDDiff5;//定义为序列变量
+	
+	NumericSeries MACDValue15;
+	NumericSeries AvgMACD15;
+	NumericSeries MACDDiff15;
+	Numeric ooMACDValue;
+	Numeric ooAvgMACD;
+	Numeric PreBar;
+	Numeric tolerent;
+	Integer i(0);
+	Numeric y;
+	
+	Integer readyToAction;//0: 1 buy 0 nothin -1 sell
+	Numeric lastPrice;//10
+	Numeric profit;//20
+Begin
+	if (CurrentBar == 0) {
+		SetGlobalVar(0, 0);
+		SetGlobalVar(10, 0);
+		SetGlobalVar(20,0);
+	}
+	readyToAction = GetGlobalVar(0);
+	lastPrice = GetGlobalVar(10);
+	profit = GetGlobalVar(20);
+	
+	//1，获取5分钟的MACD
+	MACDValue5 = XAverage( Close, FastLength ) - XAverage( Close, SlowLength ) ;       
+	AvgMACD5 = XAverage(MACDValue5, MACDLength);
+	MACDDiff5 = MACDValue5 - AvgMACD5;
+	
+	//2, 获取15分钟的MACD
+	PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+	MACDVAlue15 = ooMACDValue;
+	AvgMACD15 = ooAvgMACD;
+	MACDDiff15 = MACDValue15 - AvgMACD15;
+	
+	//3, 判断是否到了顶、底
+	// 这里是不是有 MACD 的延迟？
+	Bool flag = False;
+	tolerent = 0;
+	if (MACDDiff15[2] != 0) {
+		tolerent = Abs(MACDDiff15[1] - MACDDiff15[2]) / Abs(MACDDiff15[2]);
+		if (tolerent >= 0.05) {
+			flag = True;
+		}
+	}
+	if (MACDDiff15[3] != 0) {
+		tolerent = Abs(MACDDiff15[1] - MACDDiff15[3]) / Abs(MACDDiff15[3]);
+		if (tolerent >= 0.05) {
+			flag = True;
+		}
+	}
+	If((MACDDiff15[1] > MACDDiff15[2]) && (readyToAction != 1) && flag)
+	{
+		lastCrossPos = CurrentBar;
+		// 交易信号
+		readyToAction = 1;
+		Commentary("MACDDiff15[1]="  +Text(MACDDiff15[1]) + " MACDDiff15[2]=" +Text(MACDDiff15[2]));
+		Commentary(" readyToAction=" +Text(readyToAction) + " CurrentBar=" +Text(CurrentBar));
+	} else if ((MACDDiff15[1] < MACDDiff15[2]) && (readyToAction != -1) && flag) {
+		/*if (CurrentBar > 2400) {
+			NumericArray xArr;
+			NumericArray yArr;
+			NumericArray paramsArr;
+			NumericArray dstArr;
+			for i=0 to CurrentBar-lastCrossPos-1 {
+				y = MACDDiff15[CurrentBar - lastCrossPos];
+				ArrAdd(xArr, i);
+				ArrAdd(yArr, y);
+			}
+			getFitParabola(xArr, yArr, paramsArr);
+			getArrParabolaValue(xArr, paramsArr, dstArr);
+			for i=0 to CurrentBar-lastCrossPos-1-1 {
+				PartLine("parabola", lastCrossPos +i, dstArr[i],
+									 lastCrossPos +i + 1, dstArr[i+1]);
+			}
+		}
+		lastCrossPos = CurrentBar;*/
+		 
+		// 交易信号
+		readyToAction = -1;
+		Commentary("MACDDiff15[1]="  +Text(MACDDiff15[1]) + " MACDDiff15[2]=" +Text(MACDDiff15[2]));
+		Commentary(" readyToAction=" +Text(readyToAction) + " CurrentBar=" +Text(CurrentBar));
+	}
+		
+	//策略执行区
+	// 买入信号
+	if (readyToAction == 1) {
+		// 平仓
+		if (MarketPosition == -1) {
+			//keep sell
+			BuyToCover(Lots);
+			profit += lastPrice - Open - 1;
+			commentary("profit= " + Text(profit));
+		} 
+		// 开仓
+		if (MarketPosition() == 0) {
+			//5 分钟死叉，或者已经死叉了
+			if (MACDDiff5 >= 0) {
+				Buy(Lots,Open);
+				lastPrice = Open;
+			}
+		} if (MarketPosition() == -1) {
+			//keep sell
+		}
+	} else if (readyToAction == -1) { // 卖出信号
+		// 平仓
+		if (MarketPosition == 1) {
+			//keep sell
+			Sell(Lots);
+			profit += Open - lastPrice - 1;
+			commentary("profit= " + Text(profit));
+		} 
+		// 开仓
+		if (MarketPosition() == 0) {
+			//5 分钟死叉，或者已经死叉了
+			if (MACDDiff5 <= 0) {
+				SellShort(Lots,Open);
+				lastPrice = Open;
+			}
+		} if (MarketPosition() == -1) {
+			//keep sell
+		}
+	}
+	
+	SetGlobalVar(0, readyToAction);
+	SetGlobalVar(10, lastPrice);
+	SetGlobalVar(20, profit);
+	//PlotNumeric("CurrentBar", CurrentBar);
+	//PlotNumeric("profit", profit);
+End
+##FamulaInfo#fullName#双MACD系统#fmlName#doubleMACDSys#fmldise##fmltype##fmlGroup#交易系统#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:DualMA
+// 名称:双均线交易系统
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+	Numeric FastLength(3);  //短周期
+	Numeric SlowLength(10);  //长周期
+		
+	Numeric StopPoint(30);  //止损点
+	Numeric WinPoint(100);   //止赢点
+	
+	Numeric FlostStopStartPoint(50);   //浮动止损启动条件
+	Numeric FlostStopPoint(20);   //浮动止损点
+	
+	Numeric TradeUint(5); //每次交易手数
+	
+Vars
+	NumericSeries AvgValue1; 
+	NumericSeries AvgValue2;
+	BoolSeries bCrossOver(false);
+	BoolSeries bCrossDn(False);
+Begin
+	AvgValue1 = AverageFC(CLOSE,FastLength);
+	AvgValue2 = AverageFC(CLOSE,SlowLength);
+	PlotNumeric("MA1",AvgValue1);
+	PlotNumeric("MA2",AvgValue2);
+	
+	
+		
+	bCrossOver = CrossOver(AvgValue1,AvgValue2);
+	bCrossDn   = CrossUnder(AvgValue1,AvgValue2);
+	
+	//均线交叉时开仓
+	if(bCrossOver[1])
+	{
+		if(MarketPosition != 1)
+			Buy(TradeUint,Open);
+		
+	}
+	Else if(bCrossDn[1])
+	{
+		if(MarketPosition != -1)
+			SellShort(TradeUint,Open);
+	}
+	
+	//止盈止损
+	SetWinPoint(WinPoint);
+	//止损点
+	SetStopPoint(StopPoint);
+	//浮动止损
+	SetFloatStopPoint(FlostStopStartPoint,FlostStopPoint);
+	
+End
+##FamulaInfo#fullName#双均线交易系统#fmlName#DualMA#fmldise#根据长短周期均线上下穿越作为开仓条件 包含止损，止赢功能#fmltype##fmlGroup#交易系统#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:EMA
+// 名称:指数平滑移动平均线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer P1(5);
+	Integer P2(10);
+	Integer P3(20);
+	Integer P4(60);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric MA1 = EMA(CLOSE,P1);
+	Numeric MA2 = EMA(CLOSE,P2);
+	Numeric MA3 = EMA(CLOSE,P3);
+	Numeric MA4 = EMA(CLOSE,P4);
+	
+	PlotNumeric("MA1",MA1);
+	PlotNumeric("MA2",MA2);
+	PlotNumeric("MA3",MA3);
+	PlotNumeric("MA4",MA4);
+End
+##FamulaInfo#fullName#指数平滑移动平均线#fmlName#EMA#fmldise##fmltype##fmlGroup##isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ENV
+// 名称:Envalops
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("UPPER",MA(Close,N) * 1.06);
+	PlotNumeric("LOWER",MA(Close,N) * 0.94);
+End
+##FamulaInfo#fullName#Envalops#fmlName#ENV#fmldise#收盘价的N日移动平均向上浮动6%得UPPER线，向下浮动6%得LOWER线。 参数：N　设定计算移动平均的天数，一般为14天#fmltype##fmlGroup#压力支撑指标#isMain#1#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getArrLinePos
+// 名称: getArrLinePos
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray arr;
+	Integer row;
+	Integer col;
+Vars
+	Numeric sum;
+Begin
+	Integer length = ArrLength(arr);
+	Integer size = Sqrt(length);
+	Integer res = row * size + col;
+	
+	//Commentary("size= "+Text(size) +" (i,j)=("+Text(row)+","+Text(col)+") res:"+Text(res));
+	
+	return res;
+End
+##FamulaInfo#fullName#getArrLinePos#fmlName#getArrLinePos#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getArrParabolaValue
+// 名称: getArrParabolaValue
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray xArr;
+	NumericArray paramsArr;
+	NumericArrayRef dstArr;
+Vars
+Begin
+	Integer i;
+	for i=0 to ArrLength(xArr)-1 {
+		Numeric sum = 0;
+		Numeric x = xArr[i];
+		sum += paramsArr[0];
+		sum += paramsArr[1]*x;
+		sum += paramsArr[2]*x*x;
+		ArrAdd(dstArr, sum);
+	}
+	Return 0;
+End
+##FamulaInfo#fullName#getArrParabolaValue#fmlName#getArrParabolaValue#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getArrSquareSum
+// 名称: getArrSquareSum
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray arr;
+	Integer square(2);
+Vars
+	Numeric sum;
+Begin
+	Integer size = ArrLength(arr);
+	Integer i;
+	sum = 0;
+	for i = 0 to size-1 {
+		if (square == 2) {
+			sum += arr[i]*arr[i];
+		} else if (square == 3) {
+			sum += arr[i]*arr[i]*arr[i];
+		} else if (square == 4) {
+			sum += arr[i]*arr[i]*arr[i]*arr[i];
+		} else if (square == 5) {
+			sum += arr[i]*arr[i]*arr[i]*arr[i]*arr[i];
+		} else if (square == 6) {
+			sum += arr[i]*arr[i]*arr[i]*arr[i]*arr[i]*arr[i];
+		}
+	}
+	Return sum;
+End
+##FamulaInfo#fullName#getArrSquareSum#fmlName#getArrSquareSum#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getArrSum
+// 名称: getArrSum
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray arr;
+Vars
+	Numeric sum;
+Begin
+	Integer size = ArrLength(arr);
+	Integer i;
+	sum = 0;
+	for i = 0 to size-1 {
+		sum += arr[i];
+	}
+	Return sum;
+End
+##FamulaInfo#fullName#getArrSum#fmlName#getArrSum#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getArrXYSum
+// 名称: getArrXYSum
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray xArr;
+	NumericArray yArr;
+	Integer xSquare(1);
+	Integer ySquare(1);
+Vars
+	Numeric sum;
+Begin
+	Integer size = ArrLength(xArr);
+	if (size != ArrLength(yArr)) {
+		return -10000000000000;
+	}
+	
+	Integer i;
+	sum = 0;
+	for i = 0 to size-1 {
+		if (xSquare == 1 && ySquare == 1) {
+			sum += xArr[i]*yArr[i];
+		} else if (xSquare == 2 && ySquare == 1) {
+			sum += xArr[i]*xArr[i]*yArr[i];
+		} else if (xSquare == 2 && ySquare == 2) {
+			sum += xArr[i]*xArr[i]*yArr[i]*yArr[i];
+		} 
+		//Commentary("---->sum:"+Text(sum));
+	}
+	Return sum;
+End
+##FamulaInfo#fullName#getArrXYSum#fmlName#getArrXYSum#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getFitLine
+// 名称: 直线拟合
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray xArr;
+	NumericArray yArr;
+Vars
+Begin
+	//直线拟合
+		ArrAdd(xArr, 1);
+		ArrAdd(xArr, 2);
+		ArrAdd(xArr, 3);
+		ArrAdd(yArr,3);
+		ArrAdd(yArr,5);
+		ArrAdd(yArr,7);
+		ShowArr("xArr", xArr);
+		Commentary("getArrSum(xArr)= " + Text(getArrSum(xArr)));
+		Commentary("getArrSum(yArr)= " + Text(getArrSum(yArr)));
+		Commentary("getArrXYSum(xArr, yArr))= " + Text(getArrXYSum(xArr, yArr)));
+		Commentary("getArrSquareSum(xArr)= " + Text(getArrSquareSum(xArr)));
+		Commentary("getArrSquareSum(yArr)= " + Text(getArrSquareSum(yArr)));
+		
+		NumericArray leftArr;
+		NumericArray rightArr;
+		ArrAdd(leftArr, ArrLength(xArr));
+		ArrAdd(leftArr, getArrSum(xArr));
+		ArrAdd(leftArr, getArrSum(xArr));
+		ArrAdd(leftArr, getArrSquareSum(xArr));
+		
+		ArrAdd(rightArr, getArrSum(yArr));
+		ArrAdd(rightArr, getArrXYSum(xArr, yArr));
+		NumericArray paramsArr;
+		Numeric k = getParamByGaussJordan(leftArr, rightArr, paramsArr);
+		Commentary("k="+Text(k));
+		return k;
+End
+##FamulaInfo#fullName#直线拟合#fmlName#getFitLine#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getFitParabola
+// 名称: 双曲线拟合
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray xArr;
+	NumericArray yArr;
+	NumericArrayRef paramsArray;
+Vars
+Begin
+		//二次方程拟合
+		ShowArr("xArr", xArr); 
+		Commentary("getArrSum(xArr)= " + Text(getArrSum(xArr)));
+		Commentary("getArrSum(yArr)= " + Text(getArrSum(yArr)));
+		Commentary("getArrXYSum(xArr, yArr))= " + Text(getArrXYSum(xArr, yArr)));
+		Commentary("getArrSquareSum(xArr)= " + Text(getArrSquareSum(xArr)));
+		Commentary("getArrSquareSum(yArr)= " + Text(getArrSquareSum(yArr)));
+		
+		NumericArray leftArr;
+		NumericArray rightArr;
+		// 添加值 left
+		ArrAdd(leftArr, ArrLength(xArr));
+		ArrAdd(leftArr, getArrSum(xArr));
+		ArrAdd(leftArr, getArrSquareSum(xArr,2));
+		
+		ArrAdd(leftArr, getArrSum(xArr));
+		ArrAdd(leftArr, getArrSquareSum(xArr,2));
+		ArrAdd(leftArr, getArrSquareSum(xArr,3));
+		
+		ArrAdd(leftArr, getArrSquareSum(xArr,2));
+		ArrAdd(leftArr, getArrSquareSum(xArr,3));
+		ArrAdd(leftArr, getArrSquareSum(xArr,4));
+		
+		//right
+		ArrAdd(rightArr, getArrSum(yArr));
+		ArrAdd(rightArr, getArrXYSum(xArr, yArr));
+		ArrAdd(rightArr, getArrXYSum(xArr, yArr, 2, 1));
+		
+		Numeric k = getParamByGaussJordan(leftArr, rightArr, paramsArray);
+		Commentary("k="+Text(k));
+		return k;
+End
+##FamulaInfo#fullName#双曲线拟合#fmlName#getFitParabola#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getParabolaAreaPercent
+// 名称: getParabolaAreaPercent
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray paramsArr;
+	Integer pos(0);
+Vars
+Begin
+	//<- 0
+	Numeric Sum = 0;
+	Numeric partSum = 0;
+	Integer i;
+	Numeric y = 0;
+	Integer x;
+	Numeric rate;
+	
+	// 从中点开始算起: x = 1/2 * (-b/a)
+	Integer center = -1* paramsArr[1]/paramsArr[2]/2.0;
+	ShowArr("==========paramsArr=", paramsArr);
+	Commentary("==========center="+Text(center));
+	//Red 
+	if (paramsArr[2] < 0) {
+		// <- 0
+		for i= 0 to 1000 {
+			x = center - i;
+			y = paramsArr[0] + x*paramsArr[1] + x*x*paramsArr[2];
+			
+			if (y <= 0) {
+				break;
+			}
+			Sum += y;
+			if (x <= pos) {
+				partSum += y;
+			}
+			//Commentary("[" + Text(x) +"] Sum="+Text(Sum));
+			//Commentary("[" + Text(x) +"] partSum="+Text(partSum));
+			//Commentary("[" + Text(x) +"] rate="+Text(partSum/Sum));
+		}
+		for i=0 to 1000 {
+			x = center + i;
+			y = paramsArr[0] + x*paramsArr[1] + x*x*paramsArr[2];
+			if (y < 0) {
+				break;
+			}
+			Sum += y;
+			if (x <= pos) {
+				partSum += y;
+			}
+		}
+	}
+	rate = partSum/Sum;
+	Commentary("[" + Text(x) +"] Sum="+Text(Sum));
+	Commentary("[" + Text(x) +"] partSum="+Text(partSum));
+	Commentary("[" + Text(x) +"] rate="+Text(partSum/Sum));
+	Commentary("getParabolaAreaPercent rate:"+Text(rate));
+	
+	//0 ->
+	Return rate;
+End
+##FamulaInfo#fullName#getParabolaAreaPercent#fmlName#getParabolaAreaPercent#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: getParamByGaussJordan
+// 名称: getParamByGaussJordan
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray leftArr;
+	NumericArray rightArr;
+	NumericArrayRef paramArr;
+Vars
+	
+Begin
+		//高斯约旦方案
+		//1,初始化
+		NumericArray dstArr;
+		Integer i;
+		Integer j;
+		Integer m;
+		Integer size;
+		size = ArrLength(rightArr);
+		
+		for i=0 to ArrLength(leftArr) - 1 {
+			if (i == 0 || i == size+1 || i==2*(size+1) ||i==3*(size+1)) {
+				ArrAdd(dstArr, 1);
+			} else {
+				ArrAdd(dstArr, 0);
+			}
+		}
+		//2,遍历求解
+		// j 列数 i 行数
+		Numeric tmp;
+		Numeric val;
+		Numeric rate;
+		size = ArrLength(rightArr);
+		ShowArr("leftArr", leftArr);
+		ShowArr("dstArr", dstArr);
+		//第一轮
+		for j=0 to size - 2 {
+			val = leftArr[getArrLinePos(leftArr, j, j)];
+			for i=j+1 to size - 1 {
+				//[i][j]
+				tmp = leftArr[getArrLinePos(leftArr, i, j)];
+				if (tmp != 0) {
+					rate = tmp/val;
+					Commentary("val, tmp, rate="+Text(val)+","+Text(tmp)+","+Text(rate));
+					for m=0 to size-1 {
+						leftArr[getArrLinePos(leftArr, i, m)] -= rate * leftArr[getArrLinePos(leftArr, j, m)];
+						dstArr[getArrLinePos(leftArr, i, m)] -= rate * dstArr[getArrLinePos(leftArr, j, m)];
+					}
+				}
+			}
+			ShowArr("1 leftArr", leftArr);
+			ShowArr("1 dstArr", dstArr);
+			Commentary("----------------------------");
+		}
+		//第二轮
+		Integer tmp_i;
+		Integer tmp_j;
+		for j=0 to size - 2 {
+			tmp_j = size-1-j;
+			val = leftArr[getArrLinePos(leftArr, tmp_j, tmp_j)];
+			for i=j+1 to size - 1 {
+				tmp_i = size-1-i;
+				tmp = leftArr[getArrLinePos(leftArr, tmp_i, tmp_j)];
+				if (tmp != 0) {
+					rate = tmp/val;
+					for m = 0 to size-1 {
+						leftArr[getArrLinePos(leftArr, tmp_i, m)] -= rate * leftArr[getArrLinePos(leftArr, tmp_j, m)];
+						dstArr[getArrLinePos(leftArr, tmp_i, m)] -= rate * dstArr[getArrLinePos(leftArr, tmp_j, m)];
+					}
+				}
+			}
+			ShowArr("2 leftArr", leftArr);
+			ShowArr("2 dstArr", dstArr);
+			Commentary("----------------------------");
+		}
+		//第三轮全部设置为1
+		//第一轮
+		for j=0 to size - 1 {
+			val = leftArr[getArrLinePos(leftArr, j, j)];
+			if (val != 1) {
+				rate = val;
+				for m=0 to size-1 {
+					leftArr[getArrLinePos(leftArr, j, m)] = leftArr[getArrLinePos(leftArr, j, m)]/rate;
+					dstArr[getArrLinePos(leftArr, j, m)] = dstArr[getArrLinePos(leftArr, j, m)]/rate;
+				}
+			}
+			ShowArr("2 leftArr", leftArr);
+			ShowArr("2 dstArr", dstArr);
+		}
+		//第四轮，求值
+		for i=0 to size-1 {
+			ArrAdd(paramArr, 0);
+		}
+		ShowArr("rightArr", rightArr);
+		for i=0 to size-1 {
+			Numeric param = 0;
+			for m=0 to size-1 {
+				param += dstArr[getArrLinePos(dstArr, i, m)]*rightArr[m];
+				Commentary("param:"+Text(param));
+			}
+			paramArr[i] = param;
+		}
+		ShowArr("paramArr", paramArr);
+
+		return paramArr[size-1];
+End
+
+##FamulaInfo#fullName#getParamByGaussJordan#fmlName#getParamByGaussJordan#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: IsCross
+// 名称: IsCross
+// 类型: 用户函数
+// 输出: Bool
+//--------------------------------------------------------------
+Params
+	NumericSeries MACDDiff15;
+	Integer distance(2);
+Vars
+	Bool flag(False);
+Begin
+	if (MACDDiff15[distance] * MACDDiff15[0] <= 0) {
+		return True;
+	}
+	return False;
+End
+##FamulaInfo#fullName#IsCross#fmlName#IsCross#fmldise##fmltype#Bool#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K110
+// 名称:早晨之星
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric tick = MinMove * PriceScale;
+	
+	Bool Con1 = Open[2] - Close[2] > 10 * tick;
+	Bool Con2 =  ABS(Close[1] - Open[1])<= 2 * tick  And Open[1]<=Close[2]-2*tick && High[1]-Low[1]>=4*tick;
+	Bool Con3 = Close - Open > 8 *tick && Close>=Open[2]-3*tick;
+	
+	if(Con1 && Con2 && Con3)
+	{
+		ColorBar(ColorUp);
+		ColorBar(ColorUp,1);
+		ColorBar(ColorDown,2);
+	}
+	Else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+End
+##FamulaInfo#fullName#早晨之星#fmlName#K110#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K120
+// 名称:黄昏之星
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric tick = MinMove * PriceScale;
+	
+	Bool Con1 = Close[2] - Open[2] > 10 * tick;
+	Bool Con2 =  ABS(Close[1] - Open[1])<= 2 * tick  And Open[1]>=High[2]+2*tick && High[1]-Low[1]>=4*tick;
+	Bool Con3 = Open - Close  > 8 * tick && Close<=Open[2]+3*tick;
+	
+	if(Con1 && Con2 && Con3)
+	{
+		ColorBar(ColorDown);
+		ColorBar(ColorUp,1);
+		ColorBar(ColorUp,2);
+	}
+	Else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+End
+##FamulaInfo#fullName#黄昏之星#fmlName#K120#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K130
+// 名称:十字星
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	BOOL condition = (CLOSE==OPEN) AND HIGH<>LOW AND HIGH>CLOSE AND LOW<CLOSE;
+	if(condition)
+		ColorBar(ColorUp());
+	else
+		ColorBar(RGB(160,160,160));
+End
+##FamulaInfo#fullName#十字星#fmlName#K130#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K140
+// 名称:大阳烛
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	Numeric tick = MinMove*PriceScale;
+	Bool Con = (Close-Open)>20*tick;
+	Bool Con1 = ABS(High-Close)<2*tick;
+	if(!Con1)
+	{
+		Con1 = (Close - Open) / ABS(High-Close)>10; 
+	}
+	
+	Bool Con2 = ABS(Open-Low)<2*tick;
+	if(!Con2)
+	{
+		Con2 = (Close-Open) / ABS(Open-Low)>10;
+	}
+	
+		     
+	//策略执行区
+	if(Con && Con1 && Con2)
+	{
+		ColorBar(ColorUp());
+	}
+	else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+
+	
+End
+##FamulaInfo#fullName#大阳烛#fmlName#K140#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K150
+// 名称:大阴烛
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	Numeric tick = MinMove*PriceScale;
+	Bool Con = (Open-Close)>20*tick;
+	Bool Con1 = ABS(High-Open)<2*tick;
+	if(!Con1)
+	{
+		Con1 = (Open - Close) / ABS(High-Open)>10; 
+	}
+	
+	Bool Con2 = ABS(Close-Low)<2*tick;
+	if(!Con2)
+	{
+		Con2 = (Open-Close) / ABS(Close-Low)>10;
+	}
+	
+		     
+	//策略执行区
+	if(Con && Con1 && Con2)
+	{
+		ColorBar(ColorDown());
+	}
+	else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+
+	
+End
+##FamulaInfo#fullName#大阴烛#fmlName#K150#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K160
+// 名称:光头阳线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	if(HIGH == CLOSE AND HIGH<>LOW)
+	{
+		ColorBar(ColorUp());
+	}
+	else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+End
+##FamulaInfo#fullName#光头阳线#fmlName#K160#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:K170
+// 名称:光脚阴线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	if(LOW==CLOSE AND HIGH<>LOW)
+	{
+		ColorBar(ColorDown());
+	}
+	else
+	{
+		ColorBar(RGB(160,160,160));
+	}
+End
+##FamulaInfo#fullName#光脚阴线#fmlName#K170#fmldise##fmltype##fmlGroup#变色K线#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:KDJ
+// 名称:随机指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(9);
+	Integer M1(3);
+	Integer M2(3);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric RSV = (Close - LowestFC(Low,N)) / (HighestFC(High,N) - LowestFC(Low,N)) * 100;
+	Numeric K = SMA(RSV,M1,1);
+	Numeric DD = SMA(K,M2,1);
+	Numeric J = 3*K - 2 *DD;
+	
+	PlotNumeric("K",K);
+	PlotNumeric("D",DD);
+	//PlotNumeric("J",J);
+	
+End
+##FamulaInfo#fullName#随机指标#fmlName#KDJ#fmldise#与KD指标相比，多绘制J线 J=3×K－2×D 参数：N、M1、M2 天数，一般取9、3、3#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MA
+// 名称:移动平均线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer P1(10);
+	Integer P2(15);
+	Integer P3(30);
+	Integer P4(35);
+	Integer P5(60);
+	Integer P6(60);
+	Integer P7(150);
+	Integer P8(150);
+	
+Vars		
+	Integer i;
+	Integer j;
+	Integer m;
+	Integer n;
+GlobalVars
+Begin	
+	
+	//求移动平均	
+	Numeric MA1 = AverageFC(Close,P1);
+	Numeric MA2 = AverageFC(Close,P2);
+	Numeric MA3 = AverageFC(Close,P3);
+	Numeric MA4 = AverageFC(Close,P4);
+	Numeric MA5 = AverageFC(Close,P5);
+	Numeric MA6 = AverageFC(Close,P6);
+	Numeric MA7 = AverageFC(Close,P7);
+	Numeric MA8 = AverageFC(Close,P8);
+	
+	//绘指标线
+	
+	//if(CurrentBar>=P1) PlotNumeric("MA"+Text(P1),MA1,0);
+	//if(CurrentBar>=P2)PlotNumeric("MA"+Text(P2),MA2,Yellow);
+	//SetShapeStyle("MA"+Text(P2),1, 0, 1);
+	//if(CurrentBar>=P3)PlotNumeric("MA"+Text(P3),MA3,2);
+	//if(CurrentBar>=P4)PlotNumeric("MA"+Text(P4),MA4,3);
+	//if(CurrentBar>=P5)
+	PlotNumeric("MA"+Text(P1),MA1,Magenta);
+	SetShapeStyle("MA"+Text(P1),2, 0, 1);
+	
+	
+	SetShapeStyle("MA"+Text(P8),2, 0, 1);
+	if(CurrentBar>=P8)PlotNumeric("MA"+Text(P8),MA8,Yellow);
+/*	if(CurrentBar>=P6)PlotNumeric("MA"+Text(P6),MA6,Red);
+	SetShapeStyle("MA"+Text(P6),2, 0, 1);*/
+	//if(CurrentBar>=P8)PlotNumeric("MA"+Text(P8),MA8,7);
+/*	PlotNumeric("MA"+Text(P3),MA3,Blue);
+	SetShapeStyle("MA"+Text(P3),2, 0, 1);
+	
+	if(CurrentBar>=P7)PlotNumeric("MA"+Text(P7),MA7,Yellow);
+	SetShapeStyle("MA"+Text(P7),2, 0, 1);
+	//if(CurrentBar>=P7)PlotNumeric("MA"+Text(P7),MA7,7);
+	
+	if (BarStatus == 2) {
+		NumericArray xArr;
+		NumericArray yArr;
+		
+		ArrAdd(xArr, 1);
+		ArrAdd(xArr, 2);
+		ArrAdd(xArr, 3);
+		
+		ArrAdd(yArr,6);
+		ArrAdd(yArr,17);
+		ArrAdd(yArr,34);
+		NumericArray paramsArr;
+		getFitParabola(xArr, yArr, paramsArr);
+		ShowArr("paramsArr", paramsArr);
+		
+		NumericArray dstArr;
+		getArrParabolaValue(xArr, paramsArr, dstArr);
+		ShowArr("dstArr:", dstArr);
+	}
+	Commentary("=============================");*/
+	if (BarStatus == 2) {
+		NumericArray highArr;
+		Numeric k = -1;
+		NumericArray aArr;
+		NumericArray bArr;
+		for i = 0 to 10 {
+			if (i%2 == 1) {
+				ArrAdd(highArr, -1*(i-5)*(i-5));
+			} else {
+				ArrAdd(highArr, -1*i*i);
+			}
+		} 
+		ShowArr("highArr", highArr);
+		//OutsideRiseChannel(highArr, k, aArr, bArr);
+		OutsideFallChannel(highArr, k, aArr, bArr);
+	}
+End
+##FamulaInfo#fullName#移动平均线#fmlName#MA#fmldise#主图叠加指标 绘制收盘价的P1日、P2日、P3日、P4日移动平均线 P1、P2、P3、P4一般取5日、10日、20日、60日 用法： 1.短期均线向上穿越长期均线，买入信号 2.短期均线向下跌破长期均线，卖出信号#fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD
+// 名称:指数平滑异同平均线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer LongPrd(26);
+	Integer ShortPrd(12);
+	Integer M(9);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric DIFF = EMA(Close,ShortPrd) - EMA(Close,LongPrd);
+	Numeric DEA = EMA(DIFF,M);
+	Numeric ret = 2*(DIFF-DEA);
+	
+	PlotNumeric("DIFF",DIFF);
+	PlotNumeric("DEA",DEA);
+	SetShapeStyle("DEA",1, 2, 1);
+	if(ret>0)
+	{
+		PlotStickLine("MACD",ret,0,ColorUp());
+	}
+	Else
+	{
+		PlotStickLine("MACD",ret,0,ColorDown());
+	}
+	
+End
+##FamulaInfo#fullName#指数平滑异同平均线#fmlName#MACD#fmldise#算法： DIFF线　收盘价短期、长期指数平滑移动平均线间的差 DEA线　 DIFF线的M日指数平滑移动平均线 MACD线　DIFF线与DEA线的差，彩色柱状线 参数：SHORT(短期)、LONG(长期)、M 天数，一般为12、26、9 用法： 1.DIFF、DEA均为正，DIFF向上突破DEA，买入信号。 2.DIFF、DEA均为负，DIFF向下跌破DEA，卖出信号。 3.DEA线与K线发生背离，行情反转信号。 4.分析MACD柱状线，由红变绿(正变负)，卖出信号；由绿变红，买入信号。#fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MM
+// 名称:MM
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(15);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+GlobalVars
+		Integer lastCrossPos(-1);		
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD15m",0, MACDDiff, RED);
+		}   
+        Else{
+                PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD15m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+		//Commentary("CurrentBar:"+Text(CurrentBar));
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+		Integer i;
+		Numeric y;
+		Bool flag = IsCross(MACDDiff);
+		if (flag) {
+			lastCrossPos = CurrentBar;
+		} else {
+			if (CurrentBar > 1000000) {
+				//if (CurrentBar - lastCrossPos > 2 && (CurrentBar == 2881 || CurrentBar == 2888 ||CurrentBar == 2895 ||CurrentBar == 2902)){
+				if (CurrentBar - lastCrossPos){
+					Commentary("lastCrossPos when "+Text(lastCrossPos) +" ---> " +Text(CurrentBar));
+					NumericArray xArr;
+					NumericArray yArr;
+					NumericArray paramsArr;
+					NumericArray dstArr;
+					for i=0 to CurrentBar-lastCrossPos-1 {
+						y = MACDDiff[CurrentBar - lastCrossPos - i]; 
+						ArrAdd(xArr, i);
+						ArrAdd(yArr, y);
+					}
+					ShowArr("xArr:", xArr);
+					ShowArr("yArr:", yArr);
+					getFitParabola(xArr, yArr, paramsArr);
+					getArrParabolaValue(xArr, paramsArr, dstArr);
+					ShowArr("paramsArr:", paramsArr);
+					ShowArr("dstArr:", yArr);
+					for i=0 to CurrentBar-lastCrossPos-1-1 {
+						PartLine("parabola", CurrentBar - lastCrossPos - i, dstArr[i],
+											 CurrentBar - lastCrossPos - i - 1, dstArr[i+1]);
+					}
+					
+					Numeric rate = getParabolaAreaPercent(paramsArr, CurrentBar - lastCrossPos);
+					PlotNumeric("area-rate", rate*5, Yellow);
+				}
+				Commentary("===================");
+			}
+		}
+		
+End
+##FamulaInfo#fullName#MACD15分钟#fmlName#MACD15m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: MACD15m_2
+// 名称: MACD15m_2
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+        Numeric TimeFrame(15);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD30m",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD30m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+		Return 0;
+End
+##FamulaInfo#fullName#MACD15m_2#fmlName#MACD15m_2#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: MACD15m_3
+// 名称: MACD15m_3
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+        Numeric TimeFrame(15);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD30m",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD30m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+		Return 0;
+End
+##FamulaInfo#fullName#MACD15m_3#fmlName#MACD15m_3#fmldise##fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD180m
+// 名称:MACD3小时
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(180);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD240m",0, MACDDiff, RED);
+		}   
+        Else{
+                PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD240m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+
+
+##FamulaInfo#fullName#MACD3小时#fmlName#MACD180m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD240m
+// 名称:MACD240分钟
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(240);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD240m",0, MACDDiff, RED);
+		}   
+        Else{
+                PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD240m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+
+##FamulaInfo#fullName#MACD240分钟#fmlName#MACD240m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD30m
+// 名称:MACD30分钟
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(30);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD30m",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD30m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+##FamulaInfo#fullName#MACD30分钟#fmlName#MACD30m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD5m
+// 名称:MACD5分钟
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(5);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD5m",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD5m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+##FamulaInfo#fullName#MACD5分钟#fmlName#MACD5m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MACD60m
+// 名称:MACD60分钟
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(60);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD60m",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD60m",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+##FamulaInfo#fullName#MACD60分钟#fmlName#MACD60m#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MI
+// 名称:动量指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(12);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric A = C-REF(C,N);
+	PlotNumeric("A",A);
+	PlotNumeric("MI",SMA(A,N,1));
+End
+##FamulaInfo#fullName#动量指标#fmlName#MI#fmldise#动力指数表示的是股票价格的涨跌速度，如果股票价格能始终不渝地上升则动力指数继续向上发展，就说明股票几个上升的速度在加快。反之，如果股票价格始终在下降,则动力指数始终保持在0线的下方。如果动力指数继续向下发展，就说明股票价格下降的速度在加快。 由动力指数的构造特点所决定，它们总能超前于股价的变动而变动，当一个即定的趋势尚在持续时，它已经变得平缓了。而当现行趋势有所缓和时，它已经开始下降了。若趋势了结开始盘整行情时，它便开始在0线附近徘徊了。#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MICD
+// 名称:异同离差动力指数
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(3);
+	Integer N1(10);
+	Integer N2(20);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric MI = C-REF(C,1);
+	Numeric AMI = SMA(MI,N,1);
+	Numeric DIF = MA(REF(AMI,1),N1)-MA(REF(AMI,1),N2);
+	Numeric MICD = SMA(DIF,10,1);
+	
+	PlotNumeric("DIF",DIF);
+	PlotNumeric("MICD",MICD);
+End
+##FamulaInfo#fullName#异同离差动力指数#fmlName#MICD#fmldise#参照MI动量指标#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MIKE
+// 名称:麦克指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(12);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric TYP = (HIGH+LOW+CLOSE)/3;
+	Numeric LL  = LowestFC(LOW,N);
+	Numeric HH  = HighestFC(HIGH,N);
+	
+	PlotNumeric("WR",TYP+(TYP-LL));
+	PlotNumeric("MR",TYP+(HH-LL));
+	PlotNumeric("SR",2*HH-LL);
+	PlotNumeric("WS",TYP-(HH-TYP));
+	PlotNumeric("MS",TYP-(HH-LL));
+	PlotNumeric("SS",2*LL-HH);
+End
+##FamulaInfo#fullName#麦克指标#fmlName#MIKE#fmldise##fmltype##fmlGroup#压力支撑指标#isMain#1#EndFamulaInfo#
+Params
+        Numeric TimeFrame(1440);   
+        // 目标时间周期：月线=40320，周线=10080，日线=1440，4小时线=240
+        // 其他1小时内的周期等于相应的分钟数，如：1小时=60， 30分钟=30。。。
+        // 支持不规则分钟数，如3分钟，8分钟，之类都行
+        
+        Numeric BarsBack(1);
+        // 目标时间周期BAR偏移：
+        // 1--表示将目标时间周期下的前1根K线数据作为与当前Bar对应的目标时间周期下的K线数据
+        // 0--表示将目标时间周期下的截止到目前为止的数据转换为与当前BAR对应的目标时间周期下K线数据
+        
+        NumericRef oCurBar;                 // 目标时间周期下的Bar索引
+        NumericRef oOPenHT;         // 目标时间周期下的开盘价
+        NumericRef oHighHT;         // 目标时间周期下的最高价
+        NumericRef oLowHT;          // 目标时间周期下的最低价
+        NumericRef oCloseHT;        // 目标时间周期下的收盘价
+        NumericRef oVolHT;          // 目标时间周期下的成交量
+        NumericRef oOpenIntHT;      // 目标时间周期下的持仓量
+
+Vars
+        NumericSeries barCnt;
+        NumericSeries CurBar;
+        NumericSeries barCntSum;
+        NumericSeries OpenHT;
+        NumericSeries HighHT;
+        NumericSeries LowHT;
+        NumericSeries CloseHT;
+        NumericSeries VolHT;
+        NumericSeries OpenIntHT;
+        Numeric CurTime;
+        Numeric PreTime;
+        bool condition(false);
+        Numeric i;
+Begin
+        If (TimeFrame == 40320)                 // 月线
+        {
+                CurTime = Month;
+                PreTime = Month[1];
+        }
+        Else If (TimeFrame == 10080)                        // 周线
+        {
+                CurTime = IntPart(DateDiff(19700105,Date)/7);
+                PreTime = IntPart(DateDiff(19700105,Date[1])/7);
+        }
+        Else                                                                        // 其他时间周期
+        {
+                CurTime = IntPart((DateDiff(19700105,date)*1440 + Hour*60 + Minute)/TimeFrame);
+                PreTime = IntPart((DateDiff(19700105,date[1])*1440 + Hour[1]*60 + Minute[1])/TimeFrame);
+        }
+        condition = CurTime != PreTime;
+
+        If (CurrentBar==0)                // 如果是第一根Bar, CurBar=0
+        {
+                barCnt = 0;
+                CurBar = 0;
+                OpenHT = Open;
+                HighHT = High;
+                LowHT = Low;
+                CloseHT = Close;
+                VolHT = Vol;
+                OpenIntHT = OpenInt;
+        }
+        Else
+        {
+                If(Condition)               
+                // 如果在目标周期下，属于另一根K线，则CurBar加1
+                {
+                        barCnt = 1;
+                        CurBar = CurBar[1] + 1;
+                        OpenHT = Open;
+                        HighHT = High;
+                        LowHT = Low;
+                        VolHT = Vol;
+                }Else
+                // 如果在目标周期下，属于同一根K线，则CurBar不变，但最高价和最低价要记录价格的变化，成交量要累加
+                {
+                        barCnt = barCnt[1] + 1;
+                        CurBar = CurBar[1];
+                        OpenHT = OpenHT[1];
+                        HighHT = Max(HighHT[1],High);
+                        LowHT = Min(LowHT[1],Low);
+                        VolHT = VolHT[1] + Vol;
+                }
+                // 收盘价和持仓量总是取最新值
+                CloseHT = Close;
+                OpenIntHT = OpenInt;
+        }
+        
+        // 上面的程序，在每根小周期的K线上，记录了它所属的大时间周期下的开高低收等值的变化。
+        // 接下来，要把在大的时间周期级别上，属于同一根K线的开高低收这些数据，记录在这一组小周期K线的最后一根上。
+        barCntSum = barCnt ;
+        If(BarsBack == 0)
+        // 如果Bar偏移参数为0，则取每根小周期K线上保留的大时间周期截止到这根小周期K线为止的BAR数据
+        {
+                barCntSum = 0 ;
+        }Else If(BarsBack == 1)
+        // 如果Bar偏移参数为1，则取大时间周期的上一根K线的BAr数据
+        {
+                barCntSum = barCnt ;
+        }Else
+        // 如果BAR偏移参数为其他，则取大时间周期的指定偏移后的那根K线的BAR数据
+        {
+                For i = 2 To BarsBack
+                {
+                        barCntSum = barCntSum + barCnt[barCntSum];
+                }
+        }
+
+        // 最后将相应的K线数据作为引用参数返回
+        oCurBar = CurBar;
+        oOpenHT = OpenHT[barCntSum];
+        oHighHT = HighHT[barCntSum];
+        oLowHT = LowHT[barCntSum];
+        oCloseHT = CloseHT[barCntSum];
+        oVolHT = VolHT[barCntSum];
+        oOpenIntHT = OpenIntHT[barCntSum];
+        Return barCnt;
+End
+##FamulaInfo#fullName#MtBar#fmlName#MtBar#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MTM
+// 名称:动力指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(6);
+	Integer N1(6);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric MTM = CLOSE-REF(CLOSE,N);
+	Numeric MTMMA = AverageFC(MTM,N1);
+	
+	PlotNumeric("MTM",MTM);
+	PlotNumeric("MTMMA",MTMMA);
+End
+##FamulaInfo#fullName#动力指标#fmlName#MTM#fmldise#算法： MTM线　　当日收盘价与N日前的收盘价的差 MTMMA线　对上面的差值求N日移动平均 参数：N 间隔天数，也是求移动平均的天数，一般取6 用法： 1.MTM从下向上突破MTMMA，买入信号 2.MTM从上向下跌破MTMMA，卖出信号 3.股价续创新高，而MTM未配合上升，意味上涨动力减弱 4.股价续创新低，而MTM未配合下降，意味下跌动力减弱 5.股价与MTM在低位同步上升，将有反弹行情；反之，从高位同步 下降，将有回落走势。#fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+Params
+        Numeric TimeFrame(1440);        // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);         // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+       
+        NumericRef oMACDValue;      // 以目标时间周期下的K线数据计算出的MACDValue
+        NumericRef oAvgMACD;        // 以目标时间周期下的K线数据计算出的AvgMACD
+
+Vars
+        NumericSeries mtBarCnt;
+        NumericSeries mtCurBar;
+        NumericSeries mtClose;
+        Numeric refCurBar;
+        Numeric refOpen;
+        Numeric refHigh;
+        Numeric refLow;
+        Numeric refClose;
+        Numeric refVol;
+        Numeric refOpenInt;
+       
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        Numeric sFcactor;
+        NumericSeries XAvgValue1;
+        NumericSeries XAvgValue2;
+       
+Begin
+
+        mtBarCnt = MtBar(TimeFrame,BarsBack,refCurBar,refOpen,refHigh,refLow,refClose,refVol,refOpenInt);
+        mtCurBar = refCurBar;
+        mtClose = refClose;
+       
+        sFcactor = 2 / ( FastLength + 1 );
+        if (MtCurBar == 0 || XAvgValue1[mtBarCnt] == InvalidNumeric) XAvgValue1 = mtClose;
+        else XAvgValue1 = XAvgValue1[mtBarCnt] + sFcactor * ( mtClose - XAvgValue1[mtBarCnt] ) ;
+
+        sFcactor = 2 / ( SlowLength + 1 );
+        if (MtCurBar == 0 || XAvgValue2[mtBarCnt] == InvalidNumeric) XAvgValue2 = mtClose;
+        else XAvgValue2 = XAvgValue2[mtBarCnt] + sFcactor * ( mtClose - XAvgValue2[mtBarCnt] ) ;
+
+        MACDValue = XAvgValue1 - XAvgValue2;
+
+        sFcactor = 2 / ( MACDLength + 1 );
+        if (MtCurBar == 0 || AvgMACD[mtBarCnt] == InvalidNumeric) AvgMACD = MACDValue;
+        else AvgMACD = AvgMACD[mtBarCnt] + sFcactor * ( MACDValue - AvgMACD[mtBarCnt] ) ;
+
+        oMACDValue = MACDValue;
+        oAvgMACD = AvgMACD;
+        return mtBarCnt;
+End
+##FamulaInfo#fullName#MtMacd#fmlName#MtMacd#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+Params
+        Numeric Length(10);
+Vars
+        Numeric MyOpen;
+        Numeric MyHigh;
+        Numeric MyLow;
+        Numeric MyClose;
+        NumericSeries MyAvgPrice;
+       
+        Numeric SumValue(0);
+        Numeric Value1;
+        Numeric i;
+Begin
+        MyOpen = (Open,"min",5,"Open");
+        MyHigh = DataConvert(High,"min",5,"High");
+        MyLow = DataConvert(Low,"min",5,"Low");
+        MyClose = DataConvert(Close,"min",5,"Close");
+        MyAvgPrice = (MyOpen+MyHigh+MyLow+MyClose)*0.25;
+       
+        For i = Length-1 DownTo 0
+        {
+                Value1 = TransMinsData(MyAvgPrice,5,i);
+                SumValue = SumValue + Value1;
+        }
+        PlotNumeric("AvgPrice",SumValue/Length);
+End
+##FamulaInfo#fullName#multiAvg#fmlName#multiAvg#fmldise##fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:MultiMACD
+// 名称:多周期MACD
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+        Numeric TimeFrame(60);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+Vars
+        NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+Begin
+        PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+
+        //PlotNumeric("MACD",MACDValue);
+        //PlotNumeric("MACDAvg",AvgMACD);
+        PlotNumeric("DIFF",MACDValue);
+        PlotNumeric("DEA",AvgMACD);
+		SetShapeStyle("DEA",1, 2, 1);
+        If (MACDDiff >= 0) {
+                //PlotNumeric("MACDDiff",MACDDiff,Red);
+				//PlotStickLine("MACDDiff",0, MACDDiff, RED);
+				PlotStickLine("MACD",0, MACDDiff, RED);
+		}   
+        Else{
+                //PlotNumeric("MACDDiff",MACDDiff,Green);
+				//PlotStickLine("MACDDiff",0, MACDDiff, Green);
+				PlotStickLine("MACD",0, MACDDiff, Green);
+		}
+        PlotNumeric("零线",0);
+
+/*        If (MacdDiff[PreBar]<0 and MacdDiff>0)
+        {
+                Buy(Lots,Open);
+        }
+        If (MacdDiff[PreBar]>0 and MacdDiff<0)
+        {
+                SellShort(Lots,Open);
+        }*/
+End
+##FamulaInfo#fullName#多周期MACD#fmlName#MultiMACD#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:OBV
+// 名称:能量潮
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("OBV", IIF(CLOSE>REF(CLOSE,1),VOL,IIF(CLOSE<REF(CLOSE,1),-VOL,0)));
+End
+##FamulaInfo#fullName#能量潮#fmlName#OBV#fmldise#算法： 从上市第一天起，逐日累计股票总成交量，若当日收盘价高于昨收，则前OBV加当日成交量为当日OBV，否则减当日成交量为当日OBV。 用法： 1.股价上升，OBV线下降，显示买盘无力 2.股价下跌，OBV线上升，显示买盘旺盛，反弹有望 3.OBV缓慢上升，显示买盘渐强，买进信号 4.OBV急速上升，显示买盘力量将尽，卖出信号 5.OBV线由正转负，为下跌趋势，卖出信号；反之，买进信号 6.OBV线长用于观察股价何时脱离盘局及突破后的未来走势#fmltype##fmlGroup#量价指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:OPI
+// 名称:持仓量
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("OPI",OpenInt);
+End
+##FamulaInfo#fullName#持仓量#fmlName#OPI#fmldise##fmltype##fmlGroup#成交量指标#isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: OutsideFallChannel
+// 名称: 破下跌通道
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArrayRef highArr;
+	Numeric slope;
+	NumericArrayRef aArr;
+	NumericArrayRef bArr;
+Vars
+	Integer i;
+	Integer k;
+	Integer m;
+Begin
+	// 第一步，先找所有的边界线
+	// 这里严格的说，应该遍历所有点，但是快速处理，只取顶底分型
+	// 高点
+	NumericArray yArray;
+	NumericArray xArray;
+	Integer size = ArrLength(highArr);
+	Commentary("highArr size:"+Text(size));
+	for i = 0 to size-1 {
+		if (i == 0 && size > 1) {
+			if (highArr[i] >= highArr[i+1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (i == size-1 && size > 1) {
+			if (highArr[i] >= highArr[i-1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (highArr[i] >= highArr[i-1] && highArr[i] >= highArr[i+1]) {
+			ArrAdd(xArray, i);
+			ArrAdd(yArray, highArr[i]);
+		}
+	}
+	ShowArr("xArray", xArray);
+	ShowArr("yArray", yArray);
+	
+	// 第二步，选择合适的边界线
+	// 采用通用方案，遍历
+	size = ArrLength(xArray);
+	for i = 0 to size-2 {
+		for k = i+1 to size-1 {
+			// 这里获得所有的直线，判断是否都大于等于0：算法复杂度是O（n*n*n）
+			// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+			Integer x1 = xArray[i];
+			Numeric y1 = yArray[i];
+			
+			Integer x2 = xArray[k];
+			Numeric y2 = yArray[k];
+			// 限制斜率一致，避免奇葩结果
+			if ((y2-y1)/(x2-x1)*slope <= 0) {
+				continue;
+			}
+			
+			Bool flag = True;
+			// 两点之外的所有其他点，都必须在直线之下
+			for m = 0 to size - 1 {
+				if (m == i || m == k) {
+					continue;
+				}
+				Integer x =  xArray[m];
+				Numeric y = y1 + (x - x1)*(y2-y1)/(x2-x1);
+				Numeric diff = yArray[m] - y;
+				//Commentary("x,y diff=(" + Text(x) +","+Text(y) + ")," + Text(diff));
+				
+				// 向上倾斜
+				if (slope > 0) {
+					//上涨如果还低，就不合法了
+					if (diff < 0) {
+						//Commentary("-----ignore high x/y pair");
+						flag = False;
+						break;
+					}
+				}
+				if (slope < 0) {
+					if (diff > 0) {
+						flag = False;
+						break;
+					}
+				}
+			}// for m = 0
+			
+			if (flag) {
+				Commentary("allow x,y:("+Text(xArray[i])+","+Text(yArray[i])+"), (" +Text(xArray[k])+","+Text(yArray[k])+")");
+				//获得 a b，并加入到数组
+				Numeric a = (y2-y1)/(x2-x1);
+				Numeric b = y1 - a*x1;
+				
+				if (a == 0) {
+					Continue;
+				}
+				
+				size = ArrLength(aArr);
+				Bool isExists = False;
+				for i=0 to size-1 {
+					if (aArr[i] == a && bArr[i] == b) {
+						isExists = True;
+						break;
+					}
+				}
+				if (! isExists) {
+					ArrAdd(aArr, a);
+					ArrAdd(bArr, b);
+				}
+			}
+		}// for k = i+1 to size-1
+	}// for i = 0 to size-2
+	ShowArr("aArr", aArr);
+	ShowArr("bArr", bArr);
+	Return 0;
+End
+##FamulaInfo#fullName#破下跌通道#fmlName#OutsideFallChannel#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: OutsideRiseChannel
+// 名称: 破上涨通道
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArrayRef highArr;
+	Numeric slope;
+	NumericArrayRef aArr;
+	NumericArrayRef bArr;
+	NumericArrayRef xArr;
+Vars
+	Integer i;
+	Integer k;
+	Integer m;
+Begin
+	// 第一步，先找所有的边界线
+	// 这里严格的说，应该遍历所有点，但是快速处理，只取顶底分型
+	// 高点
+	NumericArray yArray;
+	NumericArray xArray;
+	Integer size = ArrLength(highArr);
+	Commentary("highArr size:"+Text(size));
+	for i = 0 to size-1 {
+		ArrAdd(xArray, i);
+		ArrAdd(yArray, highArr[i]);
+		/*if (i == 0 && size > 1) {
+			if (highArr[i] <= highArr[i+1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (i == size-1 && size > 1) {
+			if (highArr[i] <= highArr[i-1]) {
+				ArrAdd(xArray, i);
+				ArrAdd(yArray, highArr[i]);
+			}
+		} else if (highArr[i] <= highArr[i-1] && highArr[i] <= highArr[i+1]) {
+			ArrAdd(xArray, i);
+			ArrAdd(yArray, highArr[i]);
+		}*/
+	}
+	ShowArr("xArray", xArray);
+	ShowArr("yArray", yArray);
+	
+	// 第二步，选择合适的边界线
+	// 采用通用方案，遍历
+	size = ArrLength(xArray);
+	for i = 0 to size-2 {
+		for k = i+1+size/3 to size-1 {
+			// 这里获得所有的直线，判断是否都大于等于0：算法复杂度是O（n*n*n）
+			// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+			Integer x1 = xArray[i];
+			Numeric y1 = yArray[i];
+			
+			Integer x2 = xArray[k];
+			Numeric y2 = yArray[k];
+			// 限制斜率一致，避免奇葩结果
+			if ((y2-y1)/(x2-x1)*slope <= 0) {
+				continue;
+			}
+			
+			Bool flag = True;
+			// 两点之外的所有其他点，都必须在直线之下
+			for m = 0 to size - 1 {
+				if (m == i || m == k) {
+					continue;
+				}
+				Integer x =  xArray[m];
+				Numeric y = y1 + (x - x1)*(y2-y1)/(x2-x1);
+				Numeric diff = yArray[m] - y;
+				//Commentary("x,y diff=(" + Text(x) +","+Text(y) + ")," + Text(diff));
+				
+				// 向上倾斜
+				if (slope > 0) {
+					//上涨如果还低，就不合法了
+					if (diff < 0) {
+						//Commentary("-----ignore high x/y pair");
+						flag = False;
+						break;
+					}
+				}
+				if (slope < 0) {
+					if (diff > 0) {
+						flag = False;
+						break;
+					}
+				}
+			}// for m = 0
+			
+			if (flag) {
+				Commentary("allow x,y:("+Text(xArray[i])+","+Text(yArray[i])+"), (" +Text(xArray[k])+","+Text(yArray[k])+")");
+				//获得 a b，并加入到数组
+				Numeric a = (y2-y1)/(x2-x1);
+				Numeric b = y1 - a*x1;
+				
+				if (a == 0) {
+					Continue;
+				}
+				
+				size = ArrLength(aArr);
+				Bool isExists = False;
+				for i=0 to size-1 {
+					if (aArr[i] == a && bArr[i] == b) {
+						isExists = True;
+						break;
+					}
+				}
+				if (! isExists) {
+					ArrAdd(aArr, a);
+					ArrAdd(bArr, b);
+					ArrAdd(xArr, x1);
+				}
+			}
+		}// for k = i+1 to size-1
+	}// for i = 0 to size-2
+	ShowArr("aArr", aArr);
+	ShowArr("bArr", bArr);
+	ShowArr("xArr", xArr);
+	Return 0;
+End
+##FamulaInfo#fullName#破上涨通道#fmlName#OutsideRiseChannel#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:PSY
+// 名称:心理线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(12);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("PSY",CountIf(CLOSE>REF(CLOSE,1),N)/N*100);
+End
+##FamulaInfo#fullName#心理线#fmlName#PSY#fmldise##fmltype##fmlGroup#能量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:PTV
+// 名称:Price/Volume Trend
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("PTV",(CLOSE-REF(CLOSE,1))/REF(CLOSE,1)*VOL);
+End
+##FamulaInfo#fullName#Price/Volume Trend#fmlName#PTV#fmldise#从上市第一天起，对每一交易日先求收盘价与昨收的差，再求差值与昨收的比，最后求比值与当日成交量的乘积。将每天算得的这个值逐日累加。#fmltype##fmlGroup#量价指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:PUBU
+// 名称:瀑布线
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer M1(10);
+	Integer M2(20);
+	Integer M3(30);
+	Integer M4(40);
+	Integer M5(50);
+	Integer M6(60);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	Numeric L1=(EMA(CLOSE,M1)+MA(CLOSE,M1*2)+MA(CLOSE,M1*4))/3;
+	Numeric L2=(EMA(CLOSE,M2)+MA(CLOSE,M2*2)+MA(CLOSE,M2*4))/3;
+	Numeric L3=(EMA(CLOSE,M3)+MA(CLOSE,M3*2)+MA(CLOSE,M3*4))/3;
+	Numeric L4=(EMA(CLOSE,M4)+MA(CLOSE,M4*2)+MA(CLOSE,M4*4))/3;
+	Numeric L5=(EMA(CLOSE,M5)+MA(CLOSE,M5*2)+MA(CLOSE,M5*4))/3;
+	Numeric L6=(EMA(CLOSE,M6)+MA(CLOSE,M6*2)+MA(CLOSE,M6*4))/3;
+	
+	PlotNumeric("L1",L1);
+	PlotNumeric("L2",L2);
+	PlotNumeric("L3",L3);
+	PlotNumeric("L4",L4);
+	PlotNumeric("L5",L5);
+	PlotNumeric("L6",L6);
+	
+End
+##FamulaInfo#fullName#瀑布线#fmlName#PUBU#fmldise##fmltype##fmlGroup##isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:RC
+// 名称:变化率指数
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(50);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric RC = C / REF(C,N);
+	Numeric ARC = SMA(REF(RC,1),N,1);
+	
+	PlotNumeric("ARC",ARC);
+End
+##FamulaInfo#fullName#变化率指数#fmlName#RC#fmldise#如果股票价格始终在上升，则变化率指数RC始终能保持在1 线以上，如果变化率指数RC继续向上发展，则说明股票价格上升的速度在加快。反之，如果股票价格始终下降，则RC在1以下，如果RC继续向下发展，则说明股票价格下降的速度在加快。#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:RCCD
+// 名称:异同离差变化率指数
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(59);
+	Integer N1(21);
+	Integer N2(28);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric RC =C/REF(C,N);
+	Numeric ARC = SMA(REF(RC,1),N,1);
+	Numeric DIF = MA(REF(ARC,1),N1)-MA(REF(ARC,1),N2);
+	Numeric RCCD = SMA(DIF,N,1);
+	
+	PlotNumeric("DIF",DIF);
+	PlotNumeric("RCCD",RCCD);
+End
+##FamulaInfo#fullName#异同离差变化率指数#fmlName#RCCD#fmldise#用法参考 RC 变化率指数#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:DynaRedGreenBar
+// 名称:分时图红绿柱
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric PreSettlePrice =Q_PreSettlePrice();		//昨结算
+	Numeric S2= MA(CurrentBar==0 ? O:C,2);
+	Numeric S6= MA(CurrentBar==0 ? O:C,5);
+	Numeric DK=2*(S2-S6);
+	
+	Integer clr =0;
+	
+	If(ColorBk !=0)
+	{
+		clr = DK>0 ? ColorUp : ColorDown;
+	}
+	
+	PlotStickLine("红绿柱",PreSettlePrice,PreSettlePrice+DK, clr);
+	
+	
+End
+##FamulaInfo#fullName#红绿柱#fmlName#RedGreenBar#fmldise#加载在分时图上，反映了多空力道的强弱#fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:ROC
+// 名称:变动速率
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(12);
+	Integer M(6);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric ROC =(CLOSE-REF(CLOSE,N))/REF(CLOSE,N)*100;
+	Numeric ROCMA = MA(ROC,M);
+	
+	PlotNumeric("ROC",ROC);
+	PlotNumeric("ROCMA",ROCMA);
+End
+##FamulaInfo#fullName#变动速率#fmlName#ROC#fmldise#算法： 收盘价减N日前的收盘价，再除以N日前的收盘价，放大100倍，得ROC线；求ROC的M日移动平均，得ROCMA线 参数：N ，间隔天数；M，计算移动平均的天数。一般取12、6。 用法： 1.ROC向下跌破零，卖出信号；ROC向上突破零，买入信号 2.股价创新高，ROC未配合上升，显示上涨动力减弱 3.股价创新低，ROC未配合下降，显示下跌动力减弱 4.股价与ROC从低位同时上升，短期反弹有望 5.股价与ROC从高位同时下降，警惕回落#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:RSI
+// 名称:RSI
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N1(6);
+	Integer N2(12);
+	Integer N3(24);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric LC = REF(CLOSE,1);
+	Numeric RSI1 =SMA(MAX(CLOSE-LC,0),N1,1)/SMA(ABS(CLOSE-LC),N1,1)*100;
+	Numeric RSI2 =SMA(MAX(CLOSE-LC,0),N2,1)/SMA(ABS(CLOSE-LC),N2,1)*100;
+	Numeric RSI3 =SMA(MAX(CLOSE-LC,0),N3,1)/SMA(ABS(CLOSE-LC),N3,1)*100;
+	
+	PlotNumeric("RSI1",RSI1);
+	PlotNumeric("RSI2",RSI2);
+	PlotNumeric("RSI3",RSI3);
+End
+##FamulaInfo#fullName#相对强弱指标#fmlName#RSI#fmldise#算法：先求 相对强弱值＝N日内收盘价上涨幅度总和／下跌幅度总和 RSI线：100-100/(1+相对强弱值) 参数：N1、N2、N3　统计天数，一般取6、12、24 用法：RSI在50以上准确性较高 1.6日RSI向上突破85，超买；向下跌破15，超卖 2.盘整时，RSI一底比一底高，多头势强，后市可能续涨；反之，是卖出信号 3.股价尚在盘整阶段，而RSI已整理完成，股价将随之突破 4.6日RSI向上突破12日RSI，卖进信号；反之，卖出信号。#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+	Numeric AfStep( 0.02);
+	Numeric AfLimit( 0.2 ) ;
+Vars
+	Numeric oParCl( 0 ); 
+	Numeric oParOp( 0 );
+	Numeric oPosition( 0 );
+	Numeric oTransition( 0 );
+Begin
+	ParabolicSAR( AfStep, AfLimit, oParCl, oParOp, oPosition, oTransition ) ;
+	PlotDot("SAR",oParCl,13,RGB(160,160,0));
+	
+End
+##FamulaInfo#fullName#抛物线转向#fmlName#SAR#fmldise#拋物线转向指标SAR属于价格与时间并重的分析工具,综合考虑了股价上涨和下跌时间的差异性。SAR的每次突破,都是明确的买入和卖出讯号,是典型的"傻瓜"型指标。虽然在价格盘整会经常出现假信号,但在大涨大跌行情时,却能保证投资者充分获利。只要根据信号严格执行买卖,就能在长期的操作中获利。对于分析能力较差﹑缺乏止损意识的投资者,尤其适用。 1.股价曲线在SAR 曲线之上时,为多头市场。股价曲线在SAR 曲线之下时,为空头市场。 2.SAR穿越原则,向下跌破转向点便卖出,向上冲过转向点便买入,操作时切忌优柔寡断。 3.SAR算法决定了它的拋物形态,适宜运用在趋势市中,当价格横向盘整呈非波动形态时,失误率较高,不宜据此操作。 4.市道趋势明显时,转向点的信号相当准确。与DMI指标配合使用,效果更理想。 5.SAR之速减或速增与实际价格之升跌幅度及时间长短有密切关系,可适应不同形态股价之波动特性。 6.SAR的时间与价差的观念相当实用,它能给予充分的时间让价位充分调整,假如行情反转,停损点不仅能做`多头平仓,也能在这另一段行情的开始作空头。#fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: ShowArr
+// 名称: 打印Array
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	String desc;
+	NumericArray arr;
+Vars
+	Numeric Num;
+Begin
+	Integer size = ArrLength(arr);
+	Integer i;
+	String s = desc +" size(" +Text(size) + "):";
+	for i = 0 to size-1 {
+		s += "  " +Text(i)+ ";";
+		s += Text(arr[i]);
+	}
+	Commentary(s);
+	Return 0;
+End
+##FamulaInfo#fullName#打印Array#fmlName#ShowArr#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:SRMI
+// 名称:MI修正指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(9);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("SRMI",IIF(C<REF(C,N),(C-REF(C,N))/REF(C,N),IIF(C==REF(C,N),0,(C-REF(C,N))/C)));
+End
+##FamulaInfo#fullName#MI修正指标#fmlName#SRMI#fmldise#用法参考 MI 动力指数 的用法#fmltype##fmlGroup#摆动指标#isMain#0#EndFamulaInfo#
+//--------------------------------------------------------------
+// 简称: test
+// 名称: test
+// 类型: 用户函数
+// 输出: Numeric
+//--------------------------------------------------------------
+Params
+	NumericArray leftArr;
+	NumericArray rightArr;
+Vars
+	Numeric Num;
+	Integer i;
+Begin
+	ShowArr("leftArr", leftArr);
+	ShowArr("rightArr", rightArr);
+	Numeric size = ArrLength(rightArr);
+	if (size * size <> ArrLength(leftArr)) {
+		Commentary("error: size * size <> ArrLength(leftArr");
+		return 0;
+	}
+	
+	//Gauss Jordan way
+	for i = 0 to ArrLength(leftArr) {
+		Num += leftArr[i];
+	}
+	Return Num;
+End
+##FamulaInfo#fullName#test#fmlName#test#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+Params
+        NumericSeries Price(1);
+        Numeric nMinSet(5);
+        Numeric MinsAgo(2);
+Vars
+        NumericSeries barCnt;
+        NumericSeries MinData;
+        Numeric i;
+        Numeric j;
+        Numeric nIndex(0);
+Begin
+        If(IntPart(Minute/nMinSet)==0)
+        {
+                barCnt = 1;
+        }Else
+        {
+                barCnt = barCnt[1] + 1;
+        }
+        MinData = Price;
+               
+        If(MinsAgo == 0)
+        {
+                return MinData;
+        }Else
+        {
+                For i = 1 To MinsAgo
+                {
+                        If( i == 1)
+                        {       
+                                j = 0;
+                        }Else
+                        {
+                                j = j + BarCnt[j];                               
+                        }
+                        If (j > CurrentBar ) Return InvalidNumeric;
+                        nIndex = nIndex + BarCnt[j];
+                }
+                Return MinData[nIndex];
+        }
+End
+##FamulaInfo#fullName#TransMinsData#fmlName#TransMinsData#fmldise#TransMinsData#fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称: TurtleTrader
+// 名称: 海龟交易系统
+// 类别: 公式应用
+// 类型: 内建应用
+//------------------------------------------------------------------------
+
+Params
+    Numeric RiskRatio(1);                   // % Risk Per N ( 0 - 100)
+    Numeric ATRLength(20);                  // 平均波动周期 ATR Length
+    Numeric boLength(20);                   // 短周期 BreakOut Length
+    Numeric fsLength(55);                   // 长周期 FailSafe Length
+    Numeric teLength(10);                   // 离市周期 Trailing Exit Length
+    Bool LastProfitableTradeFilter(True);   // 使用入市过滤条件
+Vars
+	Numeric MinPoint;                       // 最小变动单位
+	NumericSeries AvgTR;					// ATR
+    Numeric N;                              // N 值
+    Numeric TotalEquity;                    // 按最新收盘价计算出的总资产
+    Numeric TurtleUnits;                    // 交易单位
+    NumericSeries DonchianHi;              	// 唐奇安通道上轨，延后1个Bar
+    NumericSeries DonchianLo;              	// 唐奇安通道下轨，延后1个Bar
+    NumericSeries fsDonchianHi;            	// 唐奇安通道上轨，延后1个Bar，长周期
+    NumericSeries fsDonchianLo;            	// 唐奇安通道下轨，延后1个Bar，长周期
+    Numeric ExitHighestPrice;               // 离市时判断需要的N周期最高价
+    Numeric ExitLowestPrice;                // 离市时判断需要的N周期最低价
+    Numeric myEntryPrice;                   // 开仓价格
+    Numeric myExitPrice;                    // 平仓价格
+    Bool SendOrderThisBar(False);          	// 当前Bar有过交易
+    BoolSeries PreBreakoutFailure(false);	// 前一次突破是否失败
+GlobalVars
+    Numeric preEntryPrice(0);       	// 前一次开仓的价格
+Begin
+    If(BarStatus == 0)
+    {
+		preEntryPrice = InvalidNumeric;
+		PreBreakoutFailure = false;
+	}	
+	
+	MinPoint = MinMove * PriceScale;
+    AvgTR = XAverage(TrueRange,ATRLength);
+	N = AvgTR[1];	
+    TotalEquity = Available() + Margin();
+	
+    TurtleUnits = (TotalEquity*RiskRatio/100) /(N * ContractUnit()*BigPointValue());
+    TurtleUnits = IntPart(TurtleUnits); // 对小数取整
+	
+	Integer maxUnites = Available /(High * ContractUnit * BigPointValue);
+	if(TurtleUnits > maxUnites) 
+	{
+		TurtleUnits = maxUnites;
+	}	
+	
+	DonchianHi = HighestFC(High[1],boLength);
+    DonchianLo = LowestFC(Low[1],boLength);
+
+	fsDonchianHi = HighestFC(High[1],fsLength);
+    fsDonchianLo = LowestFC(Low[1],fsLength);
+	
+	ExitLowestPrice = LowestFC(Low[1],teLength);
+	ExitHighestPrice = HighestFC(High[1],teLength);
+
+	
+    // 当不使用过滤条件，或者使用过滤条件并且条件为PreBreakoutFailure为True进行后续操作
+    If(MarketPosition == 0 && ((!LastProfitableTradeFilter) Or (PreBreakoutFailure)))
+    {
+        // 突破开仓
+        If(High > DonchianHi && TurtleUnits >= 1)
+        {
+            // 开仓价格取突破上轨+一个价位和最高价之间的较小值，这样能更接近真实情况，并能尽量保证成交
+            myEntryPrice = min(high,DonchianHi + MinPoint);
+            myEntryPrice = IIF(myEntryPrice < Open, Open,myEntryPrice); // 大跳空的时候用开盘价代替
+			preEntryPrice = myEntryPrice;
+            Buy(TurtleUnits,myEntryPrice);
+			SendOrderThisBar = True;
+			PreBreakoutFailure = False;
+        }
+
+        If(Low < DonchianLo && TurtleUnits >= 1)
+        {
+            // 开仓价格取突破下轨-一个价位和最低价之间的较大值，这样能更接近真实情况，并能尽量保证成交
+            myEntryPrice = max(low,DonchianLo - MinPoint);
+            myEntryPrice = IIF(myEntryPrice > Open, Open,myEntryPrice); // 大跳空的时候用开盘价代替
+            preEntryPrice = myEntryPrice;
+            SendOrderThisBar = True;
+            SellShort(TurtleUnits,myEntryPrice);
+			SendOrderThisBar = True;
+			PreBreakoutFailure = False;
+        }
+    }
+
+    // 长周期突破开仓 Failsafe Breakout point
+    If(MarketPosition == 0)
+    {
+		If(High > fsDonchianHi && TurtleUnits >= 1)
+        {
+            // 开仓价格取突破上轨+一个价位和最高价之间的较小值，这样能更接近真实情况，并能尽量保证成交
+            myEntryPrice = min(high,fsDonchianHi + MinPoint);
+            myEntryPrice = IIF(myEntryPrice < Open, Open,myEntryPrice); // 大跳空的时候用开盘价代替
+			preEntryPrice = myEntryPrice;
+            Buy(TurtleUnits,myEntryPrice);
+			SendOrderThisBar = True;
+			PreBreakoutFailure = False;
+        }
+
+		If(Low < fsDonchianLo && TurtleUnits >= 1)
+        {
+            // 开仓价格取突破下轨-一个价位和最低价之间的较大值，这样能更接近真实情况，并能尽量保证成交
+            myEntryPrice = max(low,fsDonchianLo - MinPoint);
+            myEntryPrice = IIF(myEntryPrice > Open, Open,myEntryPrice); // 大跳空的时候用开盘价代替
+            preEntryPrice = myEntryPrice;
+            SellShort(TurtleUnits,myEntryPrice);
+			SendOrderThisBar = True;
+			PreBreakoutFailure = False;
+        }
+    }
+
+    If(MarketPosition == 1) // 有多仓的情况
+    {       
+		If(Low < ExitLowestPrice)
+        {
+            myExitPrice = max(Low,ExitLowestPrice - MinPoint);
+			myExitPrice = IIF(myExitPrice > Open, Open,myExitPrice); // 大跳空的时候用开盘价代替
+            Sell(0,myExitPrice);    // 数量用0的情况下将全部平仓
+        }Else
+        {
+            If(preEntryPrice!=InvalidNumeric && TurtleUnits >= 1)
+            {
+                If(High >= preEntryPrice + 0.5*N)
+                {
+			myEntryPrice = High;
+			preEntryPrice = myEntryPrice;
+			Buy(TurtleUnits,myEntryPrice);
+			SendOrderThisBar = True;
+                }
+
+            }
+			
+            // 止损指令
+			If(Low <= preEntryPrice - 2 * N && SendOrderThisBar == false) // 加仓Bar不止损
+			{
+				myExitPrice = preEntryPrice - 2 * N;
+				Sell(0,myExitPrice); // 数量用0的情况下将全部平仓
+				PreBreakoutFailure = True;
+			}
+        }
+    }Else If(MarketPosition ==-1) // 有空仓的情况
+    {
+        // 求出持空仓时离市的条件比较值        
+		If(High > ExitHighestPrice)
+        {
+            myExitPrice = Min(High,ExitHighestPrice + MinPoint);
+			myExitPrice = IIF(myExitPrice < Open, Open,myExitPrice); // 大跳空的时候用开盘价代替
+            BuyToCover(0,myExitPrice);    // 数量用0的情况下将全部平仓
+        }Else
+        {
+            If(preEntryPrice!=InvalidNumeric && TurtleUnits >= 1)
+            {
+                If(Low <= preEntryPrice - 0.5*N)
+                {
+                    myEntryPrice = Low;
+					preEntryPrice = myEntryPrice;
+                    SellShort(TurtleUnits,myEntryPrice);
+					SendOrderThisBar = True;
+                }
+            }
+
+            // 止损指令
+			If(High >= preEntryPrice + 2 * N &&SendOrderThisBar==false) // 加仓Bar不止损
+			{
+				myExitPrice = preEntryPrice + 2 * N;
+				BuyToCover(0,myExitPrice); // 数量用0的情况下将全部平仓
+				PreBreakoutFailure = True;
+			}
+        }
+    }
+End
+
+##FamulaInfo#fullName#海龟交易法则#fmlName#TurtleTrader#fmldise##fmltype##fmlGroup#交易系统#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:VOL
+// 名称:VOL
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer M1(5);
+	Integer M2(10);
+
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	if(Close>Open)
+		PlotBar("VOL",Vol,0,True,ColorUp());
+	Else
+		PlotBar("VOL",Vol,0,False,ColorDown());
+		
+	PlotNumeric("MA1",MA(Vol,M1));
+	PlotNumeric("MA2",MA(Vol,M2));
+
+
+End
+##FamulaInfo#fullName#成交量#fmlName#VOL#fmldise#VOLUME线　画法：若今日收市价高过昨日收市价，成交量画红色空心实体；否则画绿色实心。 MA1、MA2、MA3分别为成交量的M1日、M2日、M3日均线 参数：M1、M2、M3一般取5日、10日、20日#fmltype##fmlGroup#成交量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:VOSC
+// 名称:Volume Oscillator
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N1(12);
+	Integer N2(26);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("VOSC",(MA(VOL,N1)-MA(VOL,N2))/MA(VOL,N1)*100);
+End
+##FamulaInfo#fullName#Volume Oscillator#fmlName#VOSC#fmldise#算法： 先求成交量短期(SHORT)均值与长期(LONG)均值的差，再求差值与成交量短期均值的比，最后将比值放大100倍。 参数： SHORT　计算短期均线的天数，一般取12 LONG　计算长期均线的天数，一般取26#fmltype##fmlGroup#成交量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:VR
+// 名称:VR容量比率
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(26);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric LC = REF(CLOSE,1);
+	PlotNumeric("VR",SummationFC(IIF(CLOSE>LC,VOL,0),N)/SummationFC(IIF(CLOSE<=LC,VOL,0),N)*100);
+End
+##FamulaInfo#fullName#VR容量比率#fmlName#VR#fmldise#算法: 在N日内,若某日收阳(收盘价高于开盘价),则将该日成交量累加到强势和中；收阴，累加到弱势和中。若平盘，则该日成交量一半累加到强势和，一半累加到弱势和。 最后，计算强势和与弱势和的比，并放大100倍。 参数：N 累加天数 一般取 26 用法： 1.40至70，低位区，买进；80至150，盘整区，持有；160至350，获利区，获利了结。 2.成交经萎缩后放大，VR值也从低位上升，可能有大行情发动 3.VR低于40后，很容易探底反弹#fmltype##fmlGroup#能量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:VSTD
+// 名称:成交量标准差
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(10);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("VSTD",StandardDev(Vol,N));
+End
+##FamulaInfo#fullName#成交量标准差#fmlName#VSTD#fmldise#求N周期成交量的估算标准差,该指标可很好追踪成交量放大和缩小的趋势. 当股价以创出新高而该指标未能创出新高时需保持谨慎,股价随时有下跌的可能.#fmltype##fmlGroup#成交量指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:waveAvg150Sys
+// 名称:均线数浪系统
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+// 简称:WaveMachine
+// 名称:计算机数浪
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params         
+		Numeric Lots(1);
+		
+GlobalVars
+Vars
+		Bool flag(False);
+		Integer minCount(0);
+		Integer maxCount(0);
+		NumericSeries avg10;
+		NumericSeries lowArr;
+		NumericSeries highArr;
+		NumericSeries closeArr;
+		NumericSeries avg150;
+		Integer offset;
+		Integer i;
+		
+		Integer lastMin(-1);
+		Integer lastMax(-1);
+		Integer oldMin;
+		Integer oldMax;
+		Numeric lastEnter(0);//[index 10] 0: init  >0 buy  <0 sell
+		Numeric profit(0);//[index 11] 0: init  >0 buy  <0 sell
+		Integer lastPosition(0);//[index 12] 0
+		
+		Integer index0;
+		Integer index1;
+		Integer m;
+		Integer x1;
+		Integer x2;
+		Numeric y1;
+		Numeric y2;
+		Numeric slope(0);
+		Numeric diff;
+		Numeric yMax;
+		Numeric yMin;
+		Integer startX;
+		Numeric xMean;
+		Numeric yMean;
+		Numeric xSum;
+		Numeric ySum;
+		Numeric k;
+		Numeric b;
+		Integer xLeft;
+		Integer xRight;
+		Numeric yLeft;
+		Numeric yRight;
+		Numeric A_Sum;
+		Numeric B_Sum;
+		Numeric C_Sum;
+		Numeric D_Sum;
+		Numeric x_i;
+		Numeric y_i;
+		Integer currentIndex;
+		NumericArray bottomArr;
+		NumericArray topArr;
+		
+		Integer highCntFromLastMin(0);
+		Integer lowCntFromLastMin(0);
+		
+		Integer highCntFromLastMax(0);
+		Integer lowCntFromLastMax(0);
+		Numeric tmp;
+				
+Begin
+		
+		// wave数浪
+		//commentary("start="+text(currenttime));
+		avg150 = AverageFC(Close, 150);
+		avg10  = AverageFC(Close, 10);
+		lowArr = AverageFC(Low, 1);
+		highArr= AverageFC(High, 1);
+		if (CurrentBar == 0) {
+			SetGlobalVar(0, -1);
+			SetGlobalVar(1, -1);
+			
+			SetGlobalVar(10, 0);
+			SetGlobalVar(11, 0);
+			SetGlobalVar(12, 0);
+			
+			SetGlobalVar(49, -1);
+			SetGlobalVar(39, -1);
+		}
+		lastMin = GetGlobalVar(0);
+		lastMax = GetGlobalVar(1);
+		oldMin = lastMin;
+		oldMax = lastMax;
+		
+		lastEnter = GetGlobalVar(10);
+		profit = GetGlobalVar(11);
+		lastPosition = GetGlobalVar(12);
+		
+		//UnPlotPartLine("tail", highArr[1]);
+		//UnPlotPartLine("tail", lowArr[1]);
+		
+		index0 = GetGlobalVar(49);//表示待写入值
+		index1 = GetGlobalVar(39);//表示待写入值
+		
+		//设置第一个Dot
+		if (lastMax == -1) {
+			maxCount = 0;
+			for i=0 to CurrentBar {
+				if (lowArr[i] > avg10[i]){
+					maxCount += 1;
+				}
+				//绘制
+				if (maxCount >= 3 && lastMax == -1) {
+					lastMax = i;
+					SetGlobalVar(1, i);
+					break;
+				}
+			}
+		}
+		//设置第一个Dot
+		if (lastMin == -1) {
+			minCount = 0;
+			for i=0 to CurrentBar {
+				if (highArr[i] < avg10[i]) {
+					minCount += 1;
+				}
+				//绘制
+				if (minCount >= 3 && lastMin == -1) {
+					lastMin = i;
+					SetGlobalVar(0, i);
+					break;
+				}
+			}
+		}
+		if (lastMax == -1 && lastMin == -1) {
+			//
+		} else {
+			if (lastMax == -1) {
+				lastMax = 0;
+			}
+			if (lastMin == -1) {
+				lastMin = 0;
+			}
+			// 统计数据
+			for offset = 0 to CurrentBar - lastMax {
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMax += 1;
+				} 
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMax += 1;
+				}
+			}
+			for offset = 0 to CurrentBar - lastMin{
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMin += 1;
+				}
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMin += 1;
+				}
+			}
+			// 判断1：掉头向下？
+			if (lastMin < lastMax) {
+				if (highCntFromLastMin >= 3) {
+					//高度比较
+					if (highArr[CurrentBar - lastMax] > highArr[0]){
+						//keep old
+					} else{
+						//更高
+						lastMax = CurrentBar;
+						SetGlobalVar(1, CurrentBar);
+					}
+				}
+				if (lowCntFromLastMax >= 3) {
+					//保存上一个lastMin
+					index0 = (index0 +1)%9;
+					SetGlobalVar(40 + index0, lastMin);
+					SetGlobalVar(49, index0);
+					
+					lastMin = CurrentBar;
+					SetGlobalVar(0, CurrentBar);
+					
+					
+				}
+			} else if(lastMin > lastMax) {
+				//判断2：掉头向上？
+				if (lowCntFromLastMax >= 3) {
+					//高度比较
+					if (lowArr[CurrentBar - lastMin] < lowArr[0]) {
+						//keep
+					} else {
+						//更低
+						lastMin = CurrentBar;
+						SetGlobalVar(0, CurrentBar);
+					}
+				}
+				if (highCntFromLastMin >= 3) {
+					index1 = (index1 +1)%9;
+					SetGlobalVar(30+index1, lastMax);
+					SetGlobalVar(39, index1);
+					//保存上一个lastMax
+					lastMax = CurrentBar;
+					SetGlobalVar(1, CurrentBar);
+				}
+			}
+		}
+		
+		Bool isOutChannel = False;
+		PlotNumeric("CurrentBar:", CurrentBar);
+		PlotNumeric("lastMax:", lastMax);
+		PlotNumeric("oldMin:", oldMin);
+		// 开始下跌了
+		if (lastMin == oldMin && CurrentBar - lastMax >= 2) {
+			// 从最高点开始偏移3个Bar，也就是一笔，判断是否要动单
+			NumericArray lArr;
+			slope = (highArr[CurrentBar-oldMin] - highArr[CurrentBar-lastMax])/(oldMin - lastMax);
+			NumericArray aArr;
+			NumericArray bArr;
+			NumericArray xArr;
+			for i=oldMin to lastMax {
+				ArrAdd(lArr, lowArr[CurrentBar-i]);
+			}
+			Commentary("oldMin, lastMax:"+Text(oldMin) + "," +Text(lastMax));
+			
+			ShowArr("lowArr", lArr);
+			OutsideRiseChannel(lArr, slope, aArr, bArr,xArr);
+			ShowArr("2 aArr", aArr);
+			ShowArr("2 bArr", bArr);
+			Numeric x = CurrentBar - 1 - oldMin;
+			Numeric y = closeArr[1];
+			// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+			for i=0 to ArrLength(aArr)-1 {
+/*				if (aArr[i]*x + bArr[i] > y) {
+					isOutChannel = True;
+					break;
+				}*/
+				//知道y=a*x+b之后，绘制直线
+				x1 = -5;
+				y1 = aArr[i]*x1 + bArr[i];
+				x2 = lastMax - oldMin;
+				y2 = aArr[i]*x2 + bArr[i];
+				Commentary("x1,y1,x2,y2:("+Text(x1)+","+Text(y1)+") ("+Text(x2)+","+Text(y2)+")");
+				PartLine("valid", CurrentBar-oldMin+5, y1, CurrentBar-lastMax, y2);
+				//PartLine("valid2", CurrentBar-oldMin+5, y1, CurrentBar-lastMax, 1783);
+				ShowArr("aArr", aArr);
+				ShowArr("bArr", bArr);
+				Commentary("isOutChannel:"+Text(isOutChannel) + " slope:"+Text(slope) + " lastEnter:"+Text(lastEnter) + " CurrentBar:"+Text(CurrentBar));
+			}
+		}
+		
+		//开始上涨啦
+		if (lastMax == oldMax && CurrentBar - lastMin >= 2) {
+			//从最高点开始偏移3个Bar，也就是一笔，判断是否要动单
+			NumericArray hArr;
+			slope = (highArr[CurrentBar-oldMax]-highArr[CurrentBar-lastMin])/(oldMax - lastMin);
+			NumericArray aArr;
+			NumericArray bArr;
+			for i=oldMax to lastMin {
+				ArrAdd(hArr, highArr[CurrentBar-i]);
+			} 
+			ShowArr("hArr", hArr);
+			OutsideFallChannel(hArr, slope, aArr, bArr);
+			Numeric x = CurrentBar - 1 - oldMax;
+			Numeric y = closeArr[1];
+			//y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+			for i=0 to ArrLength(aArr) {
+				//知道y=a*x+b之后，绘制直线
+				x1 = -5;
+				y1 = aArr[i]*x1 + bArr[i];
+				x2 = oldMax - lastMin;
+				y2 = aArr[i]*x2 + bArr[i];
+				PartLine("valid", CurrentBar-oldMax+5, y1, CurrentBar-lastMin, y2);
+				Commentary("isOutChannel:"+Text(isOutChannel) + " slope:"+Text(slope) + " lastEnter:"+Text(lastEnter));
+					
+				if (aArr[i]*x + bArr[i] < y) {
+					isOutChannel = True;
+					break;
+				}
+			}
+		}
+		return;
+		
+		
+		
+		
+		
+		// 这里是下跌
+		if (isOutChannel && slope > 0) {
+			PlotNumeric("rise", Low,Red);
+			SetShapeStyle("rise",2, 0, 1);
+			//------------------------------------------------------------
+			// 如果有单
+			if (lastEnter > 0) {
+				//先平仓
+				//BuyToCover(Lots);
+				profit += Open - lastEnter - 2;
+				PartLine("trade2", CurrentBar - lastPosition, highArr[CurrentBar-lastPosition], 0, Low, Yellow, 3);
+				Commentary("Sell平仓 CurrentBar:" + Text(CurrentBar) + " profit:" + Text(profit));
+				
+				//重置价格
+				lastEnter = 0;
+			} else if (lastEnter > 0) {
+				Commentary("error with buy, CurrentBar:" + Text(CurrentBar));
+			}
+			
+			// 如果是顺势下跌
+			if (isOutChannel) {
+				// 判断是否做空
+				if (lowArr[CurrentBar-lastMin] <= avg150 && lastEnter == 0) {
+					//再开仓
+					//SellShort(Lots,Open);
+					lastEnter = Open*(-1);
+					lastPosition = CurrentBar;
+					Commentary("SellShort开仓 CurrentBar:" + Text(CurrentBar) + " profit:" + Text(profit));
+				}
+			}
+			
+			SetGlobalVar(10, lastEnter);
+			SetGlobalVar(11, profit);
+			SetGlobalVar(12, lastPosition);
+		}
+		
+		if (isOutChannel && slope < 0) {
+			PlotNumeric("rise", High,Red);
+			SetShapeStyle("rise",2, 0, 1);
+			//------------------------------------------------------------
+			if (lastEnter < 0) {
+				//先平仓
+				//BuyToCover(Lots);
+				profit += (-1)*lastEnter - Open - 2;
+				Commentary("BuyToCover平空单 CurrentBar:" + Text(CurrentBar) + " profit:" + Text(profit));
+				PartLine("trade2", CurrentBar - lastPosition, lowArr[CurrentBar-lastPosition], 0, High, Yellow, 3);
+				
+				//重置价格
+				lastEnter = 0;
+			} else if (lastEnter < 0) {
+				Commentary("error with sell, CurrentBar:" + Text(CurrentBar));
+			}
+			
+			if (isOutChannel) {
+				// 判断是否做空: 空仓下，前一个低点要高于150均线
+				if (highArr[CurrentBar-lastMin] >= avg150 && lastEnter == 0) {
+					//再开仓
+					//Buy(Lots,Open);
+					lastEnter = Open;
+					lastPosition = CurrentBar;
+					Commentary("Buy做多 CurrentBar:" + Text(CurrentBar) + " profit:" + Text(profit));
+				}
+			}
+				
+			SetGlobalVar(10, lastEnter);
+			SetGlobalVar(11, profit);
+			SetGlobalVar(12, lastPosition);
+		}
+		//Plotnumeric("lowArr[CurrentBar-lastMin]",lowArr[CurrentBar - lastMin]);
+		//Plotnumeric("lowArr[CurrentBar]",lowArr[0]);
+		//Plotnumeric("avg10[CurrentBar]",avg10[0]);
+		
+		// 打印记录的索引值
+		//Plotnumeric("oldMax",oldMax);
+		//Plotnumeric("oldMin",oldMin);
+		//SetGlobalLoop0(CurrentBar);
+		//PlotNumeric("oldMin", tmp);
+		
+		if (oldMin > oldMax &&lastMax > oldMax) {
+			PartLine("minMax2", CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-oldMin, lowArr[CurrentBar-oldMin]);
+		}
+		if (oldMax >oldMin && lastMin > oldMin){
+			PartLine("minMax2", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-oldMax, highArr[CurrentBar-oldMax]);
+		}
+		
+		if (lastMax == oldMax && lastMin == oldMin
+				) {
+				if ( lastMin > lastMax ) {
+					PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+				} else {
+					PartLine("tail", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-lastMax, highArr[CurrentBar-lastMax]);
+				}
+		}
+		
+		
+		
+End
+
+##FamulaInfo#fullName#均线数浪系统#fmlName#waveAvg150Sys#fmldise##fmltype##fmlGroup#交易系统#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:WaveMachine
+// 名称:计算机数浪
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params         
+        //参数定义
+		Numeric TimeFrame(240);                // 目标时间周期参数，参数说明参见MtBar
+        Numeric BarsBack(1);                 // 目标时间周期BAR偏移参数，说明见MtBar函数
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+    	Numeric Lots(1);
+		
+GlobalVars
+Vars
+		Bool flag(False);
+		Integer minCount(0);
+		Integer maxCount(0);
+		NumericSeries avg10;
+		NumericSeries lowArr;
+		NumericSeries highArr;
+		NumericSeries macd240Arr;
+		Integer offset;
+		Integer i;
+		
+		Integer lastMin(-1);
+		Integer lastMax(-1);
+		Integer oldMin;
+		Integer oldMax;
+		Integer index0;
+		Integer index1;
+		Integer m;
+		Integer x;
+		Integer x1;
+		Integer x2;
+		Numeric y1;
+		Numeric y2;
+		Numeric y;
+		Numeric slope;
+		Numeric diff;
+		Numeric yMax;
+		Numeric yMin;
+		Integer startX;
+		Numeric xMean;
+		Numeric yMean;
+		Numeric xSum;
+		Numeric ySum;
+		Numeric k;
+		Numeric b;
+		Integer xLeft;
+		Integer xRight;
+		Numeric yLeft;
+		Numeric yRight;
+		Numeric A_Sum;
+		Numeric B_Sum;
+		Numeric C_Sum;
+		Numeric D_Sum;
+		Numeric x_i;
+		Numeric y_i;
+		Integer currentIndex;
+		NumericArray bottomArr;
+		NumericArray topArr;
+		
+		Integer highCntFromLastMin(0);
+		Integer lowCntFromLastMin(0);
+		
+		Integer highCntFromLastMax(0);
+		Integer lowCntFromLastMax(0);
+		Numeric tmp;
+		
+		//macd240
+		NumericSeries MACDValue;
+        NumericSeries AvgMACD;
+        NumericSeries MACDDiff;
+        Numeric ooMACDValue;
+        Numeric ooAvgMACD;
+        Numeric PreBar;
+				
+Begin
+		// macd
+		PreBar = MtMACD(TimeFrame,BarsBack,FastLength,SlowLength,MACDLength,ooMACDValue,ooAvgMACD);
+        MACDVAlue = ooMACDValue;
+        AvgMACD = ooAvgMACD;
+        MACDDiff = MACDValue - AvgMACD;
+		
+		// wave数浪
+		//commentary("start="+text(currenttime));
+		avg10  = AverageFC(Close, 10);
+		lowArr = AverageFC(Low, 1);
+		highArr= AverageFC(High, 1);
+		if (CurrentBar == 0) {
+			SetGlobalVar(0, -1);
+			SetGlobalVar(1, -1);
+			
+			SetGlobalVar(49, -1);
+			SetGlobalVar(39, -1);
+		}
+		lastMin = GetGlobalVar(0);
+		lastMax = GetGlobalVar(1);
+		oldMin = lastMin;
+		oldMax = lastMax;
+		
+		//UnPlotPartLine("tail", highArr[1]);
+		//UnPlotPartLine("tail", lowArr[1]);
+		
+		index0 = GetGlobalVar(49);//表示待写入值
+		index1 = GetGlobalVar(39);//表示待写入值
+		
+		//设置第一个Dot
+		if (lastMax == -1) {
+			maxCount = 0;
+			for i=0 to CurrentBar {
+				if (lowArr[i] > avg10[i]){
+					maxCount += 1;
+				}
+				//绘制
+				if (maxCount >= 3 && lastMax == -1) {
+					lastMax = i;
+					SetGlobalVar(1, i);
+					break;
+				}
+			}
+		}
+		//设置第一个Dot
+		if (lastMin == -1) {
+			minCount = 0;
+			for i=0 to CurrentBar {
+				if (highArr[i] < avg10[i]) {
+					minCount += 1;
+				}
+				//绘制
+				if (minCount >= 3 && lastMin == -1) {
+					lastMin = i;
+					SetGlobalVar(0, i);
+					break;
+				}
+			}
+		}
+		if (lastMax == -1 && lastMin == -1) {
+			//
+		} else {
+			if (lastMax == -1) {
+				lastMax = 0;
+			}
+			if (lastMin == -1) {
+				lastMin = 0;
+			}
+			for offset = 0 to CurrentBar - lastMax {
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMax += 1;
+				} 
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMax += 1;
+				}
+			}
+			for offset = 0 to CurrentBar - lastMin{
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMin += 1;
+				}
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMin += 1;
+				}
+			}
+			//判断1
+			if (lastMin < lastMax) {
+				if (highCntFromLastMin >= 3) {
+					//高度比较
+					if (highArr[CurrentBar - lastMax] > highArr[0]){
+						//keep old
+					} else{
+						//更高
+						lastMax = CurrentBar;
+						SetGlobalVar(1, CurrentBar);
+					}
+				}
+				if (lowCntFromLastMax >= 3) {
+					//保存上一个lastMin
+					index0 = (index0 +1)%9;
+					SetGlobalVar(40 + index0, lastMin);
+					SetGlobalVar(49, index0);
+					
+					lastMin = CurrentBar;
+					SetGlobalVar(0, CurrentBar);
+				}
+			} else if(lastMin > lastMax) {
+				if (lowCntFromLastMax >= 3) {
+					//高度比较
+					if (lowArr[CurrentBar - lastMin] < lowArr[0]) {
+						//keep
+					} else {
+						//更低
+						lastMin = CurrentBar;
+						SetGlobalVar(0, CurrentBar);
+					}
+				}
+				if (highCntFromLastMin >= 3) {
+					index1 = (index1 +1)%9;
+					SetGlobalVar(30+index1, lastMax);
+					SetGlobalVar(39, index1);
+					//保存上一个lastMax
+					lastMax = CurrentBar;
+					SetGlobalVar(1, CurrentBar);
+				}
+			}
+		}
+		//Plotnumeric("lowArr[CurrentBar-lastMin]",lowArr[CurrentBar - lastMin]);
+		//Plotnumeric("lowArr[CurrentBar]",lowArr[0]);
+		//Plotnumeric("avg10[CurrentBar]",avg10[0]);
+		
+		// 打印记录的索引值
+		//Plotnumeric("oldMax",oldMax);
+		//Plotnumeric("oldMin",oldMin);
+		//SetGlobalLoop0(CurrentBar);
+		//PlotNumeric("oldMin", tmp);
+		
+		if (oldMin > oldMax &&lastMax > oldMax) {
+			PartLine("minMax2", CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-oldMin, lowArr[CurrentBar-oldMin]);
+		}
+		if (oldMax >oldMin && lastMin > oldMin){
+			PartLine("minMax2", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-oldMax, highArr[CurrentBar-oldMax]);
+		}
+		
+		//we has lastMax/lastMin
+/*		PlotNumeric("CurrentBar", CurrentBar);
+		PlotNumeric("lastMax", lastMax);
+		PlotNumeric("lastMin", lastMin);
+		PlotNumeric("oldMax", oldMax);
+		PlotNumeric("oldMin", oldMin);*/
+		//PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+		
+		if (lastMax == oldMax && lastMin == oldMin
+				) {
+				if ( lastMin > lastMax ) {
+					PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+				} else {
+					PartLine("tail", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-lastMax, highArr[CurrentBar-lastMax]);
+				}
+		}
+/*		if (lastMin > oldMax && 
+				oldMax > oldMin
+				&& lastMax == oldMax) {
+			PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+			//PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], 0, lowArr[CurrentBar-lastMin]);	
+		} else if (lastMax > oldMin &&
+				oldMin > oldMax) {
+			//PartLine("tail", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-lastMax, highArr[CurrentBar-lastMax]);			
+		}*/
+/*		if (lastMax == oldMax && lastMin == oldMin) {
+			if (oldMin > oldMax) {
+				//PartLine("tail", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], 0,  highArr[0]);
+			} else {
+				PartLine("tail", CurrentBar-oldMax, highArr[CurrentBar-oldMax], 0,  lowArr[0]);
+			}
+			
+			lastMax > lastMin && 
+			lastMin > lastMax &&
+				
+		}*/
+		
+		//打印 Bar 的 index	
+		//Plotnumeric("CurrentBar",CurrentBar);
+		
+		//Plotnumeric("highCntFromLastMax",highCntFromLastMax);
+		//Plotnumeric("lowCntFromLastMax",lowCntFromLastMax);
+		//Plotnumeric("highCntFromLastMin",highCntFromLastMin);
+		//Plotnumeric("lowCntFromLastMin",lowCntFromLastMin);
+		
+		// 最后一个高点、最后一个低点会被丢掉
+		//commentary("end="+text(currenttime));
+		//commentary("currentbar="+text(currentbar));
+/*		for i = 0 to 9 {
+			tmp = GetGlobalVar(40 + i);
+			//commentary("tmp="+text((i+1)*100000 +tmp));
+			tmp = GetGlobalVar(30 + i);
+			//commentary("tmp="+text((i+1)*100000 +tmp));
+		}*/
+/*		// 绘制最近的通道线
+		index0 = GetGlobalVar(49);
+		index1 = GetGlobalVar(39);
+		oldMin = GetGlobalVar(40+index0);
+		oldMax = GetGlobalVar(30+index1);
+		lastMin = GetGlobalVar(0);
+		lastMax = GetGlobalVar(1);
+		//commentary("oldMin"+text(oldMin));
+		//commentary("oldMax"+text(oldMax));
+		//commentary("lastMin"+text(lastMin));
+		//commentary("lastMax"+text(lastMax));
+		
+		// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+		y1 = lowArr[CurrentBar-oldMin];
+		y2 = lowArr[CurrentBar-lastMin];
+		x1 = oldMin;
+		x2 = lastMin;
+		
+		yMin = y1 + (CurrentBar - x1)*(y2-y1)/(x2-x1);
+		
+		y1 = lowArr[CurrentBar-oldMax];
+		y2 = lowArr[CurrentBar-lastMax];
+		x1 = oldMax;
+		x2 = lastMax;
+		yMax = y1 + (CurrentBar - x1)*(y2-y1)/(x2-x1);*/
+		
+		
+		/*if (BarStatus == 2) {
+		//if (CurrentBar == 4800) {
+			//PartLine("TrendMin", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);
+			//PartLine("TrendMin", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], 0, yMin);
+			//PartLine("TrendMax", CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMax, highArr[CurrentBar-lastMax]);
+			//PartLine("TrendMax", CurrentBar-oldMax, highArr[CurrentBar-oldMax],0, yMax);
+			
+			// 往前回溯，找到金叉位置
+			tmp = MACDDiff;
+			for i=1 to 300 {
+				if (MACDDiff[i]*tmp <= 0) {
+					//if ((MACDValue[CurrentBar-i+1] >= AvgMACD[CurrentBar-i+1]) &&
+					//(MACDValue[CurrentBar-i-1] <= AvgMACD[CurrentBar-i-1])) {
+						//Commentary("MACDValue[CurrentBar-i-1]"+Text(MACDValue[CurrentBar-i-1]));
+						//Commentary("AvgMACD[CurrentBar-i-1]"+Text(AvgMACD[CurrentBar-i-1]));
+						//Commentary("MACDValue[CurrentBar-i+1]"+Text(MACDValue[CurrentBar-i+1]));
+						//Commentary("AvgMACD[CurrentBar-i+1]"+Text(AvgMACD[CurrentBar-i+1]));
+						
+						Commentary("i"+Text(i));
+						Commentary("MACDDiff[i]"+Text(MACDDiff[i]));
+						//PlotNumeric("cross", i);
+					offset = i;
+					break;
+				}
+			}
+			// 最小二乘法：从金叉位置，拟合曲线。
+			for i=0 to 4 {
+				SetGlobalVar(10+i, i*2+1);
+			}
+			
+			xMean = 0;
+			yMean = 0;
+			xSum = 0;
+			ySum = 0;
+			A_Sum = 0;
+			C_Sum = 0;
+			//offset = 2;
+			for i = 1 to offset {
+			//for i = 0 to offset {
+				//x_i = i;
+				//y_i = GetGlobalVar(10+i);
+				x_i = CurrentBar - (offset - i);
+				y_i = highArr[offset - i];
+				xSum += x_i;
+				ySum += y_i;
+				Commentary("i= " + text(i) + " x_i=" + text(x_i) + " y_i=" + text(y_i));
+				
+				A_Sum += x_i * y_i;
+				C_Sum += x_i * x_i;
+			Commentary("A_Sum=" + text(A_Sum));
+			Commentary("B_Sum=" + text(B_Sum));
+			Commentary("C_Sum=" + text(C_Sum));
+			Commentary("D_Sum=" + text(D_Sum));
+			}
+			B_Sum = xSum*ySum/offset;
+			D_Sum = xSum*xSum/offset;
+			xMean = xSum/offset;
+			yMean = ySum/offset;
+			Commentary("offset=" + text(offset));
+		 	Commentary("xSum=" + text(xSum));
+			Commentary("ySum=" + text(ySum));
+			Commentary("A_Sum=" + text(A_Sum));
+			Commentary("B_Sum=" + text(B_Sum));
+			Commentary("C_Sum=" + text(C_Sum));
+			Commentary("D_Sum=" + text(D_Sum));
+			
+			k = (A_Sum - B_Sum)/(C_Sum - D_Sum);
+			b = yMean - k *xMean;
+			// 计算2个端点的位置
+			xLeft = CurrentBar - offset;
+			xRight= CurrentBar;
+			yLeft = k * xLeft + b;
+			yRight = k * yLeft + b;
+			//PartLine("trend", offset, yLeft, 0, yRight);
+			
+			slope = k;
+			 Commentary("k=" + text(k));
+			 Commentary("b=" + text(b));
+			 Commentary("startX=" + text(startX));
+			 Commentary("yMean=" + text(yMean));
+			 Commentary("xMean=" + text(xMean));
+			 Commentary("yLeft=" + text(yLeft));
+			 Commentary("yRight=" + text(yRight));
+			
+			// 这里采用通俗做法，找极值点，然后判断位置
+			Commentary("offset " + Text(offset));
+			for i = 0 to offset {
+				x_i = CurrentBar - offset + i;
+				// 底分型
+				if ((lowArr[i] <= lowArr[i+1]) && 
+				    (lowArr[i] <= lowArr[i-1])) {
+					//添加到数组中
+					Commentary("low x_i " + Text(x_i));
+					ArrAdd(bottomArr, x_i);
+					//PartLine("low_showArr"+Text(i), 0, lowArr[0],  i, lowArr[i]);
+				}
+			}
+			for i = 0 to offset {
+				// 左边第一个要遍历的 K 线
+				x_i = CurrentBar - offset + i;
+				//顶分型
+				if ((highArr[offset - i] >= highArr[offset - i+1]) &&
+					(highArr[offset - i] >= highArr[offset - i-1]) ) {
+					//添加到数组中
+					Commentary("high i " + Text(x_i));
+					ArrAdd(topArr, x_i);
+					if (i == 3 || i== 4) {
+						//PartLine("high_showArr"+Text(i), 3, highArr[3],  offset - i, highArr[offset - i]);
+					}
+					//break;
+				}
+			}
+			// 最小值
+			for i = 0 to ArrLength(bottomArr)-2 {
+				for k = i+1 to ArrLength(bottomArr)-1 {
+					// 获得所有的直线，判断是否都大于等于0
+					// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+					x1 = bottomArr[i];
+					x2 = bottomArr[k];
+					y1 = lowArr[CurrentBar-x1];
+					y2 = lowArr[CurrentBar-x2];
+					// 斜率匹配最小二乘法的结果
+					if ((y2-y1)/(x2-x1)*slope <= 0) {
+						continue;
+					}
+					
+					//Commentary("=====x1 y1, x2 y2="+Text(x1) +","+Text(y1) + " " + Text(x2) + "," + Text(y2));
+					
+					flag = True;
+					for m = 0 to ArrLength(bottomArr) - 1 {
+						if (m == i || m == k) {
+							continue;
+						}
+						x =  bottomArr[m];
+						y = y1 + (x - x1)*(y2-y1)/(x2-x1);
+						diff = lowArr[CurrentBar-x] - y;
+						//Commentary("x,y diff=" + Text(x) +","+Text(y) + "," + Text(diff));
+						if (diff < 0) {
+							//Commentary("-----ignore low x/y pair");
+							flag = False;
+							break;
+						}
+					}
+					if (flag) {
+						//PartLine("low" +Text(i) + "->" + Text(k) +"->"+ Text(m), 
+						//				CurrentBar-x1, y1,  
+						//				CurrentBar-x2, y2);
+					}
+				}
+			}
+			// 最大值
+			for i = 0 to ArrLength(topArr)-2 {
+				//Commentary("i="+Text(i) +" len=" +Text(ArrLength(topArr)));
+				for k = i+1 to ArrLength(topArr)-1 {
+					// 获得所有的直线，判断是否都大于等于0
+					// y = y1 +[(y2-y1)/(x2-x1)]*(x-x1)
+					x1 = topArr[i];
+					x2 = topArr[k];
+					y1 = highArr[CurrentBar-x1];
+					y2 = highArr[CurrentBar-x2];
+					// 斜率匹配最小二乘法的结果
+					if ((y2-y1)/(x2-x1)*slope <= 0) {
+						continue;
+					}
+					
+					//if (x1 == 2243 && x2 == 2294) {
+						//Commentary("=====x1 y1, x2 y2=("+Text(x1) +","+Text(y1) + ") (" + Text(x2) + "," + Text(y2) +")");
+						
+					//}
+					
+					flag = True;
+					for m = 0 to ArrLength(topArr) - 1 {
+						if (m == i || m == k) {
+							continue;
+						}
+						x =  topArr[m];
+						y = y1 + (x - x1)*(y2-y1)/(x2-x1);
+						diff = highArr[CurrentBar-x] - y;
+						//Commentary("x,y diff=(" + Text(x) +","+Text(y) + ")," + Text(diff));
+						if (diff > 0) {
+							//Commentary("-----ignore high x/y pair");
+							flag = False;
+							break;
+						}
+					}//for m = 0
+					
+					if (flag) {
+						//Commentary("allow PartLine:(" + Text(x1) +"," +Text(y1) +")");
+						//Commentary("allow PartLine:(" + Text(x2) +"," +Text(y2) +")");
+						//PartLine("high" +Text(i) + "->" + Text(k) +"->"+ Text(m), 
+						//				CurrentBar-x1, y1,  
+						//				CurrentBar-x2, y2);
+					}//if (flag)
+					//break;
+				}//for k = i+1 to ArrLength(topArr)-1
+				//break;
+			}//for i = 0 to ArrLength(topArr)-2
+			
+		}
+		//PlotNumeric("CurrentBar:", (CurrentBar));*/
+		
+		
+		
+End
+##FamulaInfo#fullName#计算机数浪#fmlName#WaveMachine#fmldise#计算机破10均线数浪#fmltype##fmlGroup#摆动指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:WaveMachine120
+// 名称:计算机数浪120
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+// 简称:WaveMachine
+// 名称:计算机数浪
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params         
+		Integer LIMIT_COUNT(3);
+GlobalVars
+Vars
+		Bool flag(False);
+		Integer minCount(0);
+		Integer maxCount(0);
+		NumericSeries avg10;
+		NumericSeries lowArr;
+		NumericSeries highArr;
+		NumericSeries macd240Arr;
+		Integer offset;
+		Integer i;
+		
+		Integer lastMin(-1);
+		Integer lastMax(-1);
+		Integer oldMin;
+		Integer oldMax;
+		Integer index0;
+		Integer index1;
+		Integer m;
+		Integer x;
+		Integer x1;
+		Integer x2;
+		Numeric y1;
+		Numeric y2;
+		Numeric y;
+		Numeric slope;
+		Numeric diff;
+		Numeric yMax;
+		Numeric yMin;
+		Integer startX;
+		Numeric xMean;
+		Numeric yMean;
+		Numeric xSum;
+		Numeric ySum;
+		Numeric k;
+		Numeric b;
+		Integer xLeft;
+		Integer xRight;
+		Numeric yLeft;
+		Numeric yRight;
+		Numeric A_Sum;
+		Numeric B_Sum;
+		Numeric C_Sum;
+		Numeric D_Sum;
+		Numeric x_i;
+		Numeric y_i;
+		Integer currentIndex;
+		NumericArray bottomArr;
+		NumericArray topArr;
+		
+		Integer highCntFromLastMin(0);
+		Integer lowCntFromLastMin(0);
+		
+		Integer highCntFromLastMax(0);
+		Integer lowCntFromLastMax(0);
+		Numeric tmp;		
+Begin
+		// wave数浪
+		//commentary("start="+text(currenttime));
+		avg10  = AverageFC(Close, 120);
+		lowArr = AverageFC(Low, 1);
+		highArr= AverageFC(High, 1);
+		if (CurrentBar == 0) {
+			SetGlobalVar(0, -1);
+			SetGlobalVar(1, -1);
+			
+			SetGlobalVar(49, -1);
+			SetGlobalVar(39, -1);
+		}
+		lastMin = GetGlobalVar(0);
+		lastMax = GetGlobalVar(1);
+		oldMin = lastMin;
+		oldMax = lastMax;
+		
+		//UnPlotPartLine("tail", highArr[1]);
+		//UnPlotPartLine("tail", lowArr[1]);
+		
+		index0 = GetGlobalVar(49);//表示待写入值
+		index1 = GetGlobalVar(39);//表示待写入值
+		
+		//设置第一个Dot
+		if (lastMax == -1) {
+			maxCount = 0;
+			for i=0 to CurrentBar {
+				if (lowArr[i] > avg10[i]){
+					maxCount += 1;
+				}
+				//绘制
+				if (maxCount >= LIMIT_COUNT && lastMax == -1) {
+					lastMax = i;
+					SetGlobalVar(1, i);
+					break;
+				}
+			}
+		}
+		//设置第一个Dot
+		if (lastMin == -1) {
+			minCount = 0;
+			for i=0 to CurrentBar {
+				if (highArr[i] < avg10[i]) {
+					minCount += 1;
+				}
+				//绘制
+				if (minCount >= LIMIT_COUNT && lastMin == -1) {
+					lastMin = i;
+					SetGlobalVar(0, i);
+					break;
+				}
+			}
+		}
+		if (lastMax == -1 && lastMin == -1) {
+			//
+		} else {
+			if (lastMax == -1) {
+				lastMax = 0;
+			}
+			if (lastMin == -1) {
+				lastMin = 0;
+			}
+			for offset = 0 to CurrentBar - lastMax {
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMax += 1;
+				} 
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMax += 1;
+				}
+			}
+			for offset = 0 to CurrentBar - lastMin{
+				if (lowArr[offset] > avg10[offset]){
+					highCntFromLastMin += 1;
+				}
+				if (highArr[offset] < avg10[offset]) {
+					lowCntFromLastMin += 1;
+				}
+			}
+			//判断1
+			if (lastMin < lastMax) {
+				if (highCntFromLastMin >= LIMIT_COUNT) {
+					//高度比较
+					if (highArr[CurrentBar - lastMax] > highArr[0]){
+						//keep old
+					} else{
+						//更高
+						lastMax = CurrentBar;
+						SetGlobalVar(1, CurrentBar);
+					}
+				}
+				if (lowCntFromLastMax >= LIMIT_COUNT) {
+					//保存上一个lastMin
+					index0 = (index0 +1)%9;
+					SetGlobalVar(40 + index0, lastMin);
+					SetGlobalVar(49, index0);
+					
+					lastMin = CurrentBar;
+					SetGlobalVar(0, CurrentBar);
+				}
+			} else if(lastMin > lastMax) {
+				if (lowCntFromLastMax >= LIMIT_COUNT) {
+					//高度比较
+					if (lowArr[CurrentBar - lastMin] < lowArr[0]) {
+						//keep
+					} else {
+						//更低
+						lastMin = CurrentBar;
+						SetGlobalVar(0, CurrentBar);
+					}
+				}
+				if (highCntFromLastMin >= LIMIT_COUNT) {
+					index1 = (index1 +1)%9;
+					SetGlobalVar(30+index1, lastMax);
+					SetGlobalVar(39, index1);
+					//保存上一个lastMax
+					lastMax = CurrentBar;
+					SetGlobalVar(1, CurrentBar);
+				}
+			}
+		}
+		//Plotnumeric("lowArr[CurrentBar-lastMin]",lowArr[CurrentBar - lastMin]);
+		//Plotnumeric("lowArr[CurrentBar]",lowArr[0]);
+		//Plotnumeric("avg10[CurrentBar]",avg10[0]);
+		
+		// 打印记录的索引值
+		//Plotnumeric("oldMax",oldMax);
+		//Plotnumeric("oldMin",oldMin);
+		//SetGlobalLoop0(CurrentBar);
+		//PlotNumeric("oldMin", tmp);
+		
+		if (oldMin > oldMax &&lastMax > oldMax) {
+			PartLine("minMax2", CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-oldMin, lowArr[CurrentBar-oldMin]);
+		}
+		if (oldMax >oldMin && lastMin > oldMin){
+			PartLine("minMax2", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-oldMax, highArr[CurrentBar-oldMax]);
+		}
+		
+		//we has lastMax/lastMin
+		PlotNumeric("CurrentBar", CurrentBar);
+		PlotNumeric("lastMax", lastMax);
+		PlotNumeric("lastMin", lastMin);
+		PlotNumeric("oldMax", oldMax);
+		PlotNumeric("oldMin", oldMin);
+		//PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+		
+		if (lastMax == oldMax && lastMin == oldMin ) {
+			if ( lastMin > lastMax ) {
+				PartLine("tail",CurrentBar-oldMax, highArr[CurrentBar-oldMax], CurrentBar-lastMin, lowArr[CurrentBar-lastMin]);	
+			} else {
+				PartLine("tail", CurrentBar-oldMin, lowArr[CurrentBar-oldMin], CurrentBar-lastMax, highArr[CurrentBar-lastMax]);
+			}
+		}
+End
+##FamulaInfo#fullName#计算机数浪120#fmlName#WaveMachine120#fmldise##fmltype##fmlGroup#摆动指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称: WeekMACD
+// 名称: 周线MACD
+// 类别: 技术指标
+// 类型: 其它类
+// 输出:
+//------------------------------------------------------------------------
+
+Params
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+Vars
+        NumericSeries MACDValue;
+        Numeric AvgMACD;
+        Numeric MACDDiff;
+Begin
+        MACDValue = WeekXAverage( Close, FastLength ) - WeekXAverage( Close, SlowLength ) ;       
+        AvgMACD = WeekXAverage(MACDValue,MACDLength);
+        MACDDiff = MACDValue - AvgMACD;
+        PlotNumeric("MACD",MACDValue);
+        PlotNumeric("MACDAvg",AvgMACD);
+        If (MACDDiff >= 0)       
+                PlotNumeric("MACDDiff",MACDDiff,Red);
+        Else
+                PlotNumeric("MACDDiff",MACDDiff,Green);
+        PlotNumeric("零线",0);          
+End
+
+//------------------------------------------------------------------------
+// 编译版本        GS2004.06.12
+// 用户版本        2008/04/08 20:20
+// 版权所有        nopain
+// 更改声明        TradeBlazer Software保留对TradeBlazer平台
+//                        每一版本的TrabeBlazer公式修改和重写的权利
+//------------------------------------------------------------------------
+##FamulaInfo#fullName#周线MACD#fmlName#WeekMACD#fmldise##fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称: WeekXAverage
+// 名称: 日线转化周线的指数平均
+// 类别: 用户函数
+// 类型: 用户函数
+// 输出: 数值型
+//------------------------------------------------------------------------
+
+Params
+        NumericSeries Price(10);
+        Numeric Length(10);
+Vars
+        NumericSeries WeeksNo;
+        NumericSeries WeekDays;
+        BoolSeries FirstWeek(True);
+        Numeric sFcactor;
+        NumericSeries XAvgValue;
+Begin
+        If(CurrentBar == 0)
+        {
+                FirstWeek = True;
+        }Else
+        {
+                FirstWeek = FirstWeek[1];
+                If(FirstWeek &&  Weekday==1)
+                {
+                        FirstWeek = False;
+                }
+        }
+       
+        WeeksNo = IntPart(DateDiff(19700105,Date)/7);
+        If(WeeksNo!=WeeksNo[1])
+        {
+                WeekDays = 1;
+        }Else
+        {
+                WeekDays = WeekDays[1] + 1;
+        }
+
+        sFcactor = 2 / ( Length + 1 );
+        if (FirstWeek)
+        {
+                XAvgValue = Price;
+        }else
+        {
+                XAvgValue = XAvgValue[WeekDays] + sFcactor * ( Price - XAvgValue[WeekDays] ) ;
+        }       
+    Return XAvgValue;
+End
+
+//------------------------------------------------------------------------
+// 编译版本        GS2004.06.12
+// 用户版本        2008/04/08 20:23
+// 版权所有        nopain
+// 更改声明        TradeBlazer Software保留对TradeBlazer平台
+//                        每一版本的TrabeBlazer公式修改和重写的权利
+//------------------------------------------------------------------------
+##FamulaInfo#fullName#周线MACD函数#fmlName#WeekXAverage#fmldise##fmltype#Numeric#fmlGroup##isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称: WeekMACD
+// 名称: 周线MACD
+// 类别: 技术指标
+// 类型: 其它类
+// 输出:
+//------------------------------------------------------------------------
+
+Params
+        Numeric FastLength(12);
+        Numeric SlowLength(26);
+        Numeric MACDLength(9);
+Vars
+        NumericSeries MACDValue;
+        Numeric AvgMACD;
+        Numeric MACDDiff;
+Begin
+        MACDValue = WeekXAverage( Close, FastLength ) - WeekXAverage( Close, SlowLength ) ;       
+        AvgMACD = WeekXAverage(MACDValue,MACDLength);
+        MACDDiff = MACDValue - AvgMACD;
+        PlotNumeric("MACD",MACDValue);
+        PlotNumeric("MACDAvg",AvgMACD);
+        //If (MACDDiff >= 0)       
+        //        PlotBar("MACDDiff",MACDDiff,Red);
+        //Else
+        //        PlotBar("MACDDiff",MACDDiff,Green);
+        PlotNumeric("零线",0);          
+End
+
+//------------------------------------------------------------------------
+// 编译版本        GS2004.06.12
+// 用户版本        2008/04/08 20:20
+// 版权所有        nopain
+// 更改声明        TradeBlazer Software保留对TradeBlazer平台
+//                        每一版本的TrabeBlazer公式修改和重写的权利
+//------------------------------------------------------------------------
+##FamulaInfo#fullName#WM2#fmlName#WM2#fmldise##fmltype##fmlGroup#趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:WR
+// 名称:威廉指标
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+	Integer N(14);
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	Numeric wr = -100*(HighestFC(HIGH,N)-CLOSE)/(HighestFC(HIGH,N)-LowestFC(LOW,N));
+	PlotNumeric("W&R",wr);
+End
+##FamulaInfo#fullName#威廉指标#fmlName#WR#fmldise#算法：N日内最低价与当日收盘价的差，除以N日内最高价与最低价的差，结果放大100倍 参数：N　统计天数　一般取14天 用法： 1.高于-20，超买，即将见顶，应及时卖出 2.低于-80，超卖，即将见底，应伺机买进 3.与RSI、MTM指标配合使用，效果更好#fmltype##fmlGroup#反趋向指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:aF
+// 名称:aF
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params
+	Integer N(14);  	
+	Integer SellLine(80);         //多仓止损线
+	Integer BuyToCoverLine(20);    //空仓止损线
+	Integer OpenLine(50);		  //开仓线
+	Numeric LeaveTime(0.145900);  //当日平仓时间
+Vars
+	Numeric WR(0);   //威廉指标
+	Numeric HHV(0);
+	Numeric LLV(0);
+Begin		
+	
+	HHV = HighestFC(High,N);                 //N周期最高价
+	LLV = LowestFC(Low,N);                   //N周期最低价
+	
+	WR = (hhv - Close) / (hhv - llv) * 100;
+
+	PlotNumeric("MID_LINE",50);
+	PlotNumeric("UP_LINE",BuyToCoverLine);
+	PlotNumeric("DN_LINE",SellLine);
+
+	PlotNumeric("WR_LINE",WR);
+	
+	Bool bCrossOver  = CrossOver(WR,50);  //威廉线是否上穿50
+	Bool bCrossUnder = CrossUnder(WR,50); //威廉线是否下穿50
+	
+	if(MarketPosition == 0 && CurrentTime<LeaveTime-0.0010)
+	{
+		//当前没有持仓，并且离闭市平仓时间还至少有10分钟，判断是否开仓
+		if(bCrossOver )
+		{
+			Buy(1,C);          //开多仓
+			PlotText(WR,"开多");
+		}
+		Else if(bCrossUnder)
+		{
+			SellShort(1,C);		//开空仓
+			PlotText(WR,"开空");
+		}
+	}
+	Else
+	{
+			
+		//威廉线超过80，平多仓
+		If(MarketPosition>0 && WR >= SellLine)
+		{
+			Sell(0,C);	
+			PlotText(WR,"平多");
+		}
+		
+		//威廉线低于20，平空仓
+		If(MarketPosition<0 && WR<= BuyToCoverLine)
+		{
+			BuyToCover(0,C);	
+			PlotText(WR,"平空");
+		}
+	} 
+End
+##FamulaInfo#fullName#威廉指标交易系统#fmlName#WRTrader#fmldise#使用威廉指标作为参考的交易系统 提供止损功能 提供闭市离场功能#fmltype##fmlGroup#交易系统#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 简称:WVAD
+// 名称:威廉变异离散量
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+Params  	
+	//参数定义
+GlobalVars	
+	//全局变量定义
+Vars		
+	//局部变量定义
+Begin		
+	//策略执行区
+	PlotNumeric("WVAD",(CLOSE-OPEN)/(HIGH-LOW)*VOL);
+End
+##FamulaInfo#fullName#威廉变异离散量#fmlName#WVAD#fmldise#算法： (收盘价－开盘价)／(最高价－最低价)×成交量#fmltype##fmlGroup#量价指标#isMain#0#EndFamulaInfo#
+//------------------------------------------------------------------------
+// 类别: 交易指令
+// 类型: 用户应用
+//------------------------------------------------------------------------
+
+Params
+	Numeric RetracePct(2);
+Vars	
+	Numeric SwingHighPrice;
+	Numeric SwingLowPrice;
+GlobalVars
+	Integer PreBar(0);
+	Integer UpDn(1);
+	Numeric SwingPrice;	
+	Integer FirstDot(0);
+Begin
+	SwingHighPrice = SwingHigh( 1, H, 1,2);
+	SwingLowPrice = SwingLow( 1, L, 1, 2 );
+		
+		bool bTop = SwingHighPrice != -1;
+		bool bBtm = SwingLowPrice != -1;
+		if(bTop && bBtm)
+		{
+			if(UpDn==1)
+			{
+				bBtm=False;				
+			}			
+			Else{
+				bTop=False;
+			}
+		}
+		
+		If (bTop)
+		{
+			
+			If(UpDn ==-1 && SwingHighPrice >= SwingPrice * (1+RetracePct*0.01))
+			{
+				if(FirstDot==0)
+				{
+					FirstDot=CurrentBar-1;
+					PlotNumeric("ZigZag",L[CurrentBar],-1,CurrentBar);
+				}
+				UpDn = 1;
+				SwingPrice = SwingHighPrice;
+				PreBar = CurrentBar-1;
+				PlotNumeric("ZigZag",SwingPrice,-1,1);
+			}
+			Else If(UpDn == 1 && SwingHighPrice >= SwingPrice)
+			{
+				SwingPrice = SwingHighPrice;
+				
+				Unplot("ZigZag",CurrentBar- PreBar);
+				
+				PlotNumeric("ZigZag",SwingHighPrice,-1,1);
+				if(FirstDot==PreBar)
+				{
+					FirstDot=CurrentBar-1;
+					PlotNumeric("ZigZag",L[CurrentBar],-1,CurrentBar);
+				}
+				PreBar = CurrentBar-1;
+			}
+	
+		}
+		Else If(bBtm)
+		{
+			
+			If(UpDn ==1 && SwingLowPrice <= SwingPrice * (1-RetracePct*0.01))
+			{
+				if(FirstDot==0)
+				{
+					FirstDot=CurrentBar-1;
+					PlotNumeric("ZigZag",H[CurrentBar],-1,CurrentBar);
+				}
+				UpDn = -1;
+				SwingPrice = SwingLowPrice;
+				PreBar = CurrentBar-1;
+				PlotNumeric("ZigZag",SwingPrice,-1,1);
+				
+			}Else If(UpDn == -1 && SwingLowPrice <= SwingPrice)
+			{
+				SwingPrice = SwingLowPrice;
+				
+				Unplot("ZigZag",CurrentBar-PreBar);
+				PlotNumeric("ZigZag",SwingLowPrice,-1,1);
+				
+				if(FirstDot==PreBar)
+				{
+					FirstDot=CurrentBar-1;
+					PlotNumeric("ZigZag",H[CurrentBar],-1,CurrentBar);
+				}
+				PreBar = CurrentBar-1;
+			}
+	
+				
+		}
+		
+		
+
+	
+End
+##FamulaInfo#fullName#之字转向#fmlName#ZigZag#fmldise#之字转向ZIG ZAG,又称钥匙图,钩形图,价格区间图等。 最初产生于1870年代的日本,是在图表上将价格的 显着高点和低点顺序连接而成。 折线的划线规则是﹕从起点开始,当价格向反方向 的变化幅度超过设定的比例后,称为转折点。折线即 是将各转折点的价格用一系列直线连接而成。折线 可以方便我们过滤价格图表上小的波动(这对于喜欢 数浪的用户很有帮助),在识别价格趋势,以及趋势反 转方面,有一定的参考意义。 折线的最后一段随价格的变化而改变。当市场处 于横向整理时,不适合使用。折线的转折点幅度一般 设置为10%。#fmltype##fmlGroup#趋向指标#isMain#1#EndFamulaInfo#
